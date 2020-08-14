@@ -1,0 +1,18 @@
+plugins {
+    id 'java-gradle-plugin'
+    id 'maven-publish'
+}
+
+group = 'net.jimblackler'
+version = '0.1'
+
+sourceCompatibility = 1.8
+
+gradlePlugin {
+    plugins {
+        greetingsPlugin {
+            id = 'net.jimblackler.jsonschematypes'
+            implementationClass = 'net.jimblackler.jsonschematypes.JsonSchemaTypesPlugin'
+        }
+    }
+}
