@@ -1,4 +1,4 @@
-package net.jimblackler.jsonschematypes;
+package net.jimblackler.jsonschematypes.plugin;
 
 public class JsonSchemaTypesPluginExtension {
   private String greeter = "Baeldung";

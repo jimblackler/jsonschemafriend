@@ -1,0 +1,30 @@
+plugins {
+    id 'java-library'
+    id 'maven-publish'
+}
+
+sourceCompatibility = JavaVersion.VERSION_1_8
+targetCompatibility = JavaVersion.VERSION_1_8
+
+task sourceJar(type: Jar) {
+    from sourceSets.main.allJava
+    classifier 'sources'
+}
+
+afterEvaluate {
+    publishing {
+        publications {
+            release(MavenPublication) {
+                group = 'net.jimblackler'
+                artifactId = 'library'
+                version = '0.1'
+                artifact(sourceJar)
+                from components.java
+            }
+        }
+    }
+}
+
+dependencies {
+    implementation 'com.sun.codemodel:codemodel:2.6'
+}
