@@ -5,7 +5,6 @@ import org.gradle.api.Project;
 import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.SourceSetContainer;
-import org.gradle.plugins.ide.idea.model.IdeaModule;
 
 import java.io.File;
 import java.nio.file.Path;
@@ -14,21 +13,21 @@ import java.util.HashSet;
 
 public class JsonSchemaTypesPlugin implements Plugin<Project> {
   @Override
-  public void apply(Project project) {
+  public void apply(Project prejectIn) {
 
-    project.getExtensions().create("jsonSchemaTypes", JsonSchemaTypesPluginExtension.class);
-    project.afterEvaluate(
-        project1 -> {
+    prejectIn.getExtensions().create("jsonSchemaTypes", JsonSchemaTypesPluginExtension.class);
+    prejectIn.afterEvaluate(
+        project -> {
           GenerateJsonSchemaTypesJavaTask task =
-              project1.getTasks().create("generateJsonSchemaTypes",
+              project.getTasks().create("generateJsonSchemaTypes",
               GenerateJsonSchemaTypesJavaTask.class);
           task.setGroup("build");
-          task.dependsOn(project1.getTasks().getByName("processResources"));  // needed?
-          project1.getTasks().getByName("compileJava").dependsOn(task);  // needed?
+          task.dependsOn(project.getTasks().getByName("processResources"));
+          project.getTasks().getByName("compileJava").dependsOn(task);
 
-          Path outPath = Common.getCodePath(project1);
+          Path outPath = Common.getCodePath(project);
           SourceSet mainSourceSet =
-              ((SourceSetContainer) project1.getProperties().get("sourceSets")).
+              ((SourceSetContainer) project.getProperties().get("sourceSets")).
                   getByName(SourceSet.MAIN_SOURCE_SET_NAME);
           SourceDirectorySet java = mainSourceSet.getJava();
           Collection<File> srcDirs = new HashSet<>(java.getSrcDirs());

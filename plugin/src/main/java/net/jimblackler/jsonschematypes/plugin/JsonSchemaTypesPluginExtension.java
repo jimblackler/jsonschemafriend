@@ -1,22 +1,22 @@
 package net.jimblackler.jsonschematypes.plugin;
 
 public class JsonSchemaTypesPluginExtension {
-  private String greeter = "Baeldung";
-  private String message = "Message from Plugin!";
+  private String resourcesPath = "";
+  private String packageOut = "org.example";
 
-  public String getGreeter() {
-    return greeter;
+  public String getResourcesPath() {
+    return resourcesPath;
   }
 
-  public void setGreeter(String greeter) {
-    this.greeter = greeter;
+  public void setResourcesPath(String resourcesPath) {
+    this.resourcesPath = resourcesPath;
   }
 
-  public String getMessage() {
-    return message;
+  public String getPackageOut() {
+    return packageOut;
   }
 
-  public void setMessage(String message) {
-    this.message = message;
+  public void setPackageOut(String packageOut) {
+    this.packageOut = packageOut;
   }
 }
