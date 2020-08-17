@@ -1,8 +1,7 @@
 package net.jimblackler.jsonschematypes.plugin;
 
-import org.gradle.api.Project;
-
 import java.nio.file.Path;
+import org.gradle.api.Project;
 
 public class Common {
   public static Path getCodePath(Project project) {

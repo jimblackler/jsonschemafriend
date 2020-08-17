@@ -1,8 +1,7 @@
 package net.jimblackler.jsonschematypes;
 
 public class GenerationException extends Exception {
-  public GenerationException() {
-  }
+  public GenerationException() {}
 
   public GenerationException(String message) {
     super(message);
@@ -16,8 +15,8 @@ public class GenerationException extends Exception {
     super(cause);
   }
 
-  public GenerationException(String message, Throwable cause, boolean enableSuppression,
-                             boolean writableStackTrace) {
+  public GenerationException(
+      String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
     super(message, cause, enableSuppression, writableStackTrace);
   }
 }
