@@ -17,7 +17,7 @@ public class SuiteTest {
   public static void main(String[] args) {
     Path base = Path.of("/suites");
     scan(base.resolve("own"), "http://json-schema.org/draft-07/schema#");
-    //scan(base.resolve("draft7"), "http://json-schema.org/draft-07/schema#");
+    scan(base.resolve("draft7"), "http://json-schema.org/draft-07/schema#");
   }
 
   private static void scan(Path testDir, String version) {
@@ -83,14 +83,15 @@ public class SuiteTest {
                       System.out.println();
                     }
                   } else {
-                    System.out.println((valid ? "Passed" : "Failed") + " as expected: " +
-                        test.optString("description"));
+                    System.out.println((valid ? "Passed" : "Failed")
+                        + " as expected: " + test.optString("description"));
                   }
                 }
               }
 
-//              SchemaStore schemaStore = new SingleObjectSchemaStore(schema);
-//              schemaStore.process();
+              SchemaStore schemaStore = new SchemaStore();
+              schemaStore.loadBaseObject(schema);
+              schemaStore.process();
               System.out.println();
             }
           }

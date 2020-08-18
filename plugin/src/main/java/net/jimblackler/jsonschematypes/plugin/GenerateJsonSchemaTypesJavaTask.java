@@ -3,12 +3,10 @@ package net.jimblackler.jsonschematypes.plugin;
 import java.nio.file.Path;
 import net.jimblackler.jsonschematypes.GenerationException;
 import net.jimblackler.jsonschematypes.Main2;
-import net.jimblackler.jsonschematypes.ResourcesSchemaStore;
 import net.jimblackler.jsonschematypes.SchemaStore;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.GradleException;
 import org.gradle.api.Project;
-import org.gradle.api.resources.Resource;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.SourceSetContainer;
 import org.gradle.api.tasks.TaskAction;
@@ -30,7 +28,8 @@ public class GenerateJsonSchemaTypesJavaTask extends DefaultTask {
     resources = resources.resolve(extension.getResourcesPath());
 
     try {
-      SchemaStore schemaStore = new ResourcesSchemaStore(resources);
+      SchemaStore schemaStore = new SchemaStore();
+      schemaStore.loadResources(resources);
       schemaStore.process();
       Main2.outputTypes(outPath, schemaStore, extension.getPackageOut());
     } catch (GenerationException e) {
