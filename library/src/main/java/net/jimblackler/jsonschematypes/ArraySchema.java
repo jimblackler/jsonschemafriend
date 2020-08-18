@@ -1,22 +1,27 @@
 package net.jimblackler.jsonschematypes;
 
+import java.net.URI;
+import java.util.ArrayList;
+import java.util.List;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-public class ArraySchema extends SchemaWithContext {
-  private final Schema arraySchema;
+public class ArraySchema implements Schema {
+  private List<URI> arrayTypes = new ArrayList<>();
+  private URI singleType;
 
-  public ArraySchema(SchemaContext schemaContext, JSONObject jsonObject)
-      throws GenerationException {
-    super(schemaContext);
+  public ArraySchema(SchemaStore schemaStore, URI pointer) throws GenerationException {
+    JSONObject jsonObject = (JSONObject) schemaStore.resolve(pointer);
 
     // https://tools.ietf.org/html/draft-handrews-json-schema-02#section-9.3.1.1
     Object items = jsonObject.get("items");
     if (items instanceof JSONArray) {
-      // Same-position validation not yet supported.
-      arraySchema = null;
+      JSONArray jsonArray = (JSONArray) items;
+      for (int idx = 0; idx != jsonArray.length(); idx++) {
+        arrayTypes.add(JsonSchemaRef.append(pointer, String.valueOf(idx)));
+      }
     } else {
-      arraySchema = Schemas.create(new ArrayTypeContext(this), items);
+      singleType = schemaStore.require(JsonSchemaRef.append(pointer, "items"));
     }
   }
 }

@@ -1,9 +1,7 @@
 package net.jimblackler.jsonschematypes;
 
-import org.json.JSONObject;
+import java.net.URI;
 
-public class StringSchema extends SchemaWithContext {
-  public StringSchema(SchemaContext context, JSONObject jsonObject) throws GenerationException {
-    super(context);
-  }
+public class StringSchema implements Schema {
+  public StringSchema(SchemaStore schemaStore, URI pointer) throws GenerationException {}
 }

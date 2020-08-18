@@ -2,16 +2,13 @@ package net.jimblackler.jsonschematypes;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
 
 public class Main {
   public static void generateTypes(Path outPath, Path resources, String _package)
@@ -25,29 +22,20 @@ public class Main {
       }
       Files.createDirectories(outPath);
 
-      List<Schema> schemas = new ArrayList<>();
+      SchemaStore schemaStore = new SchemaStore(resources);
       try (Stream<Path> walk = Files.walk(resources)) {
         for (Path path : walk.collect(Collectors.toList())) {
           if (Files.isDirectory(path)) {
             continue;
           }
-
-          String content = Files.readString(path);
-          Object jsonObject;
-          try {
-            jsonObject = new JSONArray(content);
-          } catch (JSONException e) {
-            try {
-              jsonObject = new JSONObject(content);
-            } catch (JSONException e2) {
-              throw new GenerationException(e2);
-            }
-          }
-
-          schemas.add(Schemas.create(
-              new BaseSchemaContext(resources.relativize(path).toString()), jsonObject));
+          schemaStore.require(
+              new URI(null, null, null, -1, resources.relativize(path).toString(), null, "/"));
         }
+      } catch (URISyntaxException e) {
+        throw new GenerationException(e);
       }
+      schemaStore.process();
+
     } catch (UncheckedGenerationException | IOException ex) {
       throw new GenerationException(ex);
     }

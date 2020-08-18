@@ -1,13 +1,19 @@
 package net.jimblackler.jsonschematypes;
 
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.util.HashSet;
+import java.util.Set;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.json.JSONPointer;
 
 public class Schemas {
-  public static Schema create(SchemaContext schemaContext, Object object)
-      throws GenerationException {
+  public static Schema create(SchemaStore schemaStore, URI pointer) throws GenerationException {
+    Object object = schemaStore.resolve(pointer);
+    if (object == null) {
+      throw new GenerationException("Cannot follow " + pointer);
+    }
     // https://tools.ietf.org/html/draft-handrews-json-schema-02#section-4.3.2
     if (object instanceof Boolean) {
       return new TrivialSchema((boolean) object);
@@ -15,53 +21,41 @@ public class Schemas {
 
     JSONObject jsonObject = (JSONObject) object;
     try {
-      String ref = jsonObject.optString("$ref");
-      if (ref.isEmpty()) {
-        Object type = jsonObject.get("type");
-        if (type instanceof JSONArray) {
-          JSONArray array = (JSONArray) type;
-          for (int idx = 0; idx != array.length(); idx++) {
-            create2(schemaContext, jsonObject, array.getString(idx)); // treat as anyOf
-          }
-          throw new GenerationException();
-        } else {
-          return create2(schemaContext, jsonObject, type.toString());
+      if (jsonObject.has("allOf")) {
+        return new AllOfSchema(schemaStore, JsonSchemaRef.append(pointer, "allOf"));
+      }
+
+      if (jsonObject.has("anyOf")) {
+        return new AnyOfSchema(schemaStore, JsonSchemaRef.append(pointer, "anyOf"));
+      }
+
+      if (jsonObject.has("oneOf")) {
+        return new OneOfSchema(schemaStore, JsonSchemaRef.append(pointer, "oneOf"));
+      }
+
+      Object type = jsonObject.opt("type");
+      if (type == null) {
+        return new TrivialSchema(false);
+      }
+      Set<String> types = new HashSet<>();
+      if (type instanceof JSONArray) {
+        JSONArray array = (JSONArray) type;
+        for (int idx = 0; idx != array.length(); idx++) {
+          types.add(array.getString(idx));
         }
       } else {
-        JSONPointer jsonPointer = new JSONPointer(ref);
-        System.out.println(jsonPointer);
-
-        return null;
+        types.add(type.toString());
       }
+      if (types.isEmpty()) {
+        throw new GenerationException("No types");
+      }
+
+      return new MultiplePrimitiveSchema(schemaStore, pointer, types);
+
     } catch (JSONException e) {
+      System.out.println(pointer);
       System.out.println(jsonObject.toString(2));
       throw new GenerationException(e);
     }
-  }
-
-  private static SchemaWithContext create2(SchemaContext schemaContext, JSONObject jsonObject,
-      String simpleType) throws GenerationException {
-    switch (simpleType) {
-      case "array":
-        return new ArraySchema(schemaContext, jsonObject);
-      case "boolean":
-        throw new GenerationException();
-      case "integer":
-        throw new GenerationException();
-      case "null":
-        throw new GenerationException();
-      case "number":
-        throw new GenerationException();
-      case "object":
-        return new ObjectSchema(schemaContext, jsonObject);
-      case "string":
-        return new StringSchema(schemaContext, jsonObject);
-      default:
-        throw new GenerationException("Unknown type " + simpleType);
-    }
-  }
-
-  private static Schema createObject(JSONObject jsonObject) throws GenerationException {
-    return null;
   }
 }

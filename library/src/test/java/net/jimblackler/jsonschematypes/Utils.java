@@ -7,7 +7,7 @@ import org.json.JSONObject;
 
 class Utils {
   static Object getJsonObject(String filename) throws GenerationException {
-    try (Scanner scanner = new Scanner(Test.class.getResourceAsStream(filename))) {
+    try (Scanner scanner = new Scanner(ExampleTest.class.getResourceAsStream(filename))) {
       String jsonString = scanner.useDelimiter("\\A").next();
       try {
         return new JSONArray(jsonString);

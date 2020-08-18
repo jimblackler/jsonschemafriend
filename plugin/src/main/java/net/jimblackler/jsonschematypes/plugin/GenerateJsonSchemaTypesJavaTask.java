@@ -13,7 +13,7 @@ import org.gradle.api.tasks.TaskAction;
 
 public class GenerateJsonSchemaTypesJavaTask extends DefaultTask {
   @TaskAction
-  public void generate() throws IOException {
+  public void generate() {
     Path outPath = Common.getCodePath(getProject());
 
     Project project = getProject();

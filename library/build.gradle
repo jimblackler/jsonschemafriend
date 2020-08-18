@@ -29,4 +29,5 @@ dependencies {
     implementation 'com.github.everit-org.json-schema:org.everit.json.schema:1.12.1'
     implementation 'org.json:json:20200518'
     implementation 'com.sun.codemodel:codemodel:2.6'
+
 }
