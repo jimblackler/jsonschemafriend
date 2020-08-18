@@ -8,6 +8,7 @@ import org.json.JSONObject;
 
 public class ObjectSchema implements Schema {
   private final Map<String, URI> _properties = new HashMap<>();
+
   public ObjectSchema(SchemaStore schemaStore, URI pointer) throws GenerationException {
     JSONObject jsonObject = (JSONObject) schemaStore.resolve(pointer);
     { // Properties
@@ -33,9 +34,6 @@ public class ObjectSchema implements Schema {
         schemaStore.require(JsonSchemaRef.append(pointer, "definitions"));
         // We're not doing anything with this yet.
       }
-
-
-
     }
   }
 }

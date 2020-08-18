@@ -13,7 +13,7 @@ public class ExampleTest {
   public static void main(String[] args) {
     Path base = Path.of("/examples");
     scan(base.resolve("fstab"));
-    scan(base.resolve("standard/7-7-1-1"));
+    scan(base.resolve("standard").resolve("7-7-1-1"));
     scan(base.resolve("misc"));
     scan(base.resolve("longread"));
     scan(base.resolve("meta"));
@@ -42,7 +42,10 @@ public class ExampleTest {
 
     try {
       URL resource = ExampleTest.class.getResource(fullDir.toString());
-      Main.generateTypes(Path.of("out"), Path.of(resource.toURI()), "org.example");
+      SchemaStore schemaStore = new ResourcesSchemaStore(Path.of(resource.toURI()));
+      schemaStore.process();
+      Main2.outputTypes(Path.of("out"), schemaStore, "org.example");
+
     } catch (GenerationException | URISyntaxException e) {
       throw new IllegalStateException(e);
     }

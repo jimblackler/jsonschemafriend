@@ -1,7 +1,6 @@
 package net.jimblackler.jsonschematypes;
 
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.HashSet;
 import java.util.Set;
 import org.json.JSONArray;

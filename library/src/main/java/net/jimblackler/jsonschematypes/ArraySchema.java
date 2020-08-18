@@ -7,7 +7,7 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 public class ArraySchema implements Schema {
-  private List<URI> arrayTypes = new ArrayList<>();
+  private final List<URI> arrayTypes = new ArrayList<>();
   private URI singleType;
 
   public ArraySchema(SchemaStore schemaStore, URI pointer) throws GenerationException {

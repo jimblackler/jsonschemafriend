@@ -7,6 +7,7 @@ import org.json.JSONArray;
 
 public class ArrayBasedSchema implements Schema {
   private final List<URI> indices = new ArrayList<>();
+
   ArrayBasedSchema(SchemaStore schemaStore, URI pointer) throws GenerationException {
     JSONArray resolve = (JSONArray) schemaStore.resolve(pointer);
     for (int idx = 0; idx != resolve.length(); idx++) {

@@ -6,7 +6,8 @@ import java.util.HashSet;
 import java.util.Set;
 
 public class MultiplePrimitiveSchema implements Schema {
-  private Set<Schema> _types = new HashSet<>();
+  private final Set<Schema> _types = new HashSet<>();
+
   public MultiplePrimitiveSchema(SchemaStore schemaStore, URI pointer, Set<String> inTypes)
       throws GenerationException {
     Collection<String> types = new HashSet<>(inTypes);

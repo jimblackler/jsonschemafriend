@@ -1,29 +1,19 @@
 package net.jimblackler.jsonschematypes;
 
-import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
-import org.json.JSONArray;
-import org.json.JSONException;
 import org.json.JSONObject;
 import org.json.JSONPointer;
 
-public class SchemaStore {
-  private final Path resources;
-
+public abstract class SchemaStore {
   private final Collection<URI> unbuilt = new HashSet<>();
   private final Map<URI, Schema> built = new HashMap<>();
-  private final Map<String, Object> cache = new HashMap<>();
 
-  public SchemaStore(Path resources) {
-    this.resources = resources;
-  }
+  abstract Object load(String filePart) throws GenerationException;
 
   public Object resolve(URI pointer) throws GenerationException {
     String filePart = pointer.getPath();
@@ -34,30 +24,6 @@ public class SchemaStore {
     }
     JSONPointer jsonPointer = new JSONPointer(pointer1);
     return jsonPointer.queryFrom(object);
-  }
-
-  public Object load(String path) throws GenerationException {
-    if (cache.containsKey(path)) {
-      return cache.get(path);
-    }
-    String content;
-    try {
-      content = Files.readString(resources.resolve(path));
-    } catch (IOException e) {
-      throw new GenerationException(e);
-    }
-    Object jsonObject;
-    try {
-      jsonObject = new JSONArray(content);
-    } catch (JSONException e) {
-      try {
-        jsonObject = new JSONObject(content);
-      } catch (JSONException e2) {
-        throw new GenerationException(e2);
-      }
-    }
-    cache.put(path, jsonObject);
-    return jsonObject;
   }
 
   public URI require(URI pointer) throws GenerationException {
