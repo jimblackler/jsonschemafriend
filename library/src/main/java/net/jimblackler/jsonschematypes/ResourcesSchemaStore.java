@@ -14,7 +14,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 public class ResourcesSchemaStore extends SchemaStore {
-  private final Map<String, Object> cache = new HashMap<>();
+  private final Map<URI, Object> cache = new HashMap<>();
   private final Path resources;
 
   public ResourcesSchemaStore(Path resources) throws GenerationException {
@@ -26,8 +26,8 @@ public class ResourcesSchemaStore extends SchemaStore {
             continue;
           }
           Path relativePath = resources.relativize(path);
-          URI pointer = new URI(null, null, null, -1, relativePath.toString(), null, "/");
-          require(pointer);
+          URI uri = new URI(null, null, null, -1, relativePath.toString(), null, "/");
+          require(uri);
         }
       } catch (URISyntaxException e) {
         throw new GenerationException(e);
@@ -37,13 +37,16 @@ public class ResourcesSchemaStore extends SchemaStore {
     }
   }
 
-  public Object load(String path) throws GenerationException {
+  public Object load(URI path) throws GenerationException {
+    if (!"classpath".equals(path.getScheme())) {
+      throw new GenerationException("Classpath expected");
+    }
     if (cache.containsKey(path)) {
       return cache.get(path);
     }
     String content;
     try {
-      content = Files.readString(resources.resolve(path));
+      content = Files.readString(resources.resolve(path.getPath()));
     } catch (IOException e) {
       throw new GenerationException(e);
     }

@@ -13,57 +13,50 @@ public abstract class SchemaStore {
   private final Collection<URI> unbuilt = new HashSet<>();
   private final Map<URI, Schema> built = new HashMap<>();
 
-  abstract Object load(String filePart) throws GenerationException;
+  abstract Object load(URI uri) throws GenerationException;
 
-  public Object resolve(URI pointer) throws GenerationException {
-    String filePart = pointer.getPath();
-    String pointer1 = "#" + pointer.getFragment();
-    Object object = load(filePart);
-    if ("#/".equals(pointer1)) {
-      return object;
+  public Object resolve(URI uri) throws GenerationException {
+    try {
+      URI minusFragment = new URI(uri.getScheme(), uri.getUserInfo(), uri.getHost(),
+          uri.getPort(), uri.getPath(), uri.getQuery(), null);
+      Object object = load(minusFragment);
+      if (uri.getFragment() == null || "/".equals(uri.getFragment())) {
+        return object;
+      }
+      JSONPointer jsonPointer = new JSONPointer("#" + uri.getFragment());
+      return jsonPointer.queryFrom(object);
+    } catch (URISyntaxException e) {
+      throw new GenerationException(e);
     }
-    JSONPointer jsonPointer = new JSONPointer(pointer1);
-    return jsonPointer.queryFrom(object);
   }
 
-  public URI require(URI pointer) throws GenerationException {
-    if (unbuilt.contains(pointer) || built.containsKey(pointer)) {
-      return pointer;
+  public URI require(URI uri) throws GenerationException {
+    if (unbuilt.contains(uri) || built.containsKey(uri)) {
+      return uri;
     }
     // Is a $ref?
-    Object object = resolve(pointer);
+    Object object = resolve(uri);
     if (object instanceof JSONObject) {
       JSONObject jsonObject = (JSONObject) object;
       String ref = jsonObject.optString("$ref");
       if (!ref.isEmpty()) {
         try {
-          URI ref2 = new URI(ref);
-          String path = ref2.getPath();
-          if (path == null || path.isEmpty()) {
-            ref2 = new URI(null, null, null, -1, pointer.getPath(), null, ref2.getFragment());
-          }
-          String fragment = ref2.getFragment();
-          if (fragment == null || fragment.isEmpty()) {
-            ref2 = new URI(null, null, null, -1, ref2.getPath(), null, "/");
-          }
-          return require(ref2);
+          return require(uri.resolve(new URI(ref)));
         } catch (URISyntaxException e) {
           throw new GenerationException(e);
         }
       }
     }
-
-    unbuilt.add(pointer);
-
-    return pointer;
+    unbuilt.add(uri);
+    return uri;
   }
 
   public void process() throws GenerationException {
     while (!unbuilt.isEmpty()) {
-      URI pointer = unbuilt.iterator().next();
-      System.out.println("Processing " + pointer);
-      built.put(pointer, Schemas.create(this, pointer));
-      unbuilt.remove(pointer);
+      URI uri = unbuilt.iterator().next();
+      System.out.println("Processing " + uri);
+      built.put(uri, Schemas.create(this, uri));
+      unbuilt.remove(uri);
     }
   }
 }

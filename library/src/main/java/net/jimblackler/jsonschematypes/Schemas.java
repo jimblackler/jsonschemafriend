@@ -8,10 +8,10 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 public class Schemas {
-  public static Schema create(SchemaStore schemaStore, URI pointer) throws GenerationException {
-    Object object = schemaStore.resolve(pointer);
+  public static Schema create(SchemaStore schemaStore, URI uri) throws GenerationException {
+    Object object = schemaStore.resolve(uri);
     if (object == null) {
-      throw new GenerationException("Cannot follow " + pointer);
+      throw new GenerationException("Cannot follow " + uri);
     }
     // https://tools.ietf.org/html/draft-handrews-json-schema-02#section-4.3.2
     if (object instanceof Boolean) {
@@ -19,17 +19,20 @@ public class Schemas {
     }
 
     JSONObject jsonObject = (JSONObject) object;
+    if (jsonObject.has("$id")) {
+    }
+
     try {
       if (jsonObject.has("allOf")) {
-        return new AllOfSchema(schemaStore, JsonSchemaRef.append(pointer, "allOf"));
+        return new AllOfSchema(schemaStore, JsonSchemaRef.append(uri, "allOf"));
       }
 
       if (jsonObject.has("anyOf")) {
-        return new AnyOfSchema(schemaStore, JsonSchemaRef.append(pointer, "anyOf"));
+        return new AnyOfSchema(schemaStore, JsonSchemaRef.append(uri, "anyOf"));
       }
 
       if (jsonObject.has("oneOf")) {
-        return new OneOfSchema(schemaStore, JsonSchemaRef.append(pointer, "oneOf"));
+        return new OneOfSchema(schemaStore, JsonSchemaRef.append(uri, "oneOf"));
       }
 
       Object type = jsonObject.opt("type");
@@ -49,10 +52,10 @@ public class Schemas {
         throw new GenerationException("No types");
       }
 
-      return new MultiplePrimitiveSchema(schemaStore, pointer, types);
+      return new MultiplePrimitiveSchema(schemaStore, uri, types);
 
     } catch (JSONException e) {
-      System.out.println(pointer);
+      System.out.println(uri);
       System.out.println(jsonObject.toString(2));
       throw new GenerationException(e);
     }

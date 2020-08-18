@@ -8,10 +8,10 @@ import org.json.JSONArray;
 public class ArrayBasedSchema implements Schema {
   private final List<URI> indices = new ArrayList<>();
 
-  ArrayBasedSchema(SchemaStore schemaStore, URI pointer) throws GenerationException {
-    JSONArray resolve = (JSONArray) schemaStore.resolve(pointer);
+  ArrayBasedSchema(SchemaStore schemaStore, URI uri) throws GenerationException {
+    JSONArray resolve = (JSONArray) schemaStore.resolve(uri);
     for (int idx = 0; idx != resolve.length(); idx++) {
-      URI indexPointer = JsonSchemaRef.append(pointer, String.valueOf(idx));
+      URI indexPointer = JsonSchemaRef.append(uri, String.valueOf(idx));
       indices.add(schemaStore.require(indexPointer));
     }
   }

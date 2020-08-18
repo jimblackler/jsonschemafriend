@@ -2,15 +2,20 @@ package net.jimblackler.jsonschematypes;
 
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.nio.file.Path;
 
 public class JsonSchemaRef {
-  public static URI append(URI jsonSchemaRef, String value) {
-    // TODO: implement escaping in https://tools.ietf.org/html/rfc6901#section-3
-
+  public static URI append(URI uri, String value) {
     try {
-      return new URI(null, null, null, -1, jsonSchemaRef.getPath(), null,
-          Path.of(jsonSchemaRef.getFragment()).resolve(value).toString());
+      String fragment = uri.getFragment();
+      if (fragment == null) {
+        fragment = "";
+      }
+      if (!fragment.endsWith("/")) {
+        fragment += "/";
+      }
+      // TODO: implement escaping in https://tools.ietf.org/html/rfc6901#section-3
+      return new URI(uri.getScheme(), uri.getUserInfo(), uri.getHost(), uri.getPort(),
+          uri.getPath(), uri.getQuery(), fragment + value);
     } catch (URISyntaxException e) {
       throw new IllegalStateException(e);
     }
