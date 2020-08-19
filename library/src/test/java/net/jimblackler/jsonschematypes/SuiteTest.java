@@ -9,6 +9,9 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.UncheckedIOException;
+import java.net.URI;
+import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -16,7 +19,6 @@ import java.util.Collection;
 import java.util.List;
 import org.everit.json.schema.Schema;
 import org.everit.json.schema.ValidationException;
-import org.everit.json.schema.loader.SchemaClient;
 import org.everit.json.schema.loader.SchemaLoader;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -27,19 +29,16 @@ import org.junit.jupiter.api.TestFactory;
 
 public class SuiteTest {
   @TestFactory
-  Collection<DynamicContainer> t2() {
-    Collection<DynamicContainer> container = new ArrayList<>();
-    return List.of(dynamicContainer("inner1", List.of(dynamicTest("t", () -> fail()))));
-  }
-
-  @TestFactory
   Collection<DynamicNode> tests() {
     Path suites = Path.of("/suites");
-    return List.of(scan(suites.resolve("own"), "http://json-schema.org/draft-07/schema#"),
-        scan(suites.resolve("draft7"), "http://json-schema.org/draft-07/schema#"));
+    Path jsts = suites.resolve("jsts");
+    return List.of(
+        scan(suites.resolve("own"), Path.of(""), "http://json-schema.org/draft-07/schema#"),
+        scan(jsts.resolve("tests").resolve("draft7"), jsts.resolve("remotes"),
+            "http://json-schema.org/draft-07/schema#"));
   }
 
-  private static DynamicNode scan(Path testDir, String version) {
+  private static DynamicNode scan(Path testDir, Path remotes, String version) {
     Collection<DynamicNode> allFileTests = new ArrayList<>();
     try (InputStream inputStream = ExampleTest.class.getResourceAsStream(testDir.toString());
          BufferedReader bufferedReader =
@@ -47,7 +46,7 @@ public class SuiteTest {
       String resource;
       while ((resource = bufferedReader.readLine()) != null) {
         if (resource.endsWith(".json")) {
-          allFileTests.add(jsonTestFile(testDir, resource, version));
+          allFileTests.add(jsonTestFile(testDir, remotes, resource, version));
         }
       }
     } catch (IOException | GenerationException e) {
@@ -56,8 +55,8 @@ public class SuiteTest {
     return dynamicContainer(testDir.toString(), allFileTests);
   }
 
-  private static DynamicNode jsonTestFile(Path testDir, String resource, String version)
-      throws GenerationException {
+  private static DynamicNode jsonTestFile(
+      Path testDir, Path remotes, String resource, String version) throws GenerationException {
     Collection<DynamicNode> nodes = new ArrayList<>();
     JSONArray data = (JSONArray) Utils.getJsonObject(testDir.resolve(resource).toString());
     for (int idx = 0; idx != data.length(); idx++) {
@@ -65,14 +64,15 @@ public class SuiteTest {
       if (!testSet.has("schema")) {
         continue; // ever happens?
       }
-      nodes.add(singleSchemaTestList(testSet, version));
+      nodes.add(singleSchemaTest(testSet, remotes, version));
     }
     return dynamicContainer(resource, nodes);
   }
 
-  private static DynamicNode singleSchemaTestList(JSONObject testSet, String version) {
+  private static DynamicNode singleSchemaTest(JSONObject testSet, Path remotes, String version) {
     Collection<DynamicTest> everitTests = new ArrayList<>();
     Object schema = testSet.get("schema");
+    URL resource = SuiteTest.class.getResource(remotes.toString());
     if (schema instanceof JSONObject) {
       JSONObject schema1 = (JSONObject) schema;
       schema1.put("$schema", version);
@@ -84,10 +84,12 @@ public class SuiteTest {
           System.out.println(schema1.toString(2));
           System.out.println();
 
-          Schema everitSchema = SchemaLoader.load(schema1, new SchemaClient() {
-            @Override
-            public InputStream get(String url) {
-              throw new IllegalStateException(url);
+          Schema everitSchema = SchemaLoader.load(schema1, url -> {
+            url = url.replace("http://localhost:1234", resource.toString());
+            try {
+              return new URL(url).openStream();
+            } catch (IOException e) {
+              throw new UncheckedIOException(e);
             }
           });
 
@@ -134,13 +136,15 @@ public class SuiteTest {
         List.of(dynamicContainer("everit", everitTests), dynamicTest("own", () -> {
           System.out.println("Schema:");
           if (schema instanceof JSONObject) {
-            System.out.println(((JSONObject)schema).toString(2));
+            System.out.println(((JSONObject) schema).toString(2));
           } else {
             System.out.println(schema);
           }
           System.out.println();
 
           SchemaStore schemaStore = new SchemaStore();
+          schemaStore.addRewriter(in
+              -> URI.create(in.toString().replace("http://localhost:1234", resource.toString())));
           schemaStore.loadBaseObject(schema);
           schemaStore.process();
         })));

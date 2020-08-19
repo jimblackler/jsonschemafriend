@@ -6,6 +6,7 @@ import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -25,7 +26,12 @@ public class SchemaStore {
   private final Map<URI, Object> documentCache = new HashMap<>();
   private final Map<URI, URI> idToPath = new HashMap<>();
   private final Map<URI, URI> refs = new HashMap<>();
+  private final Collection<UriRewriter> rewriters = new ArrayList<>();
   private final URI basePointer;
+
+  interface UriRewriter {
+    URI rewrite(URI in);
+  }
 
   public SchemaStore() throws GenerationException {
     try {
@@ -35,12 +41,19 @@ public class SchemaStore {
     }
   }
 
+  public void addRewriter(UriRewriter rewriter) {
+    rewriters.add(rewriter);
+  }
+
   public void loadBaseObject(Object jsonObject) throws GenerationException {
     storeDocument(basePointer, jsonObject);
     followAndQueue(basePointer);
   }
 
-  Object getDocument(URI uri) throws GenerationException {
+  Object fetchDocument(URI uri) throws GenerationException {
+    for (UriRewriter rewriter : rewriters) {
+      uri = rewriter.rewrite(uri);
+    }
     if (documentCache.containsKey(uri)) {
       return documentCache.get(uri);
     }
@@ -48,8 +61,8 @@ public class SchemaStore {
 
     try (Scanner scanner = new Scanner(uri.toURL().openStream(), StandardCharsets.UTF_8)) {
       content = scanner.useDelimiter("\\A").next();
-    } catch (IOException e) {
-      throw new GenerationException(e);
+    } catch (IllegalArgumentException | IOException e) {
+      throw new GenerationException("Error fetching " + uri, e);
     }
     Object object;
     try {
@@ -116,7 +129,7 @@ public class SchemaStore {
     }
     try {
       URI documentUri = new URI(uri.getScheme(), uri.getSchemeSpecificPart(), null);
-      Object object = getDocument(documentUri);
+      Object object = fetchDocument(documentUri);
       if (uri.getFragment() == null || "/".equals(uri.getFragment())) {
         return object;
       }
