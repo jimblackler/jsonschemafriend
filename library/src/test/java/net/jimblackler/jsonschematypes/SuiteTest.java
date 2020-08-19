@@ -29,13 +29,38 @@ import org.junit.jupiter.api.TestFactory;
 
 public class SuiteTest {
   @TestFactory
-  Collection<DynamicNode> tests() {
+  DynamicNode own() {
     Path suites = Path.of("/suites");
-    Path jsts = suites.resolve("jsts");
-    return List.of(
-        //scan(suites.resolve("own"), Path.of(""), "http://json-schema.org/draft-07/schema#"),
-        scan(jsts.resolve("tests").resolve("draft7"), jsts.resolve("remotes"),
-            "http://json-schema.org/draft-07/schema#"));
+    return scan(suites.resolve("own"), Path.of(""),
+        "http://json-schema.org/draft-07/schema#");
+  }
+
+  @TestFactory
+  DynamicNode draft4() {
+    Path jsts = Path.of("/suites").resolve("jsts");
+    return scan(jsts.resolve("tests").resolve("draft4"), jsts.resolve("remotes"),
+        "http://json-schema.org/draft-04/schema#");
+  }
+
+  @TestFactory
+  DynamicNode draft6() {
+    Path jsts = Path.of("/suites").resolve("jsts");
+    return scan(jsts.resolve("tests").resolve("draft6"), jsts.resolve("remotes"),
+        "http://json-schema.org/draft-06/schema#");
+  }
+
+  @TestFactory
+  DynamicNode draft7() {
+    Path jsts = Path.of("/suites").resolve("jsts");
+    return scan(jsts.resolve("tests").resolve("draft7"), jsts.resolve("remotes"),
+            "http://json-schema.org/draft-07/schema#");
+  }
+
+  @TestFactory
+  DynamicNode draft2019_09() {
+    Path jsts = Path.of("/suites").resolve("jsts");
+    return scan(jsts.resolve("tests").resolve("draft2019-09"), jsts.resolve("remotes"),
+        "https://json-schema.org/draft/2019-09/schema#");
   }
 
   private static DynamicNode scan(Path testDir, Path remotes, String version) {
