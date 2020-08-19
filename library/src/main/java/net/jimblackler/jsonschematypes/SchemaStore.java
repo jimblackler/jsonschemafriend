@@ -21,8 +21,8 @@ import org.json.JSONObject;
 import org.json.JSONPointer;
 
 public class SchemaStore {
-  private final Collection<URI> unbuilt = new HashSet<>();
-  private final Map<URI, Schema> built = new HashMap<>();
+  private final Collection<URI> unbuiltPaths = new HashSet<>();
+  private final Map<URI, Schema> builtPaths = new HashMap<>();
   private final Map<URI, Object> documentCache = new HashMap<>();
   private final Map<URI, URI> idToPath = new HashMap<>();
   private final Map<URI, URI> refs = new HashMap<>();
@@ -51,6 +51,7 @@ public class SchemaStore {
   }
 
   Object fetchDocument(URI uri) throws GenerationException {
+    System.out.println("Original uri " + uri);
     for (UriRewriter rewriter : rewriters) {
       uri = rewriter.rewrite(uri);
     }
@@ -89,24 +90,26 @@ public class SchemaStore {
       JSONObject jsonObject = (JSONObject) object;
       Object idObject = jsonObject.opt("$id");
       if (idObject instanceof String) {
-        String id = (String) idObject;
-        activeId = URI.create(id);
+        URI newId = URI.create((String) idObject);
+        if (activeId != null) {
+          newId = idRelativeUri(activeId, newId);
+        }
+        activeId = newId;
         idToPath.put(activeId, uri);
       }
 
       Object refObject = jsonObject.opt("$ref");
-
       if (refObject instanceof String) {
-        String ref = (String) refObject;
-
-        URI refUri = URI.create(ref);
+        String refObject1 = (String) refObject;
+        URI refUri = URI.create(refObject1);
+        System.out.println("refUri: " + refUri + " activeId: " + activeId);
         URI uri1;
-        if (activeId != null && refUri.getFragment() == null) {
-          // See "This URI also serves as the base URI.." in
-          // https://tools.ietf.org/html/draft-handrews-json-schema-02#section-8.2.2
-          uri1 = activeId.resolve(refUri);
-        } else {
+        if (activeId == null || refObject1.startsWith("#")) {
           uri1 = uri.resolve(refUri);
+          System.out.println("now1: " + uri1);
+        } else {
+          uri1 = idRelativeUri(activeId, refUri);
+          System.out.println("now2: " + uri1);
         }
         refs.put(uri, uri1);
       }
@@ -123,9 +126,24 @@ public class SchemaStore {
       }
     }
   }
+
+  private static URI idRelativeUri(URI id, URI uri) throws GenerationException {
+
+    System.out.println("id: " + id);
+    System.out.println("uri: " + uri);
+
+    // See "This URI also serves as the base URI.." in
+    // https://tools.ietf.org/html/draft-handrews-json-schema-02#section-8.2.2
+    URI uri1 = id.resolve(uri);
+    System.out.println("rewritten: " + uri1);
+    return uri1;
+  }
+
   public Object resolve(URI uri) throws GenerationException {
+    System.out.println("Resolving " + uri);
     if (idToPath.containsKey(uri)) {
       uri = idToPath.get(uri);
+      System.out.println("Now it's " + uri);
     }
     try {
       URI documentUri = new URI(uri.getScheme(), uri.getSchemeSpecificPart(), null);
@@ -142,23 +160,32 @@ public class SchemaStore {
 
   public URI followAndQueue(URI uri) {
     // URI must be a path and NOT an id.
-
-    if (unbuilt.contains(uri) || built.containsKey(uri)) {
+    if (unbuiltPaths.contains(uri) || builtPaths.containsKey(uri)) {
       return uri;
     }
+
     if (refs.containsKey(uri)) {
-      return followAndQueue(refs.get(uri));
+      URI uri1 = refs.get(uri);
+      // This could be an ID. Convert it back to a path.
+
+      // but how??? Look at all ids for prefixes?
+      if (idToPath.containsKey(uri1)) {
+        System.out.println("id is " + uri1);
+        uri1 = idToPath.get(uri1);
+        System.out.println("path is " + uri1);
+      }
+      return followAndQueue(uri1);
     }
-    unbuilt.add(uri);
+    unbuiltPaths.add(uri);
     return uri;
   }
 
   public void process() throws GenerationException {
-    while (!unbuilt.isEmpty()) {
-      URI uri = unbuilt.iterator().next();
+    while (!unbuiltPaths.isEmpty()) {
+      URI uri = unbuiltPaths.iterator().next();
       System.out.println("Processing " + uri);
-      built.put(uri, Schemas.create(this, uri));
-      unbuilt.remove(uri);
+      builtPaths.put(uri, Schemas.create(this, uri));
+      unbuiltPaths.remove(uri);
     }
   }
 

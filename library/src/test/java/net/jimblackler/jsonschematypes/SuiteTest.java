@@ -33,7 +33,7 @@ public class SuiteTest {
     Path suites = Path.of("/suites");
     Path jsts = suites.resolve("jsts");
     return List.of(
-        scan(suites.resolve("own"), Path.of(""), "http://json-schema.org/draft-07/schema#"),
+        //scan(suites.resolve("own"), Path.of(""), "http://json-schema.org/draft-07/schema#"),
         scan(jsts.resolve("tests").resolve("draft7"), jsts.resolve("remotes"),
             "http://json-schema.org/draft-07/schema#"));
   }
