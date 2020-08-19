@@ -53,9 +53,7 @@ public class Schemas {
       return new MultiplePrimitiveSchema(schemaStore, uri, types);
 
     } catch (JSONException e) {
-      System.out.println(uri);
-      System.out.println(jsonObject.toString(2));
-      throw new GenerationException(e);
+      throw new GenerationException(uri.toString(), e);
     }
   }
 }

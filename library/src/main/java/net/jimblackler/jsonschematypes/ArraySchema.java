@@ -14,13 +14,13 @@ public class ArraySchema implements Schema {
     JSONObject jsonObject = (JSONObject) schemaStore.resolve(uri);
 
     // https://tools.ietf.org/html/draft-handrews-json-schema-02#section-9.3.1.1
-    Object items = jsonObject.get("items");
+    Object items = jsonObject.opt("items");
     if (items instanceof JSONArray) {
       JSONArray jsonArray = (JSONArray) items;
       for (int idx = 0; idx != jsonArray.length(); idx++) {
         arrayTypes.add(JsonSchemaRef.append(uri, String.valueOf(idx)));
       }
-    } else {
+    } else if (items instanceof JSONObject || items instanceof Boolean) {
       singleType = schemaStore.followAndQueue(JsonSchemaRef.append(uri, "items"));
     }
   }

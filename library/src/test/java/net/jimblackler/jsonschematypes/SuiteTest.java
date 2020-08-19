@@ -16,6 +16,7 @@ import java.util.Collection;
 import java.util.List;
 import org.everit.json.schema.Schema;
 import org.everit.json.schema.ValidationException;
+import org.everit.json.schema.loader.SchemaClient;
 import org.everit.json.schema.loader.SchemaLoader;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -83,7 +84,12 @@ public class SuiteTest {
           System.out.println(schema1.toString(2));
           System.out.println();
 
-          Schema everitSchema = SchemaLoader.load(schema1);
+          Schema everitSchema = SchemaLoader.load(schema1, new SchemaClient() {
+            @Override
+            public InputStream get(String url) {
+              throw new IllegalStateException(url);
+            }
+          });
 
           System.out.println("Test:");
           System.out.println(test.toString(2));
@@ -126,10 +132,17 @@ public class SuiteTest {
     }
     return dynamicContainer(testSet.getString("description"),
         List.of(dynamicContainer("everit", everitTests), dynamicTest("own", () -> {
+          System.out.println("Schema:");
+          if (schema instanceof JSONObject) {
+            System.out.println(((JSONObject)schema).toString(2));
+          } else {
+            System.out.println(schema);
+          }
+          System.out.println();
+
           SchemaStore schemaStore = new SchemaStore();
           schemaStore.loadBaseObject(schema);
           schemaStore.process();
-          System.out.println();
         })));
   }
 }
