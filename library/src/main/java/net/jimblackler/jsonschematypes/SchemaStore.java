@@ -11,6 +11,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
 import java.util.stream.Collectors;
@@ -29,6 +30,11 @@ public class SchemaStore {
   private final Map<URI, URI> refs = new HashMap<>();
   private final Collection<UrlRewriter> rewriters = new ArrayList<>();
   private final URI basePointer;
+
+  public Collection<ValidationError> validate(URI uri, Object jsonObject) {
+    List<ValidationError> errors = new ArrayList<>();
+    return errors;
+  }
 
   interface UrlRewriter {
     URI rewrite(URI in);

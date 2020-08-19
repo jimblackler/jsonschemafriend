@@ -22,7 +22,6 @@ import org.everit.json.schema.ValidationException;
 import org.everit.json.schema.loader.SchemaLoader;
 import org.json.JSONArray;
 import org.json.JSONObject;
-import org.junit.jupiter.api.DynamicContainer;
 import org.junit.jupiter.api.DynamicNode;
 import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.TestFactory;
@@ -31,8 +30,7 @@ public class SuiteTest {
   @TestFactory
   DynamicNode own() {
     Path suites = Path.of("/suites");
-    return scan(suites.resolve("own"), Path.of(""),
-        "http://json-schema.org/draft-07/schema#");
+    return scan(suites.resolve("own"), Path.of(""), "http://json-schema.org/draft-07/schema#");
   }
 
   @TestFactory
@@ -53,7 +51,7 @@ public class SuiteTest {
   DynamicNode draft7() {
     Path jsts = Path.of("/suites").resolve("jsts");
     return scan(jsts.resolve("tests").resolve("draft7"), jsts.resolve("remotes"),
-            "http://json-schema.org/draft-07/schema#");
+        "http://json-schema.org/draft-07/schema#");
   }
 
   @TestFactory
@@ -96,69 +94,19 @@ public class SuiteTest {
 
   private static DynamicNode singleSchemaTest(JSONObject testSet, Path remotes, String version) {
     Collection<DynamicTest> everitTests = new ArrayList<>();
+    Collection<DynamicTest> ownTests = new ArrayList<>();
     Object schema = testSet.get("schema");
     URL resource = SuiteTest.class.getResource(remotes.toString());
-    if (schema instanceof JSONObject) {
-      JSONObject schema1 = (JSONObject) schema;
-      schema1.put("$schema", version);
+    {
+      if (schema instanceof JSONObject) {
+        JSONObject schema1 = (JSONObject) schema;
+        schema1.put("$schema", version);
+      }
       JSONArray tests1 = testSet.getJSONArray("tests");
       for (int idx2 = 0; idx2 != tests1.length(); idx2++) {
         JSONObject test = tests1.getJSONObject(idx2);
-        everitTests.add(dynamicTest(test.optString("description", "No description"), () -> {
-          System.out.println("Schema:");
-          System.out.println(schema1.toString(2));
-          System.out.println();
 
-          Schema everitSchema = SchemaLoader.load(schema1, url -> {
-            url = url.replace("http://localhost:1234", resource.toString());
-            try {
-              return new URL(url).openStream();
-            } catch (IOException e) {
-              throw new UncheckedIOException(e);
-            }
-          });
-
-          System.out.println("Test:");
-          System.out.println(test.toString(2));
-          System.out.println();
-
-          Object jsonObject = test.get("data");
-          List<String> failures = null;
-          try {
-            everitSchema.validate(jsonObject);
-          } catch (ValidationException ex) {
-            System.out.println(ex.toJSON().toString());
-            failures = ex.getAllMessages();
-          } catch (Exception e) {
-            fail(e);
-          }
-          boolean valid = test.getBoolean("valid");
-
-          System.out.println("Schema:");
-          System.out.println(schema1.toString(2));
-          System.out.println();
-
-          System.out.println("Test:");
-          System.out.println(test.toString(2));
-          System.out.println();
-
-          if (failures != null) {
-            System.out.println("Failures:");
-            for (String message : failures) {
-              System.out.println(message);
-            }
-            System.out.println();
-          }
-
-          System.out.print("Expeced to " + (valid ? "pass" : "fail") + " ... ");
-          System.out.println((failures == null ? "passed" : "failed"));
-
-          assertEquals(failures == null, valid);
-        }));
-      }
-    }
-    return dynamicContainer(testSet.getString("description"),
-        List.of(dynamicContainer("everit", everitTests), dynamicTest("own", () -> {
+        ownTests.add(dynamicTest(test.optString("description", "No description"), () -> {
           System.out.println("Schema:");
           if (schema instanceof JSONObject) {
             System.out.println(((JSONObject) schema).toString(2));
@@ -172,6 +120,99 @@ public class SuiteTest {
               -> URI.create(in.toString().replace("http://localhost:1234", resource.toString())));
           schemaStore.loadBaseObject(schema);
           schemaStore.process();
-        })));
+
+          System.out.println("Test:");
+          System.out.println(test.toString(2));
+          System.out.println();
+
+          Object jsonObject = test.get("data");
+
+          Collection<ValidationError> errors = schemaStore.validate(URI.create(""), jsonObject);
+
+          boolean valid = test.getBoolean("valid");
+
+          if (!errors.isEmpty()) {
+            System.out.println("Failures:");
+            for (ValidationError error : errors) {
+              System.out.println(error);
+            }
+            System.out.println();
+          }
+
+          System.out.print("Expeced to " + (valid ? "pass" : "fail") + " ... ");
+          System.out.println((errors.isEmpty() ? "passed" : "failed"));
+
+          assertEquals(errors.isEmpty(), valid);
+
+
+        }));
+        if (schema instanceof JSONObject) {
+          everitTests.add(dynamicTest(test.optString("description", "No description"), () -> {
+            JSONObject schema1 = (JSONObject) schema;
+            System.out.println("Schema:");
+            System.out.println(schema1.toString(2));
+            System.out.println();
+
+            Schema everitSchema = SchemaLoader.load(schema1, url -> {
+              url = url.replace("http://localhost:1234", resource.toString());
+              try {
+                return new URL(url).openStream();
+              } catch (IOException e) {
+                throw new UncheckedIOException(e);
+              }
+            });
+
+            System.out.println("Test:");
+            System.out.println(test.toString(2));
+            System.out.println();
+
+            Object jsonObject = test.get("data");
+            List<String> failures = null;
+            try {
+              everitSchema.validate(jsonObject);
+            } catch (ValidationException ex) {
+              System.out.println(ex.toJSON().toString());
+              failures = ex.getAllMessages();
+            } catch (Exception e) {
+              fail(e);
+            }
+            boolean valid = test.getBoolean("valid");
+
+            if (failures != null) {
+              System.out.println("Failures:");
+              for (String message : failures) {
+                System.out.println(message);
+              }
+              System.out.println();
+            }
+
+            System.out.print("Expeced to " + (valid ? "pass" : "fail") + " ... ");
+            System.out.println((failures == null ? "passed" : "failed"));
+
+            assertEquals(failures == null, valid);
+          }));
+        }
+      }
+    }
+    if (false) {
+      ownTests.add(dynamicTest("schema", () -> {
+        System.out.println("Schema:");
+        if (schema instanceof JSONObject) {
+          System.out.println(((JSONObject) schema).toString(2));
+        } else {
+          System.out.println(schema);
+        }
+        System.out.println();
+
+        SchemaStore schemaStore = new SchemaStore();
+        schemaStore.addRewriter(
+            in -> URI.create(in.toString().replace("http://localhost:1234", resource.toString())));
+        schemaStore.loadBaseObject(schema);
+        schemaStore.process();
+      }));
+    }
+    return dynamicContainer(testSet.getString("description"),
+        List.of( // dynamicContainer("everit", everitTests),
+            dynamicContainer("own", ownTests)));
   }
 }
