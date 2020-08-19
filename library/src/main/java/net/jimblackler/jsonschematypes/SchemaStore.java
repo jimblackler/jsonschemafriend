@@ -26,10 +26,10 @@ public class SchemaStore {
   private final Map<URI, Object> documentCache = new HashMap<>();
   private final Map<URI, URI> idToPath = new HashMap<>();
   private final Map<URI, URI> refs = new HashMap<>();
-  private final Collection<UriRewriter> rewriters = new ArrayList<>();
+  private final Collection<UrlRewriter> rewriters = new ArrayList<>();
   private final URI basePointer;
 
-  interface UriRewriter {
+  interface UrlRewriter {
     URI rewrite(URI in);
   }
 
@@ -41,7 +41,7 @@ public class SchemaStore {
     }
   }
 
-  public void addRewriter(UriRewriter rewriter) {
+  public void addRewriter(UrlRewriter rewriter) {
     rewriters.add(rewriter);
   }
 
@@ -50,19 +50,19 @@ public class SchemaStore {
     followAndQueue(basePointer);
   }
 
-  Object fetchDocument(URI uri) throws GenerationException {
-    for (UriRewriter rewriter : rewriters) {
-      uri = rewriter.rewrite(uri);
+  Object fetchDocument(URI url) throws GenerationException {
+    for (UrlRewriter rewriter : rewriters) {
+      url = rewriter.rewrite(url);
     }
-    if (documentCache.containsKey(uri)) {
-      return documentCache.get(uri);
+    if (documentCache.containsKey(url)) {
+      return documentCache.get(url);
     }
     String content;
 
-    try (Scanner scanner = new Scanner(uri.toURL().openStream(), StandardCharsets.UTF_8)) {
+    try (Scanner scanner = new Scanner(url.toURL().openStream(), StandardCharsets.UTF_8)) {
       content = scanner.useDelimiter("\\A").next();
     } catch (IllegalArgumentException | IOException e) {
-      throw new GenerationException("Error fetching " + uri, e);
+      throw new GenerationException("Error fetching " + url, e);
     }
     Object object;
     try {
@@ -74,17 +74,17 @@ public class SchemaStore {
         throw new GenerationException(e2);
       }
     }
-    storeDocument(uri, object);
+    storeDocument(url, object);
     return object;
   }
 
-  private void storeDocument(URI uri, Object object) throws GenerationException {
-    documentCache.put(uri, object);
-    findIds(uri, null);
+  private void storeDocument(URI url, Object object) throws GenerationException {
+    documentCache.put(url, object);
+    findIds(url, null);
   }
 
-  private void findIds(URI uri, URI activeId) throws GenerationException {
-    Object object = resolve(uri);
+  private void findIds(URI path, URI activeId) throws GenerationException {
+    Object object = resolve(path);
     if (object instanceof JSONObject) {
       JSONObject jsonObject = (JSONObject) object;
       Object idObject = jsonObject.opt("$id");
@@ -96,7 +96,7 @@ public class SchemaStore {
           newId = activeId.resolve(newId);
         }
         activeId = newId;
-        idToPath.put(activeId, uri);
+        idToPath.put(activeId, path);
       }
 
       Object refObject = jsonObject.opt("$ref");
@@ -105,59 +105,58 @@ public class SchemaStore {
         URI refUri = URI.create(refObject1);
         URI uri1;
         if (activeId == null || refObject1.startsWith("#")) {
-          uri1 = uri.resolve(refUri);
+          uri1 = path.resolve(refUri);
         } else {
           uri1 = activeId.resolve(refUri);
         }
-        refs.put(uri, uri1);
+        refs.put(path, uri1);
       }
 
       Iterator<String> it = jsonObject.keys();
       while (it.hasNext()) {
         String key = it.next();
-        findIds(JsonSchemaRef.append(uri, key), activeId);
+        findIds(JsonSchemaRef.append(path, key), activeId);
       }
     } else if (object instanceof JSONArray) {
       JSONArray jsonArray = (JSONArray) object;
       for (int idx = 0; idx != jsonArray.length(); idx++) {
-        findIds(JsonSchemaRef.append(uri, String.valueOf(idx)), activeId);
+        findIds(JsonSchemaRef.append(path, String.valueOf(idx)), activeId);
       }
     }
   }
 
-  public Object resolve(URI uri) throws GenerationException {
-    if (idToPath.containsKey(uri)) {
-      uri = idToPath.get(uri);
+  public Object resolve(URI idOrPath) throws GenerationException {
+    if (idToPath.containsKey(idOrPath)) {
+      idOrPath = idToPath.get(idOrPath);
     }
     try {
-      URI documentUri = new URI(uri.getScheme(), uri.getSchemeSpecificPart(), null);
+      URI documentUri = new URI(idOrPath.getScheme(), idOrPath.getSchemeSpecificPart(), null);
       Object object = fetchDocument(documentUri);
-      if (uri.getFragment() == null || "/".equals(uri.getFragment())) {
+      if (idOrPath.getFragment() == null || "/".equals(idOrPath.getFragment())) {
         return object;
       }
-      JSONPointer jsonPointer = new JSONPointer("#" + uri.getFragment());
+      JSONPointer jsonPointer = new JSONPointer("#" + idOrPath.getFragment());
       return jsonPointer.queryFrom(object);
     } catch (URISyntaxException e) {
       throw new GenerationException(e);
     }
   }
 
-  public URI followAndQueue(URI uri) {
-    // URI must be a path and NOT an id.
-    if (unbuiltPaths.contains(uri) || builtPaths.containsKey(uri)) {
-      return uri;
+  public URI followAndQueue(URI path) {
+    if (unbuiltPaths.contains(path) || builtPaths.containsKey(path)) {
+      return path;
     }
 
-    if (refs.containsKey(uri)) {
-      URI uri1 = refs.get(uri);
+    if (refs.containsKey(path)) {
+      URI uri1 = refs.get(path);
       // This could be an ID. Convert it back to a path.
       if (idToPath.containsKey(uri1)) {
         uri1 = idToPath.get(uri1);
       }
       return followAndQueue(uri1);
     }
-    unbuiltPaths.add(uri);
-    return uri;
+    unbuiltPaths.add(path);
+    return path;
   }
 
   public void process() throws GenerationException {
