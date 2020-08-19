@@ -19,6 +19,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.json.JSONPointer;
+import org.json.JSONPointerException;
 
 public class SchemaStore {
   private final Collection<URI> unbuiltPaths = new HashSet<>();
@@ -135,8 +136,14 @@ public class SchemaStore {
       if (idOrPath.getFragment() == null || "/".equals(idOrPath.getFragment())) {
         return object;
       }
-      JSONPointer jsonPointer = new JSONPointer("#" + idOrPath.getFragment());
-      return jsonPointer.queryFrom(object);
+      String pointerText = "#" + idOrPath.getRawFragment();
+      try {
+        JSONPointer jsonPointer = new JSONPointer(pointerText);
+        return jsonPointer.queryFrom(object);
+      } catch (JSONPointerException | IllegalArgumentException ex) {
+        throw new GenerationException("Problem with pointer " + pointerText, ex);
+      }
+
     } catch (URISyntaxException e) {
       throw new GenerationException(e);
     }

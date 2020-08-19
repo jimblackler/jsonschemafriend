@@ -13,8 +13,9 @@ public class JsonSchemaRef {
       if (!fragment.endsWith("/")) {
         fragment += "/";
       }
-      // TODO: implement escaping in https://tools.ietf.org/html/rfc6901#section-3
-      return new URI(uri.getScheme(), uri.getSchemeSpecificPart(), fragment + value);
+      // See https://tools.ietf.org/html/rfc6901#section-3
+      String escaped = fragment + value.replace("/", "~1").replace("~", "~1");
+      return new URI(uri.getScheme(), uri.getSchemeSpecificPart(), escaped);
     } catch (URISyntaxException e) {
       throw new IllegalStateException(e);
     }
