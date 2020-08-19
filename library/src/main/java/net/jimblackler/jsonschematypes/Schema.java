@@ -1,3 +1,7 @@
 package net.jimblackler.jsonschematypes;
 
-public interface Schema {}
+import java.util.function.Consumer;
+
+public interface Schema {
+  void validate(Object jsonObject, Consumer<ValidationError> errorConsumer);
+}

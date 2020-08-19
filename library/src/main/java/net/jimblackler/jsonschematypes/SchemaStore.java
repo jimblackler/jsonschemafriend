@@ -1,5 +1,11 @@
 package net.jimblackler.jsonschematypes;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+import org.json.JSONPointer;
+import org.json.JSONPointerException;
+
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -14,13 +20,9 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-import org.json.JSONPointer;
-import org.json.JSONPointerException;
 
 public class SchemaStore {
   private final Collection<URI> unbuiltPaths = new HashSet<>();
@@ -31,21 +33,19 @@ public class SchemaStore {
   private final Collection<UrlRewriter> rewriters = new ArrayList<>();
   private final URI basePointer;
 
-  public Collection<ValidationError> validate(URI uri, Object jsonObject) {
-    List<ValidationError> errors = new ArrayList<>();
-    return errors;
-  }
-
-  interface UrlRewriter {
-    URI rewrite(URI in);
-  }
-
   public SchemaStore() throws GenerationException {
     try {
       basePointer = new URI(null, null, null);
     } catch (URISyntaxException e) {
       throw new GenerationException(e);
     }
+  }
+
+  public Collection<ValidationError> validate(URI uri, Object jsonObject) {
+    Schema schema = builtPaths.get(finalPath(uri));
+    List<ValidationError> errors = new ArrayList<>();
+    schema.validate(jsonObject, errors::add);
+    return errors;
   }
 
   public void addRewriter(UrlRewriter rewriter) {
@@ -155,6 +155,21 @@ public class SchemaStore {
     }
   }
 
+  /**
+   * Converts a URI containing an id or path to the final path of the schema.
+   * @param uri The id or path.
+   * @return The final path of the schema.
+   */
+  public URI finalPath(URI uri) {
+    if (idToPath.containsKey(uri)) {
+      return finalPath(idToPath.get(uri));
+    }
+    if (refs.containsKey(uri)) {
+      return finalPath(refs.get(uri));
+    }
+    return uri;
+  }
+
   public URI followAndQueue(URI path) {
     if (unbuiltPaths.contains(path) || builtPaths.containsKey(path)) {
       return path;
@@ -192,5 +207,9 @@ public class SchemaStore {
     } catch (UncheckedGenerationException | IOException | URISyntaxException ex) {
       throw new GenerationException(ex);
     }
+  }
+
+  interface UrlRewriter {
+    URI rewrite(URI in);
   }
 }

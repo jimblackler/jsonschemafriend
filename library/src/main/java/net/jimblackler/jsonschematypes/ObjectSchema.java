@@ -4,6 +4,8 @@ import java.net.URI;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.function.Consumer;
+
 import org.json.JSONObject;
 
 public class ObjectSchema implements Schema {
@@ -35,5 +37,10 @@ public class ObjectSchema implements Schema {
         // We're not doing anything with this yet.
       }
     }
+  }
+
+  @Override
+  public void validate(Object jsonObject, Consumer<ValidationError> errorConsumer) {
+
   }
 }

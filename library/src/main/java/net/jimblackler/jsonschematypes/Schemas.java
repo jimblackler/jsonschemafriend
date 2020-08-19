@@ -34,26 +34,38 @@ public class Schemas {
       }
 
       Object type = jsonObject.opt("type");
-      if (type == null) {
-        return new TrivialSchema(false);
-      }
+
       Set<String> types = new HashSet<>();
       if (type instanceof JSONArray) {
         JSONArray array = (JSONArray) type;
         for (int idx = 0; idx != array.length(); idx++) {
           types.add(array.getString(idx));
         }
-      } else {
+      } else if (type instanceof String) {
         types.add(type.toString());
       }
       if (types.isEmpty()) {
-        throw new GenerationException("No types");
+        types.add(inferType(jsonObject));
       }
 
-      return new MultiplePrimitiveSchema(schemaStore, uri, types);
+      MultiplePrimitiveSchema multiplePrimitiveSchema =
+          new MultiplePrimitiveSchema(schemaStore, uri, types);
+      Set<Schema> types1 = multiplePrimitiveSchema.getTypes();
+      if (types1.size() == 1) {
+        // Not strictly necessary but makes the tree easier to follow.
+        return types1.iterator().next();
+      }
+      return multiplePrimitiveSchema;
 
     } catch (JSONException e) {
       throw new GenerationException(uri.toString(), e);
     }
+  }
+
+  private static String inferType(JSONObject jsonObject) {
+    if (jsonObject.has("items")) {
+      return "array";
+    }
+    return "object";
   }
 }

@@ -3,6 +3,8 @@ package net.jimblackler.jsonschematypes;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
+
 import org.json.JSONArray;
 
 public class ArrayBasedSchema implements Schema {
@@ -14,5 +16,10 @@ public class ArrayBasedSchema implements Schema {
       URI indexPointer = JsonSchemaRef.append(uri, String.valueOf(idx));
       indices.add(schemaStore.followAndQueue(indexPointer));
     }
+  }
+
+  @Override
+  public void validate(Object jsonObject, Consumer<ValidationError> errorConsumer) {
+
   }
 }

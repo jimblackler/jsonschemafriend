@@ -3,6 +3,8 @@ package net.jimblackler.jsonschematypes;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
+
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -23,5 +25,10 @@ public class ArraySchema implements Schema {
     } else if (items instanceof JSONObject || items instanceof Boolean) {
       singleType = schemaStore.followAndQueue(JsonSchemaRef.append(uri, "items"));
     }
+  }
+
+  @Override
+  public void validate(Object jsonObject, Consumer<ValidationError> errorConsumer) {
+
   }
 }
