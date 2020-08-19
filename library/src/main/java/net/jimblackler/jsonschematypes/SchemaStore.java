@@ -98,7 +98,6 @@ public class SchemaStore {
         refs.put(uri, uri1);
       }
 
-
       Iterator<String> it = jsonObject.keys();
       while (it.hasNext()) {
         String key = it.next();
