@@ -51,7 +51,6 @@ public class SchemaStore {
   }
 
   Object fetchDocument(URI uri) throws GenerationException {
-    System.out.println("Original uri " + uri);
     for (UriRewriter rewriter : rewriters) {
       uri = rewriter.rewrite(uri);
     }
@@ -92,7 +91,9 @@ public class SchemaStore {
       if (idObject instanceof String) {
         URI newId = URI.create((String) idObject);
         if (activeId != null) {
-          newId = idRelativeUri(activeId, newId);
+          // See "This URI also serves as the base URI.." in
+          // https://tools.ietf.org/html/draft-handrews-json-schema-02#section-8.2.2
+          newId = activeId.resolve(newId);
         }
         activeId = newId;
         idToPath.put(activeId, uri);
@@ -102,14 +103,11 @@ public class SchemaStore {
       if (refObject instanceof String) {
         String refObject1 = (String) refObject;
         URI refUri = URI.create(refObject1);
-        System.out.println("refUri: " + refUri + " activeId: " + activeId);
         URI uri1;
         if (activeId == null || refObject1.startsWith("#")) {
           uri1 = uri.resolve(refUri);
-          System.out.println("now1: " + uri1);
         } else {
-          uri1 = idRelativeUri(activeId, refUri);
-          System.out.println("now2: " + uri1);
+          uri1 = activeId.resolve(refUri);
         }
         refs.put(uri, uri1);
       }
@@ -127,23 +125,9 @@ public class SchemaStore {
     }
   }
 
-  private static URI idRelativeUri(URI id, URI uri) throws GenerationException {
-
-    System.out.println("id: " + id);
-    System.out.println("uri: " + uri);
-
-    // See "This URI also serves as the base URI.." in
-    // https://tools.ietf.org/html/draft-handrews-json-schema-02#section-8.2.2
-    URI uri1 = id.resolve(uri);
-    System.out.println("rewritten: " + uri1);
-    return uri1;
-  }
-
   public Object resolve(URI uri) throws GenerationException {
-    System.out.println("Resolving " + uri);
     if (idToPath.containsKey(uri)) {
       uri = idToPath.get(uri);
-      System.out.println("Now it's " + uri);
     }
     try {
       URI documentUri = new URI(uri.getScheme(), uri.getSchemeSpecificPart(), null);
@@ -167,12 +151,8 @@ public class SchemaStore {
     if (refs.containsKey(uri)) {
       URI uri1 = refs.get(uri);
       // This could be an ID. Convert it back to a path.
-
-      // but how??? Look at all ids for prefixes?
       if (idToPath.containsKey(uri1)) {
-        System.out.println("id is " + uri1);
         uri1 = idToPath.get(uri1);
-        System.out.println("path is " + uri1);
       }
       return followAndQueue(uri1);
     }
