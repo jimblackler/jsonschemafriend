@@ -20,18 +20,18 @@ public class ObjectSchema implements Schema {
         while (it.hasNext()) {
           String propertyName = it.next();
           _properties.put(propertyName,
-              schemaStore.require(JsonSchemaRef.append(propertiesPointer, propertyName)));
+              schemaStore.followAndQueue(JsonSchemaRef.append(propertiesPointer, propertyName)));
         }
       }
 
       // https://tools.ietf.org/html/draft-handrews-json-schema-02#section-9.3.2.3
       if (jsonObject.has("additionalProperties")) {
-        schemaStore.require(JsonSchemaRef.append(uri, "additionalProperties"));
+        schemaStore.followAndQueue(JsonSchemaRef.append(uri, "additionalProperties"));
         // We're not doing anything with this yet.
       }
 
       if (jsonObject.has("definitions")) {
-        schemaStore.require(JsonSchemaRef.append(uri, "definitions"));
+        schemaStore.followAndQueue(JsonSchemaRef.append(uri, "definitions"));
         // We're not doing anything with this yet.
       }
     }

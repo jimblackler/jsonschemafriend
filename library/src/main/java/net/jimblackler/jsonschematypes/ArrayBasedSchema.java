@@ -12,7 +12,7 @@ public class ArrayBasedSchema implements Schema {
     JSONArray resolve = (JSONArray) schemaStore.resolve(uri);
     for (int idx = 0; idx != resolve.length(); idx++) {
       URI indexPointer = JsonSchemaRef.append(uri, String.valueOf(idx));
-      indices.add(schemaStore.require(indexPointer));
+      indices.add(schemaStore.followAndQueue(indexPointer));
     }
   }
 }

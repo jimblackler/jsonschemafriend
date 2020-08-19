@@ -9,6 +9,7 @@ import java.nio.file.Path;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Scanner;
 import java.util.stream.Collectors;
@@ -21,7 +22,9 @@ import org.json.JSONPointer;
 public class SchemaStore {
   private final Collection<URI> unbuilt = new HashSet<>();
   private final Map<URI, Schema> built = new HashMap<>();
-  private final Map<URI, Object> cache = new HashMap<>();
+  private final Map<URI, Object> documentCache = new HashMap<>();
+  private final Map<URI, URI> idToPath = new HashMap<>();
+  private final Map<URI, URI> refs = new HashMap<>();
   private final URI basePointer;
 
   public SchemaStore() throws GenerationException {
@@ -33,13 +36,13 @@ public class SchemaStore {
   }
 
   public void loadBaseObject(Object jsonObject) throws GenerationException {
-    cache.put(basePointer, jsonObject);
-    require(basePointer);
+    storeDocument(basePointer, jsonObject);
+    followAndQueue(basePointer);
   }
 
-  Object load(URI uri) throws GenerationException {
-    if (cache.containsKey(uri)) {
-      return cache.get(uri);
+  Object getDocument(URI uri) throws GenerationException {
+    if (documentCache.containsKey(uri)) {
+      return documentCache.get(uri);
     }
     String content;
 
@@ -48,24 +51,73 @@ public class SchemaStore {
     } catch (IOException e) {
       throw new GenerationException(e);
     }
-    Object jsonObject;
+    Object object;
     try {
-      jsonObject = new JSONArray(content);
+      object = new JSONArray(content);
     } catch (JSONException e) {
       try {
-        jsonObject = new JSONObject(content);
+        object = new JSONObject(content);
       } catch (JSONException e2) {
         throw new GenerationException(e2);
       }
     }
-    cache.put(uri, jsonObject);
-    return jsonObject;
+    storeDocument(uri, object);
+    return object;
   }
 
+  private void storeDocument(URI uri, Object object) throws GenerationException {
+    documentCache.put(uri, object);
+    findIds(uri, null);
+  }
+
+  private void findIds(URI uri, URI activeId) throws GenerationException {
+    Object object = resolve(uri);
+    if (object instanceof JSONObject) {
+      JSONObject jsonObject = (JSONObject) object;
+      Object idObject = jsonObject.opt("$id");
+      if (idObject instanceof String) {
+        String id = (String) idObject;
+        activeId = URI.create(id);
+        idToPath.put(activeId, uri);
+      }
+
+      Object refObject = jsonObject.opt("$ref");
+
+      if (refObject instanceof String) {
+        String ref = (String) refObject;
+
+        URI refUri = URI.create(ref);
+        URI uri1;
+        if (activeId != null && refUri.getFragment() == null) {
+          // See "This URI also serves as the base URI.." in
+          // https://tools.ietf.org/html/draft-handrews-json-schema-02#section-8.2.2
+          uri1 = activeId.resolve(refUri);
+        } else {
+          uri1 = uri.resolve(refUri);
+        }
+        refs.put(uri, uri1);
+      }
+
+
+      Iterator<String> it = jsonObject.keys();
+      while (it.hasNext()) {
+        String key = it.next();
+        findIds(JsonSchemaRef.append(uri, key), activeId);
+      }
+    } else if (object instanceof JSONArray) {
+      JSONArray jsonArray = (JSONArray) object;
+      for (int idx = 0; idx != jsonArray.length(); idx++) {
+        findIds(JsonSchemaRef.append(uri, String.valueOf(idx)), activeId);
+      }
+    }
+  }
   public Object resolve(URI uri) throws GenerationException {
+    if (idToPath.containsKey(uri)) {
+      uri = idToPath.get(uri);
+    }
     try {
-      URI minusFragment = new URI(uri.getScheme(), uri.getSchemeSpecificPart(), null);
-      Object object = load(minusFragment);
+      URI documentUri = new URI(uri.getScheme(), uri.getSchemeSpecificPart(), null);
+      Object object = getDocument(documentUri);
       if (uri.getFragment() == null || "/".equals(uri.getFragment())) {
         return object;
       }
@@ -76,23 +128,14 @@ public class SchemaStore {
     }
   }
 
-  public URI require(URI uri) throws GenerationException {
+  public URI followAndQueue(URI uri) {
+    // URI must be a path and NOT an id.
+
     if (unbuilt.contains(uri) || built.containsKey(uri)) {
       return uri;
     }
-    // Is a $ref?
-    Object object = resolve(uri);
-    if (object instanceof JSONObject) {
-      JSONObject jsonObject = (JSONObject) object;
-      String ref = jsonObject.optString("$ref");
-      if (!ref.isEmpty()) {
-        // TODO: first walk up the tree looking for the first $id ancestor, for the base
-        // rather than that of the active JSON Pointer.
-        // See "This URI also serves as the base URI.." in
-        // https://tools.ietf.org/html/draft-handrews-json-schema-02#section-8.2.2
-        URI uri1 = uri.resolve(ref);
-        return require(uri1);
-      }
+    if (refs.containsKey(uri)) {
+      return followAndQueue(refs.get(uri));
     }
     unbuilt.add(uri);
     return uri;
@@ -113,8 +156,7 @@ public class SchemaStore {
         if (Files.isDirectory(path)) {
           continue;
         }
-
-        require(new URI("file", path.toString(), null));
+        followAndQueue(new URI("file", path.toString(), null));
       }
     } catch (UncheckedGenerationException | IOException | URISyntaxException ex) {
       throw new GenerationException(ex);

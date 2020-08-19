@@ -21,7 +21,7 @@ public class ArraySchema implements Schema {
         arrayTypes.add(JsonSchemaRef.append(uri, String.valueOf(idx)));
       }
     } else {
-      singleType = schemaStore.require(JsonSchemaRef.append(uri, "items"));
+      singleType = schemaStore.followAndQueue(JsonSchemaRef.append(uri, "items"));
     }
   }
 }

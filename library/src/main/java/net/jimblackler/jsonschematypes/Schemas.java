@@ -19,8 +19,6 @@ public class Schemas {
     }
 
     JSONObject jsonObject = (JSONObject) object;
-    if (jsonObject.has("$id")) {
-    }
 
     try {
       if (jsonObject.has("allOf")) {
