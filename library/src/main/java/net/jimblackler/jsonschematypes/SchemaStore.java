@@ -86,8 +86,8 @@ public class SchemaStore {
           // https://tools.ietf.org/html/draft-handrews-json-schema-02#section-8.2.2
           newId = activeId.resolve(newId);
         }
+        idToPath.put(newId, path);
         activeId = newId;
-        idToPath.put(activeId, path);
       }
 
       Object refObject = jsonObject.opt("$ref");
@@ -113,13 +113,11 @@ public class SchemaStore {
   public Object getSchemaJson(URI path) throws GenerationException {
     try {
       URI documentUri = new URI(path.getScheme(), path.getSchemeSpecificPart(), null);
-      Object object = fetchDocument(documentUri);
+      Object document = fetchDocument(documentUri);
       if (path.getFragment() == null) {
-        return object;
+        return document;
       }
-      String pointerText = "#" + path.getRawFragment();
-      JSONPointer jsonPointer = new JSONPointer(pointerText);
-      return jsonPointer.queryFrom(object);
+      return new JSONPointer("#" + path.getRawFragment()).queryFrom(document);
     } catch (URISyntaxException e) {
       throw new GenerationException(e);
     }
