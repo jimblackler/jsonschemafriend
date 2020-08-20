@@ -142,7 +142,6 @@ public class SchemaStore {
       } catch (JSONPointerException | IllegalArgumentException ex) {
         throw new GenerationException("Problem with pointer " + pointerText, ex);
       }
-
     } catch (URISyntaxException e) {
       throw new GenerationException(e);
     }
