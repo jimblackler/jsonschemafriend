@@ -80,15 +80,16 @@ public class SchemaStore {
     // to be found.
     path = idRefMap.finalPath(path);
 
-    // Now we have the actual final path we can see if we've already built it.
+    // Now we have the final path we can see if we've already built it.
     if (builtPaths.containsKey(path)) {
       return builtPaths.get(path);
     }
 
+    // We fetch the actual JSON definition.
     Object object = getSchemaJson(path);
 
-    // In the case of a path to a $ref object in a document that hasn't yet been mapped, the final
-    // path will change.
+    // In the case the path is to a $ref object in a document that hadn't yet been mapped, the final
+    // path will have changed underneath us, and we'll have to start again.
     URI finalPath = idRefMap.finalPath(path);
     if (!finalPath.equals(path)) {
       return getSchema(finalPath);
