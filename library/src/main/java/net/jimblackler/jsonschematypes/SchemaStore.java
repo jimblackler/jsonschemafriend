@@ -92,15 +92,9 @@ public class SchemaStore {
 
       Object refObject = jsonObject.opt("$ref");
       if (refObject instanceof String) {
-        String refObject1 = (String) refObject;
-        URI refUri = URI.create(refObject1);
-        URI uri1;
-        if (activeId == null || refObject1.startsWith("#")) {
-          uri1 = path.resolve(refUri);
-        } else {
-          uri1 = activeId.resolve(refUri);
-        }
-        refs.put(path, uri1);
+        String ref = (String) refObject;
+        URI resolveWith = activeId == null || ref.startsWith("#") ? path : activeId;
+        refs.put(path, resolveWith.resolve(URI.create(ref)));
       }
 
       Iterator<String> it = jsonObject.keys();
