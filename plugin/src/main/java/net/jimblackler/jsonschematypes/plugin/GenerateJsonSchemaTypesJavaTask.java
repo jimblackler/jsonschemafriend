@@ -30,7 +30,6 @@ public class GenerateJsonSchemaTypesJavaTask extends DefaultTask {
     try {
       SchemaStore schemaStore = new SchemaStore();
       schemaStore.loadResources(resources);
-      schemaStore.process();
       Main2.outputTypes(outPath, schemaStore, extension.getPackageOut());
     } catch (GenerationException e) {
       throw new GradleException("Error generating types", e);
