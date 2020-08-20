@@ -179,14 +179,7 @@ public class SchemaStore {
   }
 
   public Schema build(URI path) throws GenerationException {
-   if (refs.containsKey(path)) {
-      URI uri1 = refs.get(path);
-      // This could be an ID. Convert it back to a path.
-      if (idToPath.containsKey(uri1)) {
-        uri1 = idToPath.get(uri1);
-      }
-      return build(uri1);
-    }
+    path = finalPath(path);
 
     if (builtPaths.containsKey(path)) {
       return builtPaths.get(path);
