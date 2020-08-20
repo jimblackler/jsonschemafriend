@@ -8,5 +8,5 @@ public abstract class Schema {
     // The schema is registered here to allow for circular graphs to be built in the constructors.
     schemaStore.register(path, this);
   }
-  abstract void validate(Object jsonObject, Consumer<ValidationError> errorConsumer);
+  abstract void validate(Object object, Consumer<ValidationError> errorConsumer);
 }

@@ -1,0 +1,50 @@
+[
+  {
+    "description": "Numeric conditions",
+    "schema": {
+      "minimum": 5
+    },
+    "tests": [
+      {
+        "data": 4,
+        "valid": false
+      },
+      {
+        "data": 4.9,
+        "valid": false
+      },
+      {
+        "data": 5,
+        "valid": true
+      },
+      {
+        "data": 5.5,
+        "valid": true
+      },
+      {
+        "data": 6,
+        "valid": true
+      },
+      {
+        "description": "Only cause numbers to fail",
+        "data": "x",
+        "valid": true
+      },
+      {
+        "description": "Only cause numbers to fail",
+        "data": "6",
+        "valid": true
+      },
+      {
+        "description": "Only cause numbers to fail",
+        "data": [1, 2, 3, 4, 5, 6],
+        "valid": true
+      },
+      {
+        "description": "Only cause numbers to fail",
+        "data": "123456",
+        "valid": true
+      }
+    ]
+  }
+]

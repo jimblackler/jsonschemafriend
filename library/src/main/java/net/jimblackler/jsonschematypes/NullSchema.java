@@ -9,5 +9,5 @@ public class NullSchema extends Schema {
   }
 
   @Override
-  public void validate(Object jsonObject, Consumer<ValidationError> errorConsumer) {}
+  public void validate(Object object, Consumer<ValidationError> errorConsumer) {}
 }

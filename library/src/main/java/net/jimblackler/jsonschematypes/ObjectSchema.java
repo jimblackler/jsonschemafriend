@@ -20,6 +20,7 @@ public class ObjectSchema extends Schema {
   private final List<Schema> anyOf;
   private final List<Schema> oneOf;
   private final Set<String> explicitTypes = new HashSet<>();
+  private final Double minimum;
 
   public ObjectSchema(SchemaStore schemaStore, URI path) throws GenerationException {
     super(schemaStore, path);
@@ -108,18 +109,33 @@ public class ObjectSchema extends Schema {
     } else {
       oneOf = null;
     }
+
+    if (jsonObject.has("minimum")) {
+      minimum = jsonObject.getDouble("minimum");
+    } else {
+      minimum = null;
+    }
   }
 
   @Override
-  public void validate(Object jsonObject, Consumer<ValidationError> errorConsumer) {
+  public void validate(Object object, Consumer<ValidationError> errorConsumer) {
+    if (object instanceof Number) {
+      Number number = (Number) object;
+      if (minimum != null) {
+        if (number.doubleValue() < minimum) {
+          errorConsumer.accept(new ValidationError("Less than minimum"));
+        }
+      }
+    }
+
     if (explicitTypes.contains("integer")) {
-      if (!(jsonObject instanceof Integer)) {
+      if (!(object instanceof Integer)) {
         errorConsumer.accept(new ValidationError("Not an integer"));
       }
     }
 
     if (explicitTypes.contains("string")) {
-      if (!(jsonObject instanceof String)) {
+      if (!(object instanceof String)) {
         errorConsumer.accept(new ValidationError("Not a string"));
       }
     }
@@ -128,7 +144,7 @@ public class ObjectSchema extends Schema {
       boolean onePassed = false;
       for (Schema schema : anyOf) {
         List<ValidationError> errors = new ArrayList<>();
-        schema.validate(jsonObject, errors::add);
+        schema.validate(object, errors::add);
         if (errors.isEmpty()) {
           onePassed = true;
           break;

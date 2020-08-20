@@ -12,7 +12,7 @@ public class BooleanSchema extends Schema {
   }
 
   @Override
-  public void validate(Object jsonObject, Consumer<ValidationError> errorConsumer) {
+  public void validate(Object object, Consumer<ValidationError> errorConsumer) {
     if (!value) {
       errorConsumer.accept(new ValidationError("Boolean schema was false"));
     }
