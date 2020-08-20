@@ -12,12 +12,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Consumer;
+import java.util.regex.Pattern;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
 public class ObjectSchema extends Schema {
   private final Map<String, Schema> _properties = new HashMap<>();
-  private final Map<String, Schema> _patternProperties = new HashMap<>();
+  private final Collection<Pattern> patternPropertiesPatterns = new ArrayList<>();
+  private final Collection<Schema> patternPropertiesSchemas = new ArrayList<>();
   private final Set<String> required = new HashSet<>();
   private final Collection<Schema> arrayTypes = new ArrayList<>();
   private final Schema singleType;
@@ -69,8 +71,9 @@ public class ObjectSchema extends Schema {
       Iterator<String> it = patternProperties.keys();
       while (it.hasNext()) {
         String propertyPattern = it.next();
-        _patternProperties.put(
-            propertyPattern, schemaStore.getSchema(append(propertiesPointer, propertyPattern)));
+        patternPropertiesPatterns.add(Pattern.compile(propertyPattern));
+        patternPropertiesSchemas.add(
+            schemaStore.getSchema(append(propertiesPointer, propertyPattern)));
       }
     }
 
@@ -207,6 +210,16 @@ public class ObjectSchema extends Schema {
           Schema schema = _properties.get(property);
           schema.validate(jsonObject.get(property), errorConsumer);
           remainingProperties.remove(property);
+        }
+        Iterator<Pattern> it0 = patternPropertiesPatterns.iterator();
+        Iterator<Schema> it1 = patternPropertiesSchemas.iterator();
+        while (it0.hasNext()) {
+          Pattern pattern = it0.next();
+          Schema schema = it1.next();
+          if (pattern.matcher(property).matches()) {
+            schema.validate(jsonObject.get(property), errorConsumer);
+            remainingProperties.remove(property);
+          }
         }
       }
       if (additionalProperties != null) {
