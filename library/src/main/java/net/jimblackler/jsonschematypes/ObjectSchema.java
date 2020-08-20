@@ -31,7 +31,11 @@ public class ObjectSchema extends Schema {
   public ObjectSchema(SchemaStore schemaStore, URI path) throws GenerationException {
     super(schemaStore, path);
     JSONObject jsonObject = (JSONObject) schemaStore.getSchemaJson(path);
+    if (jsonObject == null) {
+      throw new GenerationException("Could not obtain " + path);
+    }
 
+    // Get explicit types.
     Object type = jsonObject.opt("type");
 
     if (type instanceof JSONArray) {
