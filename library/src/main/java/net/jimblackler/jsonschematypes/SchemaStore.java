@@ -9,7 +9,6 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
@@ -41,7 +40,7 @@ public class SchemaStore {
 
   public void loadBaseObject(Object jsonObject) throws GenerationException {
     documentCache.put(basePointer, jsonObject);
-    findIds(basePointer, null);
+    mapIdsAndRefs(basePointer, null);
     getSchema(basePointer);
   }
 
@@ -66,11 +65,11 @@ public class SchemaStore {
       object = new JSONObject(content);
     }
     documentCache.put(url, object);
-    findIds(url, null);
+    mapIdsAndRefs(url, null);
     return object;
   }
 
-  private void findIds(URI path, URI activeId) throws GenerationException {
+  private void mapIdsAndRefs(URI path, URI activeId) throws GenerationException {
     Object object = getSchemaJson(path);
     if (object instanceof JSONObject) {
       JSONObject jsonObject = (JSONObject) object;
@@ -93,15 +92,13 @@ public class SchemaStore {
         refs.put(path, resolveWith.resolve(URI.create(ref)));
       }
 
-      Iterator<String> it = jsonObject.keys();
-      while (it.hasNext()) {
-        String key = it.next();
-        findIds(JsonSchemaRef.append(path, key), activeId);
+      for (String key : jsonObject.keySet()) {
+        mapIdsAndRefs(JsonSchemaRef.append(path, key), activeId);
       }
     } else if (object instanceof JSONArray) {
       JSONArray jsonArray = (JSONArray) object;
       for (int idx = 0; idx != jsonArray.length(); idx++) {
-        findIds(JsonSchemaRef.append(path, String.valueOf(idx)), activeId);
+        mapIdsAndRefs(JsonSchemaRef.append(path, String.valueOf(idx)), activeId);
       }
     }
   }
