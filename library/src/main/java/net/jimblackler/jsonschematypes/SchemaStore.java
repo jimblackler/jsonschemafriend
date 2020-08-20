@@ -52,7 +52,7 @@ public class SchemaStore {
 
   public void loadBaseObject(Object jsonObject) throws GenerationException {
     storeDocument(basePointer, jsonObject);
-    build(followAndQueue(basePointer));
+    build(basePointer);
   }
 
   Object fetchDocument(URI url) throws GenerationException {
@@ -171,29 +171,13 @@ public class SchemaStore {
     return uri;
   }
 
-  public URI followAndQueue(URI path) {
-    if (builtPaths.containsKey(path)) {
-      return path;
-    }
-
-    if (refs.containsKey(path)) {
-      URI uri1 = refs.get(path);
-      // This could be an ID. Convert it back to a path.
-      if (idToPath.containsKey(uri1)) {
-        uri1 = idToPath.get(uri1);
-      }
-      return followAndQueue(uri1);
-    }
-    return path;
-  }
-
   public void loadResources(Path resources) throws GenerationException {
     try (Stream<Path> walk = Files.walk(resources)) {
       for (Path path : walk.collect(Collectors.toList())) {
         if (Files.isDirectory(path)) {
           continue;
         }
-        build(followAndQueue(new URI("file", path.toString(), null)));
+        build(new URI("file", path.toString(), null));
       }
     } catch (UncheckedGenerationException | IOException | URISyntaxException ex) {
       throw new GenerationException(ex);
@@ -201,11 +185,19 @@ public class SchemaStore {
   }
 
   public Schema build(URI path) throws GenerationException {
-    // TODO: try and simplify this by doing away with unbuiltPaths.
-    path = followAndQueue(path);
+   if (refs.containsKey(path)) {
+      URI uri1 = refs.get(path);
+      // This could be an ID. Convert it back to a path.
+      if (idToPath.containsKey(uri1)) {
+        uri1 = idToPath.get(uri1);
+      }
+      return build(uri1);
+    }
+
     if (builtPaths.containsKey(path)) {
       return builtPaths.get(path);
     }
+
     System.out.println("On demand processing " + path);
     return Schemas.create(this, path);
   }
