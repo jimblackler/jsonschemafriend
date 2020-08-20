@@ -147,8 +147,8 @@ public class SchemaStore {
     }
   }
 
-  public Schema getSchema(URI path) throws GenerationException {
-    path = finalPath(path);
+  public Schema getSchema(URI uri) throws GenerationException {
+    URI path = finalPath(uri);
     if (builtPaths.containsKey(path)) {
       return builtPaths.get(path);
     }
