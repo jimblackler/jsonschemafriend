@@ -132,7 +132,7 @@ public class SchemaStore {
     try {
       URI documentUri = new URI(path.getScheme(), path.getSchemeSpecificPart(), null);
       Object object = fetchDocument(documentUri);
-      if (path.getFragment() == null || "/".equals(path.getFragment())) {
+      if (path.getFragment() == null) {
         return object;
       }
       String pointerText = "#" + path.getRawFragment();
