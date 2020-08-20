@@ -27,6 +27,7 @@ public class ObjectSchema extends Schema {
   private final Double exclusiveMinimum;
   private final Double exclusiveMaximum;
   private final Double multipleOf;
+  private final Schema additionalProperties;
 
   public ObjectSchema(SchemaStore schemaStore, URI path) throws GenerationException {
     super(schemaStore, path);
@@ -47,6 +48,7 @@ public class ObjectSchema extends Schema {
       explicitTypes.add(type.toString());
     }
 
+    // Get properties.
     if (jsonObject.has("properties")) {
       JSONObject properties = jsonObject.getJSONObject("properties");
       URI propertiesPointer = JsonSchemaRef.append(path, "properties");
@@ -60,8 +62,10 @@ public class ObjectSchema extends Schema {
 
     // https://tools.ietf.org/html/draft-handrews-json-schema-02#section-9.3.2.3
     if (jsonObject.has("additionalProperties")) {
-      schemaStore.getSchema(JsonSchemaRef.append(path, "additionalProperties"));
-      // We're not doing anything with this yet.
+      additionalProperties =
+          schemaStore.getSchema(JsonSchemaRef.append(path, "additionalProperties"));
+    } else {
+      additionalProperties = null;
     }
 
     if (jsonObject.has("required")) {

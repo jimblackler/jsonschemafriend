@@ -55,7 +55,7 @@ public class CodeGenerator {
       // Generate the code
       codeModel.build(outPath.toFile());
     } catch (IOException | JClassAlreadyExistsException e) {
-      throw new UncheckedGenerationException(e);
+      throw new IllegalStateException(e);
     }
   }
 }

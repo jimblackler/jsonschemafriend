@@ -71,11 +71,7 @@ public class SchemaStore {
     try {
       object = new JSONArray(content);
     } catch (JSONException e) {
-      try {
-        object = new JSONObject(content);
-      } catch (JSONException e2) {
-        throw new GenerationException(e2);
-      }
+      object = new JSONObject(content);
     }
     storeDocument(url, object);
     return object;
@@ -170,7 +166,7 @@ public class SchemaStore {
         }
         getSchema(new URI("file", path.toString(), null));
       }
-    } catch (UncheckedGenerationException | IOException | URISyntaxException ex) {
+    } catch (IOException | URISyntaxException ex) {
       throw new GenerationException(ex);
     }
   }
