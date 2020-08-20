@@ -30,7 +30,8 @@ public class SuiteTest {
   @TestFactory
   DynamicNode own() {
     Path suites = Path.of("/suites");
-    return scan(suites.resolve("own"), Path.of(""), "http://json-schema.org/draft-07/schema#", false);
+    return scan(
+        suites.resolve("own"), Path.of(""), "http://json-schema.org/draft-07/schema#", false);
   }
 
   @TestFactory
@@ -85,8 +86,8 @@ public class SuiteTest {
     return dynamicContainer(testDir.toString(), allFileTests);
   }
 
-  private static DynamicNode jsonTestFile(
-      Path testDir, Path remotes, String resource, String version, boolean schemaOnly) throws GenerationException {
+  private static DynamicNode jsonTestFile(Path testDir, Path remotes, String resource,
+      String version, boolean schemaOnly) throws GenerationException {
     Collection<DynamicNode> nodes = new ArrayList<>();
     JSONArray data = (JSONArray) Utils.getJsonObject(testDir.resolve(resource).toString());
     for (int idx = 0; idx != data.length(); idx++) {
@@ -99,7 +100,8 @@ public class SuiteTest {
     return dynamicContainer(resource, nodes);
   }
 
-  private static DynamicNode singleSchemaTest(JSONObject testSet, Path remotes, String version, boolean schemaOnly) {
+  private static DynamicNode singleSchemaTest(
+      JSONObject testSet, Path remotes, String version, boolean schemaOnly) {
     Collection<DynamicTest> everitTests = new ArrayList<>();
     Collection<DynamicTest> ownTests = new ArrayList<>();
     Object schema = testSet.get("schema");
