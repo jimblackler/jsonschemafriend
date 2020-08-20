@@ -17,6 +17,7 @@ import org.json.JSONObject;
 
 public class ObjectSchema extends Schema {
   private final Map<String, Schema> _properties = new HashMap<>();
+  private final Map<String, Schema> _patternProperties = new HashMap<>();
   private final Set<String> required = new HashSet<>();
   private final Collection<Schema> arrayTypes = new ArrayList<>();
   private final Schema singleType;
@@ -59,6 +60,17 @@ public class ObjectSchema extends Schema {
         String propertyName = it.next();
         _properties.put(
             propertyName, schemaStore.getSchema(append(propertiesPointer, propertyName)));
+      }
+    }
+
+    if (jsonObject.has("patternProperties")) {
+      JSONObject patternProperties = jsonObject.getJSONObject("patternProperties");
+      URI propertiesPointer = append(path, "patternProperties");
+      Iterator<String> it = patternProperties.keys();
+      while (it.hasNext()) {
+        String propertyPattern = it.next();
+        _patternProperties.put(
+            propertyPattern, schemaStore.getSchema(append(propertiesPointer, propertyPattern)));
       }
     }
 
