@@ -215,6 +215,12 @@ public class ObjectSchema extends Schema {
       }
     }
 
+    if (allOf != null) {
+      for (Schema schema : allOf) {
+        schema.validate(object, errorConsumer);
+      }
+    }
+
     if (anyOf != null) {
       boolean onePassed = false;
       for (Schema schema : anyOf) {
