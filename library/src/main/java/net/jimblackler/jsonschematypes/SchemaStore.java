@@ -9,12 +9,10 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
-import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.json.JSONArray;
@@ -52,7 +50,7 @@ public class SchemaStore {
 
   public void loadBaseObject(Object jsonObject) throws GenerationException {
     storeDocument(basePointer, jsonObject);
-    build(basePointer);
+    getSchema(basePointer);
   }
 
   Object fetchDocument(URI url) throws GenerationException {
@@ -89,7 +87,7 @@ public class SchemaStore {
   }
 
   private void findIds(URI path, URI activeId) throws GenerationException {
-    Object object = resolvePath(path);
+    Object object = getSchemaJson(path);
     if (object instanceof JSONObject) {
       JSONObject jsonObject = (JSONObject) object;
       Object idObject = jsonObject.opt("$id");
@@ -130,7 +128,7 @@ public class SchemaStore {
     }
   }
 
-  public Object resolvePath(URI path) throws GenerationException {
+  public Object getSchemaJson(URI path) throws GenerationException {
     try {
       URI documentUri = new URI(path.getScheme(), path.getSchemeSpecificPart(), null);
       Object object = fetchDocument(documentUri);
@@ -171,22 +169,26 @@ public class SchemaStore {
         if (Files.isDirectory(path)) {
           continue;
         }
-        build(new URI("file", path.toString(), null));
+        getSchema(new URI("file", path.toString(), null));
       }
     } catch (UncheckedGenerationException | IOException | URISyntaxException ex) {
       throw new GenerationException(ex);
     }
   }
 
-  public Schema build(URI path) throws GenerationException {
+  public Schema getSchema(URI path) throws GenerationException {
     path = finalPath(path);
-
     if (builtPaths.containsKey(path)) {
       return builtPaths.get(path);
     }
+    Object object = getSchemaJson(path);
 
-    System.out.println("On demand processing " + path);
-    return Schemas.create(this, path);
+    // https://tools.ietf.org/html/draft-handrews-json-schema-02#section-4.3.2
+    if (object instanceof Boolean) {
+      return new BooleanSchema(this, path, (boolean) object);
+    }
+
+    return new ObjectSchema(this, path);
   }
 
   public void register(URI path, Schema schema) throws GenerationException {

@@ -30,7 +30,7 @@ public class ObjectSchema extends Schema {
 
   public ObjectSchema(SchemaStore schemaStore, URI path) throws GenerationException {
     super(schemaStore, path);
-    JSONObject jsonObject = (JSONObject) schemaStore.resolvePath(path);
+    JSONObject jsonObject = (JSONObject) schemaStore.getSchemaJson(path);
 
     Object type = jsonObject.opt("type");
 
@@ -49,14 +49,14 @@ public class ObjectSchema extends Schema {
       Iterator<String> it = properties.keys();
       while (it.hasNext()) {
         String propertyName = it.next();
-        _properties.put(
-            propertyName, schemaStore.build(JsonSchemaRef.append(propertiesPointer, propertyName)));
+        _properties.put(propertyName,
+            schemaStore.getSchema(JsonSchemaRef.append(propertiesPointer, propertyName)));
       }
     }
 
     // https://tools.ietf.org/html/draft-handrews-json-schema-02#section-9.3.2.3
     if (jsonObject.has("additionalProperties")) {
-      schemaStore.build(JsonSchemaRef.append(path, "additionalProperties"));
+      schemaStore.getSchema(JsonSchemaRef.append(path, "additionalProperties"));
       // We're not doing anything with this yet.
     }
 
@@ -71,13 +71,14 @@ public class ObjectSchema extends Schema {
     Object items = jsonObject.opt("items");
     URI itemsPath = JsonSchemaRef.append(path, "items");
     if (items instanceof JSONObject || items instanceof Boolean) {
-      singleType = schemaStore.build(itemsPath);
+      singleType = schemaStore.getSchema(itemsPath);
     } else {
       singleType = null;
       if (items instanceof JSONArray) {
         JSONArray jsonArray = (JSONArray) items;
         for (int idx = 0; idx != jsonArray.length(); idx++) {
-          arrayTypes.add(schemaStore.build(JsonSchemaRef.append(itemsPath, String.valueOf(idx))));
+          arrayTypes.add(
+              schemaStore.getSchema(JsonSchemaRef.append(itemsPath, String.valueOf(idx))));
         }
       }
     }
@@ -88,7 +89,7 @@ public class ObjectSchema extends Schema {
       URI arrayPath = JsonSchemaRef.append(path, "allOf");
       for (int idx = 0; idx != array.length(); idx++) {
         URI indexPointer = JsonSchemaRef.append(arrayPath, String.valueOf(idx));
-        allOf.add(schemaStore.build(indexPointer));
+        allOf.add(schemaStore.getSchema(indexPointer));
       }
     } else {
       allOf = null;
@@ -100,7 +101,7 @@ public class ObjectSchema extends Schema {
       URI arrayPath = JsonSchemaRef.append(path, "anyOf");
       for (int idx = 0; idx != array.length(); idx++) {
         URI indexPointer = JsonSchemaRef.append(arrayPath, String.valueOf(idx));
-        anyOf.add(schemaStore.build(indexPointer));
+        anyOf.add(schemaStore.getSchema(indexPointer));
       }
     } else {
       anyOf = null;
@@ -112,7 +113,7 @@ public class ObjectSchema extends Schema {
       URI arrayPath = JsonSchemaRef.append(path, "oneOf");
       for (int idx = 0; idx != array.length(); idx++) {
         URI indexPointer = JsonSchemaRef.append(arrayPath, String.valueOf(idx));
-        oneOf.add(schemaStore.build(indexPointer));
+        oneOf.add(schemaStore.getSchema(indexPointer));
       }
     } else {
       oneOf = null;
