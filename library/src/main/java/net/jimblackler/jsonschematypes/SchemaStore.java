@@ -24,7 +24,6 @@ import org.json.JSONPointer;
 import org.json.JSONPointerException;
 
 public class SchemaStore {
-  private final Collection<URI> unbuiltPaths = new HashSet<>();
   private final Map<URI, Schema> builtPaths = new HashMap<>();
   private final Map<URI, Object> documentCache = new HashMap<>();
   private final Map<URI, URI> idToPath = new HashMap<>();
@@ -53,7 +52,7 @@ public class SchemaStore {
 
   public void loadBaseObject(Object jsonObject) throws GenerationException {
     storeDocument(basePointer, jsonObject);
-    followAndQueue(basePointer);
+    build(followAndQueue(basePointer));
   }
 
   Object fetchDocument(URI url) throws GenerationException {
@@ -173,7 +172,7 @@ public class SchemaStore {
   }
 
   public URI followAndQueue(URI path) {
-    if (unbuiltPaths.contains(path) || builtPaths.containsKey(path)) {
+    if (builtPaths.containsKey(path)) {
       return path;
     }
 
@@ -185,16 +184,7 @@ public class SchemaStore {
       }
       return followAndQueue(uri1);
     }
-    unbuiltPaths.add(path);
     return path;
-  }
-
-  public void process() throws GenerationException {
-    while (!unbuiltPaths.isEmpty()) {
-      URI path = unbuiltPaths.iterator().next();
-      System.out.println("Processing " + path);
-      Schemas.create(this, path);
-    }
   }
 
   public void loadResources(Path resources) throws GenerationException {
@@ -203,7 +193,7 @@ public class SchemaStore {
         if (Files.isDirectory(path)) {
           continue;
         }
-        followAndQueue(new URI("file", path.toString(), null));
+        build(followAndQueue(new URI("file", path.toString(), null)));
       }
     } catch (UncheckedGenerationException | IOException | URISyntaxException ex) {
       throw new GenerationException(ex);
@@ -221,13 +211,9 @@ public class SchemaStore {
   }
 
   public void register(URI path, Schema schema) throws GenerationException {
-    if (!unbuiltPaths.contains(path)) {
-      throw new GenerationException(path + " not in unbuilt");
-    }
     if (builtPaths.containsKey(path)) {
       throw new GenerationException(path + " already registered");
     }
-    unbuiltPaths.remove(path);
     builtPaths.put(path, schema);
   }
 

@@ -44,7 +44,6 @@ public class ExampleTest {
       URL resource = ExampleTest.class.getResource(fullDir.toString());
       SchemaStore schemaStore = new SchemaStore();
       schemaStore.loadResources(Path.of(resource.toURI()));
-      schemaStore.process();
       Main2.outputTypes(Path.of("out"), schemaStore, "org.example");
 
     } catch (GenerationException | URISyntaxException e) {
