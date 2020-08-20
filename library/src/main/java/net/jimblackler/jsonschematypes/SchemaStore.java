@@ -27,15 +27,7 @@ public class SchemaStore {
   private final Map<URI, URI> idToPath = new HashMap<>();
   private final Map<URI, URI> refs = new HashMap<>();
   private final Collection<UrlRewriter> rewriters = new ArrayList<>();
-  private final URI basePointer;
-
-  public SchemaStore() throws GenerationException {
-    try {
-      basePointer = new URI(null, null, null);
-    } catch (URISyntaxException e) {
-      throw new GenerationException(e);
-    }
-  }
+  private final URI basePointer = URI.create("");
 
   public Collection<ValidationError> validate(URI uri, Object jsonObject) {
     Schema schema = builtPaths.get(finalPath(uri));
@@ -132,12 +124,8 @@ public class SchemaStore {
         return object;
       }
       String pointerText = "#" + path.getRawFragment();
-      try {
-        JSONPointer jsonPointer = new JSONPointer(pointerText);
-        return jsonPointer.queryFrom(object);
-      } catch (JSONPointerException | IllegalArgumentException ex) {
-        throw new GenerationException("Problem with pointer " + pointerText, ex);
-      }
+      JSONPointer jsonPointer = new JSONPointer(pointerText);
+      return jsonPointer.queryFrom(object);
     } catch (URISyntaxException e) {
       throw new GenerationException(e);
     }
