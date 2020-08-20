@@ -3,11 +3,11 @@ package net.jimblackler.jsonschematypes;
 import java.net.URI;
 import java.util.function.Consumer;
 
-public class NullSchema implements Schema {
-  public NullSchema(SchemaStore schemaStore, URI uri) throws GenerationException {}
+public class NullSchema extends Schema {
+  public NullSchema(SchemaStore schemaStore, URI path) throws GenerationException {
+    super(schemaStore, path);
+  }
 
   @Override
-  public void validate(Object jsonObject, Consumer<ValidationError> errorConsumer) {
-
-  }
+  public void validate(Object jsonObject, Consumer<ValidationError> errorConsumer) {}
 }

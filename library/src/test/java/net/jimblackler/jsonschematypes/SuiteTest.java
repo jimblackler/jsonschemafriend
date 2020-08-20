@@ -105,96 +105,95 @@ public class SuiteTest {
       JSONArray tests1 = testSet.getJSONArray("tests");
       for (int idx2 = 0; idx2 != tests1.length(); idx2++) {
         JSONObject test = tests1.getJSONObject(idx2);
+        Object data = test.get("data");
+        boolean valid = test.getBoolean("valid");
+        String description = test.optString("description", data + (valid ? " succeeds" : " fails"));
 
-        ownTests.add(dynamicTest(test.optString("description", "No description"), () -> {
-          System.out.println("Schema:");
-          if (schema instanceof JSONObject) {
-            System.out.println(((JSONObject) schema).toString(2));
-          } else {
-            System.out.println(schema);
-          }
-          System.out.println();
-
-          SchemaStore schemaStore = new SchemaStore();
-          schemaStore.addRewriter(in
-              -> URI.create(in.toString().replace("http://localhost:1234", resource.toString())));
-          schemaStore.loadBaseObject(schema);
-          schemaStore.process();
-
-          System.out.println("Test:");
-          System.out.println(test.toString(2));
-          System.out.println();
-
-          Object jsonObject = test.get("data");
-
-          Collection<ValidationError> errors = schemaStore.validate(URI.create(""), jsonObject);
-
-          boolean valid = test.getBoolean("valid");
-
-          if (!errors.isEmpty()) {
-            System.out.println("Failures:");
-            for (ValidationError error : errors) {
-              System.out.println(error);
+        if (true) {
+          ownTests.add(dynamicTest(description, () -> {
+            System.out.println("Schema:");
+            if (schema instanceof JSONObject) {
+              System.out.println(((JSONObject) schema).toString(2));
+            } else {
+              System.out.println(schema);
             }
             System.out.println();
-          }
 
-          System.out.print("Expeced to " + (valid ? "pass" : "fail") + " ... ");
-          System.out.println((errors.isEmpty() ? "passed" : "failed"));
-
-          assertEquals(errors.isEmpty(), valid);
-
-
-        }));
-        if (schema instanceof JSONObject) {
-          everitTests.add(dynamicTest(test.optString("description", "No description"), () -> {
-            JSONObject schema1 = (JSONObject) schema;
-            System.out.println("Schema:");
-            System.out.println(schema1.toString(2));
-            System.out.println();
-
-            Schema everitSchema = SchemaLoader.load(schema1, url -> {
-              url = url.replace("http://localhost:1234", resource.toString());
-              try {
-                return new URL(url).openStream();
-              } catch (IOException e) {
-                throw new UncheckedIOException(e);
-              }
-            });
+            SchemaStore schemaStore = new SchemaStore();
+            schemaStore.addRewriter(in
+                -> URI.create(in.toString().replace("http://localhost:1234", resource.toString())));
+            schemaStore.loadBaseObject(schema);
+            schemaStore.process();
 
             System.out.println("Test:");
             System.out.println(test.toString(2));
             System.out.println();
 
-            Object jsonObject = test.get("data");
-            List<String> failures = null;
-            try {
-              everitSchema.validate(jsonObject);
-            } catch (ValidationException ex) {
-              System.out.println(ex.toJSON().toString());
-              failures = ex.getAllMessages();
-            } catch (Exception e) {
-              fail(e);
-            }
-            boolean valid = test.getBoolean("valid");
+            Collection<ValidationError> errors = schemaStore.validate(URI.create(""), data);
 
-            if (failures != null) {
+            if (!errors.isEmpty()) {
               System.out.println("Failures:");
-              for (String message : failures) {
-                System.out.println(message);
+              for (ValidationError error : errors) {
+                System.out.println(error);
               }
               System.out.println();
             }
 
-            System.out.print("Expeced to " + (valid ? "pass" : "fail") + " ... ");
-            System.out.println((failures == null ? "passed" : "failed"));
+            System.out.print("Expected to " + (valid ? "pass" : "fail") + " ... ");
+            System.out.println((errors.isEmpty() ? "passed" : "failed"));
 
-            assertEquals(failures == null, valid);
+            assertEquals(errors.isEmpty(), valid);
           }));
+        }
+        if (schema instanceof JSONObject) {
+          if (false) {
+            everitTests.add(dynamicTest(description, () -> {
+              JSONObject schema1 = (JSONObject) schema;
+              System.out.println("Schema:");
+              System.out.println(schema1.toString(2));
+              System.out.println();
+
+              Schema everitSchema = SchemaLoader.load(schema1, url -> {
+                url = url.replace("http://localhost:1234", resource.toString());
+                try {
+                  return new URL(url).openStream();
+                } catch (IOException e) {
+                  throw new UncheckedIOException(e);
+                }
+              });
+
+              System.out.println("Test:");
+              System.out.println(test.toString(2));
+              System.out.println();
+
+              List<String> failures = null;
+              try {
+                everitSchema.validate(data);
+              } catch (ValidationException ex) {
+                System.out.println(ex.toJSON().toString());
+                failures = ex.getAllMessages();
+              } catch (Exception e) {
+                fail(e);
+              }
+
+              if (failures != null) {
+                System.out.println("Failures:");
+                for (String message : failures) {
+                  System.out.println(message);
+                }
+                System.out.println();
+              }
+
+              System.out.print("Expeced to " + (valid ? "pass" : "fail") + " ... ");
+              System.out.println((failures == null ? "passed" : "failed"));
+
+              assertEquals(failures == null, valid);
+            }));
+          }
         }
       }
     }
-    if (false) {
+    if (true) {
       ownTests.add(dynamicTest("schema", () -> {
         System.out.println("Schema:");
         if (schema instanceof JSONObject) {
@@ -212,7 +211,6 @@ public class SuiteTest {
       }));
     }
     return dynamicContainer(testSet.getString("description"),
-        List.of( // dynamicContainer("everit", everitTests),
-            dynamicContainer("own", ownTests)));
+        List.of(dynamicContainer("everit", everitTests), dynamicContainer("own", ownTests)));
   }
 }

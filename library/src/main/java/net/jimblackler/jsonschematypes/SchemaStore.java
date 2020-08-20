@@ -1,11 +1,5 @@
 package net.jimblackler.jsonschematypes;
 
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-import org.json.JSONPointer;
-import org.json.JSONPointerException;
-
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -23,6 +17,11 @@ import java.util.Scanner;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+import org.json.JSONPointer;
+import org.json.JSONPointerException;
 
 public class SchemaStore {
   private final Collection<URI> unbuiltPaths = new HashSet<>();
@@ -91,7 +90,7 @@ public class SchemaStore {
   }
 
   private void findIds(URI path, URI activeId) throws GenerationException {
-    Object object = resolve(path);
+    Object object = resolvePath(path);
     if (object instanceof JSONObject) {
       JSONObject jsonObject = (JSONObject) object;
       Object idObject = jsonObject.opt("$id");
@@ -134,15 +133,18 @@ public class SchemaStore {
 
   public Object resolve(URI idOrPath) throws GenerationException {
     if (idToPath.containsKey(idOrPath)) {
-      idOrPath = idToPath.get(idOrPath);
+      return resolvePath(idToPath.get(idOrPath));
     }
+    return resolvePath(idOrPath);
+  }
+  public Object resolvePath(URI path) throws GenerationException {
     try {
-      URI documentUri = new URI(idOrPath.getScheme(), idOrPath.getSchemeSpecificPart(), null);
+      URI documentUri = new URI(path.getScheme(), path.getSchemeSpecificPart(), null);
       Object object = fetchDocument(documentUri);
-      if (idOrPath.getFragment() == null || "/".equals(idOrPath.getFragment())) {
+      if (path.getFragment() == null || "/".equals(path.getFragment())) {
         return object;
       }
-      String pointerText = "#" + idOrPath.getRawFragment();
+      String pointerText = "#" + path.getRawFragment();
       try {
         JSONPointer jsonPointer = new JSONPointer(pointerText);
         return jsonPointer.queryFrom(object);
@@ -189,10 +191,9 @@ public class SchemaStore {
 
   public void process() throws GenerationException {
     while (!unbuiltPaths.isEmpty()) {
-      URI uri = unbuiltPaths.iterator().next();
-      System.out.println("Processing " + uri);
-      builtPaths.put(uri, Schemas.create(this, uri));
-      unbuiltPaths.remove(uri);
+      URI path = unbuiltPaths.iterator().next();
+      System.out.println("Processing " + path);
+      Schemas.create(this, path);
     }
   }
 
@@ -207,6 +208,27 @@ public class SchemaStore {
     } catch (UncheckedGenerationException | IOException | URISyntaxException ex) {
       throw new GenerationException(ex);
     }
+  }
+
+  public Schema build(URI path) throws GenerationException {
+    // TODO: try and simplify this by doing away with unbuiltPaths.
+    path = followAndQueue(path);
+    if (builtPaths.containsKey(path)) {
+      return builtPaths.get(path);
+    }
+    System.out.println("On demand processing " + path);
+    return Schemas.create(this, path);
+  }
+
+  public void register(URI path, Schema schema) throws GenerationException {
+    if (!unbuiltPaths.contains(path)) {
+      throw new GenerationException(path + " not in unbuilt");
+    }
+    if (builtPaths.containsKey(path)) {
+      throw new GenerationException(path + " already registered");
+    }
+    unbuiltPaths.remove(path);
+    builtPaths.put(path, schema);
   }
 
   interface UrlRewriter {

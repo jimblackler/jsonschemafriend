@@ -1,11 +1,13 @@
 package net.jimblackler.jsonschematypes;
 
+import java.net.URI;
 import java.util.function.Consumer;
 
-public class TrivialSchema implements Schema {
+public class TrivialSchema extends Schema {
   private final boolean value;
 
-  TrivialSchema(boolean value) {
+  TrivialSchema(SchemaStore schemaStore, URI path, boolean value) throws GenerationException {
+    super(schemaStore, path);
     this.value = value;
   }
 
