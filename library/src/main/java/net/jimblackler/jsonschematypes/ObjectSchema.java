@@ -1,5 +1,7 @@
 package net.jimblackler.jsonschematypes;
 
+import static net.jimblackler.jsonschematypes.JsonSchemaRef.append;
+
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -51,19 +53,18 @@ public class ObjectSchema extends Schema {
     // Get properties.
     if (jsonObject.has("properties")) {
       JSONObject properties = jsonObject.getJSONObject("properties");
-      URI propertiesPointer = JsonSchemaRef.append(path, "properties");
+      URI propertiesPointer = append(path, "properties");
       Iterator<String> it = properties.keys();
       while (it.hasNext()) {
         String propertyName = it.next();
-        _properties.put(propertyName,
-            schemaStore.getSchema(JsonSchemaRef.append(propertiesPointer, propertyName)));
+        _properties.put(
+            propertyName, schemaStore.getSchema(append(propertiesPointer, propertyName)));
       }
     }
 
     // https://tools.ietf.org/html/draft-handrews-json-schema-02#section-9.3.2.3
     if (jsonObject.has("additionalProperties")) {
-      additionalProperties =
-          schemaStore.getSchema(JsonSchemaRef.append(path, "additionalProperties"));
+      additionalProperties = schemaStore.getSchema(append(path, "additionalProperties"));
     } else {
       additionalProperties = null;
     }
@@ -77,7 +78,7 @@ public class ObjectSchema extends Schema {
 
     // https://tools.ietf.org/html/draft-handrews-json-schema-02#section-9.3.1.1
     Object items = jsonObject.opt("items");
-    URI itemsPath = JsonSchemaRef.append(path, "items");
+    URI itemsPath = append(path, "items");
     if (items instanceof JSONObject || items instanceof Boolean) {
       singleType = schemaStore.getSchema(itemsPath);
     } else {
@@ -85,8 +86,7 @@ public class ObjectSchema extends Schema {
       if (items instanceof JSONArray) {
         JSONArray jsonArray = (JSONArray) items;
         for (int idx = 0; idx != jsonArray.length(); idx++) {
-          arrayTypes.add(
-              schemaStore.getSchema(JsonSchemaRef.append(itemsPath, String.valueOf(idx))));
+          arrayTypes.add(schemaStore.getSchema(append(itemsPath, String.valueOf(idx))));
         }
       }
     }
@@ -94,9 +94,9 @@ public class ObjectSchema extends Schema {
     if (jsonObject.has("allOf")) {
       allOf = new ArrayList<>();
       JSONArray array = jsonObject.getJSONArray("allOf");
-      URI arrayPath = JsonSchemaRef.append(path, "allOf");
+      URI arrayPath = append(path, "allOf");
       for (int idx = 0; idx != array.length(); idx++) {
-        URI indexPointer = JsonSchemaRef.append(arrayPath, String.valueOf(idx));
+        URI indexPointer = append(arrayPath, String.valueOf(idx));
         allOf.add(schemaStore.getSchema(indexPointer));
       }
     } else {
@@ -106,9 +106,9 @@ public class ObjectSchema extends Schema {
     if (jsonObject.has("anyOf")) {
       anyOf = new ArrayList<>();
       JSONArray array = jsonObject.getJSONArray("anyOf");
-      URI arrayPath = JsonSchemaRef.append(path, "anyOf");
+      URI arrayPath = append(path, "anyOf");
       for (int idx = 0; idx != array.length(); idx++) {
-        URI indexPointer = JsonSchemaRef.append(arrayPath, String.valueOf(idx));
+        URI indexPointer = append(arrayPath, String.valueOf(idx));
         anyOf.add(schemaStore.getSchema(indexPointer));
       }
     } else {
@@ -118,9 +118,9 @@ public class ObjectSchema extends Schema {
     if (jsonObject.has("oneOf")) {
       oneOf = new ArrayList<>();
       JSONArray array = jsonObject.getJSONArray("oneOf");
-      URI arrayPath = JsonSchemaRef.append(path, "oneOf");
+      URI arrayPath = append(path, "oneOf");
       for (int idx = 0; idx != array.length(); idx++) {
-        URI indexPointer = JsonSchemaRef.append(arrayPath, String.valueOf(idx));
+        URI indexPointer = append(arrayPath, String.valueOf(idx));
         oneOf.add(schemaStore.getSchema(indexPointer));
       }
     } else {
@@ -189,12 +189,17 @@ public class ObjectSchema extends Schema {
       }
     } else if (object instanceof JSONObject) {
       JSONObject jsonObject = (JSONObject) object;
-      Iterator<String> it = jsonObject.keys();
-      while (it.hasNext()) {
-        String property = it.next();
+      Set<String> remainingProperties = new HashSet<>(jsonObject.keySet());
+      for (String property : jsonObject.keySet()) {
         if (_properties.containsKey(property)) {
           Schema schema = _properties.get(property);
           schema.validate(jsonObject.get(property), errorConsumer);
+          remainingProperties.remove(property);
+        }
+      }
+      if (additionalProperties != null) {
+        for (String property : remainingProperties) {
+          additionalProperties.validate(jsonObject.get(property), errorConsumer);
         }
       }
 
