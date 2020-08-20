@@ -1,6 +1,6 @@
 [
   {
-    "description": "anyOf",
+    "description": "Single property",
     "schema": {
       "properties": {
         "someValue": {
@@ -15,6 +15,22 @@
       },
       {
         "data": {"someValue": "x"},
+        "valid": false
+      }
+    ]
+  },
+  {
+    "description": "required",
+    "schema": {
+      "required": ["someValue"]
+    },
+    "tests": [
+      {
+        "data": {"someValue": 4},
+        "valid": true
+      },
+      {
+        "data": {},
         "valid": false
       }
     ]

@@ -15,6 +15,7 @@ import org.json.JSONObject;
 
 public class ObjectSchema extends Schema {
   private final Map<String, Schema> _properties = new HashMap<>();
+  private final Set<String> required = new HashSet<>();
   private final Collection<Schema> arrayTypes = new ArrayList<>();
   private final Schema singleType;
   private final Collection<Schema> allOf;
@@ -26,7 +27,6 @@ public class ObjectSchema extends Schema {
   private final Double exclusiveMinimum;
   private final Double exclusiveMaximum;
   private final Double multipleOf;
-
 
   public ObjectSchema(SchemaStore schemaStore, URI path) throws GenerationException {
     super(schemaStore, path);
@@ -60,9 +60,11 @@ public class ObjectSchema extends Schema {
       // We're not doing anything with this yet.
     }
 
-    if (jsonObject.has("definitions")) {
-      schemaStore.build(JsonSchemaRef.append(path, "definitions"));
-      // We're not doing anything with this yet.
+    if (jsonObject.has("required")) {
+      JSONArray array = jsonObject.getJSONArray("required");
+      for (int idx = 0; idx != array.length(); idx++) {
+        required.add(array.getString(idx));
+      }
     }
 
     // https://tools.ietf.org/html/draft-handrews-json-schema-02#section-9.3.1.1
@@ -185,6 +187,12 @@ public class ObjectSchema extends Schema {
         if (_properties.containsKey(property)) {
           Schema schema = _properties.get(property);
           schema.validate(jsonObject.get(property), errorConsumer);
+        }
+      }
+
+      for (String property : required) {
+        if (!jsonObject.has(property)) {
+          errorConsumer.accept(new ValidationError("Missing required property " + property));
         }
       }
     }
