@@ -130,12 +130,6 @@ public class SchemaStore {
     }
   }
 
-  public Object resolve(URI idOrPath) throws GenerationException {
-    if (idToPath.containsKey(idOrPath)) {
-      return resolvePath(idToPath.get(idOrPath));
-    }
-    return resolvePath(idOrPath);
-  }
   public Object resolvePath(URI path) throws GenerationException {
     try {
       URI documentUri = new URI(path.getScheme(), path.getSchemeSpecificPart(), null);
