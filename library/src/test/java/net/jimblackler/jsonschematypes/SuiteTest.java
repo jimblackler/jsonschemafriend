@@ -123,7 +123,6 @@ public class SuiteTest {
             schemaStore.addRewriter(in
                 -> URI.create(in.toString().replace("http://localhost:1234", resource.toString())));
             schemaStore.loadBaseObject(schema);
-            schemaStore.process();
 
             System.out.println("Test:");
             System.out.println(test.toString(2));
@@ -207,7 +206,6 @@ public class SuiteTest {
         schemaStore.addRewriter(
             in -> URI.create(in.toString().replace("http://localhost:1234", resource.toString())));
         schemaStore.loadBaseObject(schema);
-        schemaStore.process();
       }));
     }
     return dynamicContainer(testSet.getString("description"),
