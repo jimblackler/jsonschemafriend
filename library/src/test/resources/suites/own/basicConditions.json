@@ -1,0 +1,33 @@
+[
+  {
+    "description": "anyOf",
+    "schema": {
+      "anyOf": [
+        {
+          "type": "integer"
+        },
+        {
+          "type": "string"
+        }
+      ]
+    },
+    "tests": [
+      {
+        "data": -1,
+        "valid": true
+      },
+      {
+        "data": "",
+        "valid": true
+      },
+      {
+        "data": {},
+        "valid": false
+      },
+      {
+        "data": [],
+        "valid": false
+      }
+    ]
+  }
+]

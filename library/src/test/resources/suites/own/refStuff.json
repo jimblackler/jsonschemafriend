@@ -1,0 +1,165 @@
+[
+  {
+    "description": "Use default json path",
+    "schema": {
+      "type": "object",
+      "myDescriptions": {
+        "someNumberDefinition": {
+          "type": "number"
+        }
+      },
+      "properties": {
+        "someNumber": {
+          "$ref": "#/myDescriptions/someNumberDefinition"
+        }
+      }
+    },
+    "tests": [
+      {
+        "data": {
+          "someNumber": "xyz"
+        },
+        "valid": false
+      },
+      {
+        "data": {
+          "someNumber": 3
+        },
+        "valid": true
+      }
+    ]
+  },
+  {
+    "description": "Use $id on target",
+    "schema": {
+      "type": "object",
+      "myDescriptions": {
+        "someNumberDefinition": {
+          "type": "number",
+          "$id": "loremipsum"
+        }
+      },
+      "properties": {
+        "someNumber": {
+          "$ref": "loremipsum"
+        }
+      }
+    },
+    "tests": [
+      {
+        "data": {
+          "someNumber": "xyz"
+        },
+        "valid": false
+      },
+      {
+        "data": {
+          "someNumber": 3
+        },
+        "valid": true
+      }
+    ]
+  },
+  {
+    "description": "$refs resolved with domain from closest ancestor",
+    "schema": {
+      "type": "object",
+      "myDescriptions": {
+        "someNumberDefinition": {
+          "$id": "http://example.org:8080/loremipsum",
+          "type": "number"
+        }
+      },
+      "$id": "http://example.org:8080/irrelevant",
+      "properties": {
+        "someNumber": {
+          "$ref": "loremipsum"
+        }
+      }
+    },
+    "tests": [
+      {
+        "data": {
+          "someNumber": "xyz"
+        },
+        "valid": false
+      },
+      {
+        "data": {
+          "someNumber": 3
+        },
+        "valid": true
+      }
+    ]
+  },
+  {
+    "description": "Can use json path even when there are IDs",
+    "schema": {
+      "type": "object",
+      "myDescriptions": {
+        "someNumberDefinition": {
+          "$id": "http://example.org:8080/loremipsum",
+          "type": "number"
+        }
+      },
+      "$id": "http://example.org:8080/irrelevant",
+      "properties": {
+        "someNumber": {
+          "$ref": "#/myDescriptions/someNumberDefinition"
+        }
+      }
+    },
+    "tests": [
+      {
+        "data": {
+          "someNumber": "xyz"
+        },
+        "valid": false
+      },
+      {
+        "data": {
+          "someNumber": 3
+        },
+        "valid": true
+      }
+    ]
+  },
+  {
+    "description": "Chained references",
+    "schema": {
+      "type": "object",
+      "myDescriptions": {
+        "someNumberDefinition": {
+          "$id": "http://example.org:8080/loremipsum",
+          "$ref": "#/myDescriptions/someNumberDefinition2"
+        },
+        "someNumberDefinition2": {
+          "$id": "loremipsum",
+          "type": "number"
+        }
+
+      },
+      "$id": "http://example.org:8080/irrelevant",
+      "properties": {
+        "someNumber": {
+          "$ref": "loremipsum"
+        }
+      }
+    },
+    "tests": [
+      {
+        "data": {
+          "someNumber": "xyz"
+        },
+        "valid": false
+      },
+      {
+        "data": {
+          "someNumber": 3
+        },
+        "valid": true
+      }
+    ]
+  }
+
+]

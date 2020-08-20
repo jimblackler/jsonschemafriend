@@ -146,7 +146,7 @@ public class SuiteTest {
           }));
         }
         if (schema instanceof JSONObject) {
-          if (false) {
+          if (true) {
             everitTests.add(dynamicTest(description, () -> {
               JSONObject schema1 = (JSONObject) schema;
               System.out.println("Schema:");
@@ -193,7 +193,7 @@ public class SuiteTest {
         }
       }
     }
-    if (true) {
+    if (false) {
       ownTests.add(dynamicTest("schema", () -> {
         System.out.println("Schema:");
         if (schema instanceof JSONObject) {

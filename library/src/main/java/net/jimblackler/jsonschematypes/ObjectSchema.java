@@ -12,7 +12,7 @@ import java.util.function.Consumer;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-public class PrimitiveSchema extends Schema {
+public class ObjectSchema extends Schema {
   private final Map<String, Schema> _properties = new HashMap<>();
   private final List<Schema> arrayTypes = new ArrayList<>();
   private final Schema singleType;
@@ -21,7 +21,7 @@ public class PrimitiveSchema extends Schema {
   private final List<Schema> oneOf;
   private final Set<String> explicitTypes = new HashSet<>();
 
-  public PrimitiveSchema(SchemaStore schemaStore, URI path) throws GenerationException {
+  public ObjectSchema(SchemaStore schemaStore, URI path) throws GenerationException {
     super(schemaStore, path);
     JSONObject jsonObject = (JSONObject) schemaStore.resolvePath(path);
 
@@ -115,6 +115,27 @@ public class PrimitiveSchema extends Schema {
     if (explicitTypes.contains("integer")) {
       if (!(jsonObject instanceof Integer)) {
         errorConsumer.accept(new ValidationError("Not an integer"));
+      }
+    }
+
+    if (explicitTypes.contains("string")) {
+      if (!(jsonObject instanceof String)) {
+        errorConsumer.accept(new ValidationError("Not a string"));
+      }
+    }
+
+    if (anyOf != null) {
+      boolean onePassed = false;
+      for (Schema schema : anyOf) {
+        List<ValidationError> errors = new ArrayList<>();
+        schema.validate(jsonObject, errors::add);
+        if (errors.isEmpty()) {
+          onePassed = true;
+          break;
+        }
+      }
+      if (!onePassed) {
+        errorConsumer.accept(new ValidationError("All anyOf failed"));
       }
     }
   }
