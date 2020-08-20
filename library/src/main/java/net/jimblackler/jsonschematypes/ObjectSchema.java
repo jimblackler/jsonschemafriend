@@ -2,6 +2,7 @@ package net.jimblackler.jsonschematypes;
 
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -21,6 +22,9 @@ public class ObjectSchema extends Schema {
   private final List<Schema> oneOf;
   private final Set<String> explicitTypes = new HashSet<>();
   private final Double minimum;
+  private final Double maximum;
+  private final Double exclusiveMinimum;
+  private final Double exclusiveMaximum;
 
   public ObjectSchema(SchemaStore schemaStore, URI path) throws GenerationException {
     super(schemaStore, path);
@@ -115,6 +119,25 @@ public class ObjectSchema extends Schema {
     } else {
       minimum = null;
     }
+
+    if (jsonObject.has("maximum")) {
+      maximum = jsonObject.getDouble("maximum");
+    } else {
+      maximum = null;
+    }
+
+    if (jsonObject.has("exclusiveMinimum")) {
+      exclusiveMinimum = jsonObject.getDouble("exclusiveMinimum");
+    } else {
+      exclusiveMinimum = null;
+    }
+
+    if (jsonObject.has("exclusiveMaximum")) {
+      exclusiveMaximum = jsonObject.getDouble("exclusiveMaximum");
+    } else {
+      exclusiveMaximum = null;
+    }
+
   }
 
   @Override
@@ -125,6 +148,37 @@ public class ObjectSchema extends Schema {
         if (number.doubleValue() < minimum) {
           errorConsumer.accept(new ValidationError("Less than minimum"));
         }
+      }
+      if (exclusiveMinimum != null) {
+        if (number.doubleValue() <= exclusiveMinimum) {
+          errorConsumer.accept(new ValidationError("Less than or equal to exclusive minimum"));
+        }
+      }
+      if (maximum != null) {
+        if (number.doubleValue() > maximum) {
+          errorConsumer.accept(new ValidationError("Greater than maximum"));
+        }
+      }
+      if (exclusiveMaximum != null) {
+        if (number.doubleValue() >= exclusiveMaximum) {
+          errorConsumer.accept(new ValidationError("Greater than or equal to exclusive maximum"));
+        }
+      }
+    } else if (object instanceof JSONObject) {
+      JSONObject jsonObject = (JSONObject) object;
+      Iterator<String> it = jsonObject.keys();
+      while (it.hasNext()) {
+        String property = it.next();
+        if (_properties.containsKey(property)) {
+          Schema schema = _properties.get(property);
+          schema.validate(jsonObject.get(property), errorConsumer);
+        }
+      }
+    }
+
+    if (explicitTypes.contains("number")) {
+      if (!(object instanceof Number)) {
+        errorConsumer.accept(new ValidationError("Not a number"));
       }
     }
 

@@ -1,0 +1,22 @@
+[
+  {
+    "description": "anyOf",
+    "schema": {
+      "properties": {
+        "someValue": {
+          "type": "integer"
+        }
+      }
+    },
+    "tests": [
+      {
+        "data": {"someValue": 4},
+        "valid": true
+      },
+      {
+        "data": {"someValue": "x"},
+        "valid": false
+      }
+    ]
+  }
+]
