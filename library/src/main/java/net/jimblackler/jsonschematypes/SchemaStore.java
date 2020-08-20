@@ -19,7 +19,6 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.json.JSONPointer;
-import org.json.JSONPointerException;
 
 public class SchemaStore {
   private final Map<URI, Schema> builtPaths = new HashMap<>();
@@ -41,11 +40,12 @@ public class SchemaStore {
   }
 
   public void loadBaseObject(Object jsonObject) throws GenerationException {
-    storeDocument(basePointer, jsonObject);
+    documentCache.put(basePointer, jsonObject);
+    findIds(basePointer, null);
     getSchema(basePointer);
   }
 
-  Object fetchDocument(URI url) throws GenerationException {
+  private Object fetchDocument(URI url) throws GenerationException {
     for (UrlRewriter rewriter : rewriters) {
       url = rewriter.rewrite(url);
     }
@@ -65,13 +65,9 @@ public class SchemaStore {
     } catch (JSONException e) {
       object = new JSONObject(content);
     }
-    storeDocument(url, object);
-    return object;
-  }
-
-  private void storeDocument(URI url, Object object) throws GenerationException {
     documentCache.put(url, object);
     findIds(url, null);
+    return object;
   }
 
   private void findIds(URI path, URI activeId) throws GenerationException {
