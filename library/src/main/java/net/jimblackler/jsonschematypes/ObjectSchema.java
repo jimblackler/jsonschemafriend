@@ -147,7 +147,6 @@ public class ObjectSchema extends Schema {
     } else {
       multipleOf = null;
     }
-
   }
 
   @Override

@@ -1,7 +1,6 @@
 package net.jimblackler.jsonschematypes;
 
 import java.net.URI;
-
 import org.json.JSONException;
 
 public class Schemas {
