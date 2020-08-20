@@ -1,6 +1,6 @@
 [
   {
-    "description": "Numeric conditions",
+    "description": "Minimum",
     "schema": {
       "minimum": 5
     },
@@ -46,5 +46,68 @@
         "valid": true
       }
     ]
+  },
+  {
+    "description": "Multiple of",
+    "schema": {
+      "multipleOf": 5
+    },
+    "tests": [
+      {
+        "data": -5,
+        "valid": true
+      },
+      {
+        "data": 5,
+        "valid": true
+      },
+      {
+        "data": 6,
+        "valid": false
+      },
+      {
+        "data": 10,
+        "valid": true
+      },
+      {
+        "data": 5.0,
+        "valid": true
+      }
+    ]
+  },
+
+  {
+    "description": "Multiple of, non-integer",
+    "schema": {
+      "multipleOf": 1.1
+    },
+    "tests": [
+      {
+        "data": 1.1,
+        "valid": true
+      },
+      {
+        "data": 2,
+        "valid": false
+      },
+      {
+        "data": 2.2,
+        "valid": true
+      },
+      {
+        "data": 2.3,
+        "valid": false
+      },
+      {
+        "data": -1.1,
+        "valid": true
+      },
+      {
+        "data": -2.2,
+        "valid": true
+      }
+    ]
   }
+
+
 ]

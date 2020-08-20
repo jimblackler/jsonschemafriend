@@ -15,16 +15,18 @@ import org.json.JSONObject;
 
 public class ObjectSchema extends Schema {
   private final Map<String, Schema> _properties = new HashMap<>();
-  private final List<Schema> arrayTypes = new ArrayList<>();
+  private final Collection<Schema> arrayTypes = new ArrayList<>();
   private final Schema singleType;
-  private final List<Schema> allOf;
-  private final List<Schema> anyOf;
-  private final List<Schema> oneOf;
+  private final Collection<Schema> allOf;
+  private final Collection<Schema> anyOf;
+  private final Collection<Schema> oneOf;
   private final Set<String> explicitTypes = new HashSet<>();
   private final Double minimum;
   private final Double maximum;
   private final Double exclusiveMinimum;
   private final Double exclusiveMaximum;
+  private final Double multipleOf;
+
 
   public ObjectSchema(SchemaStore schemaStore, URI path) throws GenerationException {
     super(schemaStore, path);
@@ -138,6 +140,12 @@ public class ObjectSchema extends Schema {
       exclusiveMaximum = null;
     }
 
+    if (jsonObject.has("multipleOf")) {
+      multipleOf = jsonObject.getDouble("multipleOf");
+    } else {
+      multipleOf = null;
+    }
+
   }
 
   @Override
@@ -162,6 +170,11 @@ public class ObjectSchema extends Schema {
       if (exclusiveMaximum != null) {
         if (number.doubleValue() >= exclusiveMaximum) {
           errorConsumer.accept(new ValidationError("Greater than or equal to exclusive maximum"));
+        }
+      }
+      if (multipleOf != null) {
+        if (number.doubleValue() / multipleOf % 1 != 0) {
+          errorConsumer.accept(new ValidationError("Not a multiple"));
         }
       }
     } else if (object instanceof JSONObject) {
@@ -206,6 +219,20 @@ public class ObjectSchema extends Schema {
       }
       if (!onePassed) {
         errorConsumer.accept(new ValidationError("All anyOf failed"));
+      }
+    }
+
+    if (oneOf != null) {
+      int numberPassed = 0;
+      for (Schema schema : oneOf) {
+        List<ValidationError> errors = new ArrayList<>();
+        schema.validate(object, errors::add);
+        if (errors.isEmpty()) {
+          numberPassed++;
+        }
+      }
+      if (numberPassed != 1) {
+        errorConsumer.accept(new ValidationError(numberPassed + " passed oneOf"));
       }
     }
   }
