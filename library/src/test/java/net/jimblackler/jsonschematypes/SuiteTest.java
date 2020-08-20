@@ -30,38 +30,45 @@ public class SuiteTest {
   @TestFactory
   DynamicNode own() {
     Path suites = Path.of("/suites");
-    return scan(suites.resolve("own"), Path.of(""), "http://json-schema.org/draft-07/schema#");
+    return scan(suites.resolve("own"), Path.of(""), "http://json-schema.org/draft-07/schema#", false);
   }
 
   @TestFactory
   DynamicNode draft4() {
     Path jsts = Path.of("/suites").resolve("jsts");
     return scan(jsts.resolve("tests").resolve("draft4"), jsts.resolve("remotes"),
-        "http://json-schema.org/draft-04/schema#");
+        "http://json-schema.org/draft-04/schema#", false);
   }
 
   @TestFactory
   DynamicNode draft6() {
     Path jsts = Path.of("/suites").resolve("jsts");
     return scan(jsts.resolve("tests").resolve("draft6"), jsts.resolve("remotes"),
-        "http://json-schema.org/draft-06/schema#");
+        "http://json-schema.org/draft-06/schema#", false);
   }
 
   @TestFactory
   DynamicNode draft7() {
     Path jsts = Path.of("/suites").resolve("jsts");
     return scan(jsts.resolve("tests").resolve("draft7"), jsts.resolve("remotes"),
-        "http://json-schema.org/draft-07/schema#");
+        "http://json-schema.org/draft-07/schema#", false);
   }
 
   @TestFactory
   DynamicNode draft2019_09() {
     Path jsts = Path.of("/suites").resolve("jsts");
     return scan(jsts.resolve("tests").resolve("draft2019-09"), jsts.resolve("remotes"),
-        "https://json-schema.org/draft/2019-09/schema#");
+        "https://json-schema.org/draft/2019-09/schema#", false);
   }
 
-  private static DynamicNode scan(Path testDir, Path remotes, String version) {
+  @TestFactory
+  DynamicNode draft7SchemaOnly() {
+    Path jsts = Path.of("/suites").resolve("jsts");
+    return scan(jsts.resolve("tests").resolve("draft7"), jsts.resolve("remotes"),
+        "http://json-schema.org/draft-07/schema#", true);
+  }
+
+  private static DynamicNode scan(Path testDir, Path remotes, String version, boolean schemaOnly) {
     Collection<DynamicNode> allFileTests = new ArrayList<>();
     try (InputStream inputStream = ExampleTest.class.getResourceAsStream(testDir.toString());
          BufferedReader bufferedReader =
@@ -69,7 +76,7 @@ public class SuiteTest {
       String resource;
       while ((resource = bufferedReader.readLine()) != null) {
         if (resource.endsWith(".json")) {
-          allFileTests.add(jsonTestFile(testDir, remotes, resource, version));
+          allFileTests.add(jsonTestFile(testDir, remotes, resource, version, schemaOnly));
         }
       }
     } catch (IOException | GenerationException e) {
@@ -79,7 +86,7 @@ public class SuiteTest {
   }
 
   private static DynamicNode jsonTestFile(
-      Path testDir, Path remotes, String resource, String version) throws GenerationException {
+      Path testDir, Path remotes, String resource, String version, boolean schemaOnly) throws GenerationException {
     Collection<DynamicNode> nodes = new ArrayList<>();
     JSONArray data = (JSONArray) Utils.getJsonObject(testDir.resolve(resource).toString());
     for (int idx = 0; idx != data.length(); idx++) {
@@ -87,12 +94,12 @@ public class SuiteTest {
       if (!testSet.has("schema")) {
         continue; // ever happens?
       }
-      nodes.add(singleSchemaTest(testSet, remotes, version));
+      nodes.add(singleSchemaTest(testSet, remotes, version, schemaOnly));
     }
     return dynamicContainer(resource, nodes);
   }
 
-  private static DynamicNode singleSchemaTest(JSONObject testSet, Path remotes, String version) {
+  private static DynamicNode singleSchemaTest(JSONObject testSet, Path remotes, String version, boolean schemaOnly) {
     Collection<DynamicTest> everitTests = new ArrayList<>();
     Collection<DynamicTest> ownTests = new ArrayList<>();
     Object schema = testSet.get("schema");
@@ -109,7 +116,7 @@ public class SuiteTest {
         boolean valid = test.getBoolean("valid");
         String description = test.optString("description", data + (valid ? " succeeds" : " fails"));
 
-        if (true) {
+        if (!schemaOnly) {
           ownTests.add(dynamicTest(description, () -> {
             System.out.println("Schema:");
             if (schema instanceof JSONObject) {
@@ -145,7 +152,7 @@ public class SuiteTest {
           }));
         }
         if (schema instanceof JSONObject) {
-          if (true) {
+          if (!schemaOnly) {
             everitTests.add(dynamicTest(description, () -> {
               JSONObject schema1 = (JSONObject) schema;
               System.out.println("Schema:");
@@ -192,7 +199,7 @@ public class SuiteTest {
         }
       }
     }
-    if (false) {
+    if (schemaOnly) {
       ownTests.add(dynamicTest("schema", () -> {
         System.out.println("Schema:");
         if (schema instanceof JSONObject) {
