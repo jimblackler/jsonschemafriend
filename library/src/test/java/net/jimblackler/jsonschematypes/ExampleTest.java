@@ -8,6 +8,7 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
+import java.util.List;
 
 public class ExampleTest {
   public static void main(String[] args) {
@@ -42,7 +43,7 @@ public class ExampleTest {
 
     try {
       URL resource = ExampleTest.class.getResource(fullDir.toString());
-      SchemaStore schemaStore = new SchemaStore();
+      SchemaStore schemaStore = new SchemaStore(new DocumentSource(List.of()));
       schemaStore.loadResources(Path.of(resource.toURI()));
       Main2.outputTypes(Path.of("out"), schemaStore, "org.example");
 

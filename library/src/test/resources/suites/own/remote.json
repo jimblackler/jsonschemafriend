@@ -1,0 +1,35 @@
+[
+  {
+    "description": "Remote file",
+    "schema": {
+      "$ref": "http://localhost:1234/remote.json"
+    },
+    "tests": [
+      {
+        "data": 5,
+        "valid": true
+      },
+      {
+        "data": "hello",
+        "valid": false
+      }
+    ]
+  },
+  {
+    "description": "Remote with ID",
+    "schema": {
+      "$ref": "http://localhost:1234/remoteWithId.json"
+    },
+    "tests": [
+      {
+        "data": 5,
+        "valid": true
+      },
+      {
+        "data": "hello",
+        "valid": false
+      }
+    ]
+  }
+
+]

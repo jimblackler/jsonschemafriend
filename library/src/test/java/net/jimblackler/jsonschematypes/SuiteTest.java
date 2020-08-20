@@ -29,9 +29,8 @@ import org.junit.jupiter.api.TestFactory;
 public class SuiteTest {
   @TestFactory
   DynamicNode own() {
-    Path suites = Path.of("/suites");
-    return scan(
-        suites.resolve("own"), Path.of(""), "http://json-schema.org/draft-07/schema#", false);
+    Path own = Path.of("/suites").resolve("own");
+    return scan(own, own.resolve("remotes"), "http://json-schema.org/draft-07/schema#", false);
   }
 
   @TestFactory
@@ -128,9 +127,10 @@ public class SuiteTest {
             }
             System.out.println();
 
-            SchemaStore schemaStore = new SchemaStore();
-            schemaStore.addRewriter(in
-                -> URI.create(in.toString().replace("http://localhost:1234", resource.toString())));
+            DocumentSource documentSource = new DocumentSource(List.of(in
+                -> URI.create(
+                    in.toString().replace("http://localhost:1234", resource.toString()))));
+            SchemaStore schemaStore = new SchemaStore(documentSource);
             schemaStore.loadBaseObject(schema);
 
             System.out.println("Test:");
@@ -211,9 +211,9 @@ public class SuiteTest {
         }
         System.out.println();
 
-        SchemaStore schemaStore = new SchemaStore();
-        schemaStore.addRewriter(
-            in -> URI.create(in.toString().replace("http://localhost:1234", resource.toString())));
+        DocumentSource documentSource = new DocumentSource(List.of(
+            in -> URI.create(in.toString().replace("http://localhost:1234", resource.toString()))));
+        SchemaStore schemaStore = new SchemaStore(documentSource);
         schemaStore.loadBaseObject(schema);
       }));
     }

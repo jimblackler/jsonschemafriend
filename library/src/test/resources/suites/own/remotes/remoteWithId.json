@@ -1,0 +1,7 @@
+{
+  "somePath": {
+    "$id": "#lorem",
+    "type": "integer"
+  },
+  "$ref": "#lorem"
+}
