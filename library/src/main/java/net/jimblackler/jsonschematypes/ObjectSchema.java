@@ -34,6 +34,7 @@ public class ObjectSchema extends Schema {
   private final Integer minLength;
   private final Integer maxLength;
   private final Schema additionalProperties;
+  private final Object _const;
 
   public ObjectSchema(SchemaStore schemaStore, URI path) throws GenerationException {
     super(schemaStore, path);
@@ -184,6 +185,12 @@ public class ObjectSchema extends Schema {
     } else {
       maxLength = null;
     }
+
+    if (jsonObject.has("const")) {
+      _const = jsonObject.get("const");
+    } else {
+      _const = null;
+    }
   }
 
   @Override
@@ -256,6 +263,29 @@ public class ObjectSchema extends Schema {
       for (String property : required) {
         if (!jsonObject.has(property)) {
           errorConsumer.accept(new ValidationError("Missing required property " + property));
+        }
+      }
+    }
+
+    if (_const != null) {
+      if (_const instanceof Integer && object instanceof Integer) {
+        if (!_const.equals(object)) {
+          errorConsumer.accept(new ValidationError("const integers didn't match"));
+        }
+      } else if (_const instanceof Number && object instanceof Number) {
+        Number constNumber = (Number) _const;
+        Number objectNumber = (Number) object;
+        if (constNumber.doubleValue() != objectNumber.doubleValue()) {
+          errorConsumer.accept(new ValidationError("const numbers didn't match"));
+        }
+      } else if ((_const instanceof JSONObject && object instanceof JSONObject)
+          || (_const instanceof JSONArray && object instanceof JSONArray)) {
+        if (!_const.toString().equals(object.toString())) {
+          errorConsumer.accept(new ValidationError("const json types didn't match"));
+        }
+      } else {
+        if (!_const.equals(object)) {
+          errorConsumer.accept(new ValidationError("const didn't match"));
         }
       }
     }
