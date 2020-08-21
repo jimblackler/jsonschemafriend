@@ -16,7 +16,7 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 public class ObjectSchema extends Schema {
-  private final JSONObject schemaJson;  // Kept for debugging only.
+  private final JSONObject schemaJson; // Kept for debugging only.
   private final Map<String, Schema> _properties = new HashMap<>();
   private final Collection<Ecma262Pattern> patternPropertiesPatterns = new ArrayList<>();
   private final Collection<Schema> patternPropertiesSchemas = new ArrayList<>();
@@ -29,14 +29,14 @@ public class ObjectSchema extends Schema {
   private final Collection<Schema> anyOf;
   private final Collection<Schema> oneOf;
   private final Set<String> explicitTypes;
-  private final Double minimum;  // TODO: convert to primitive defaulting to extreme
-  private final Double maximum;  // TODO: convert to primitive defaulting to extreme
-  private final Double exclusiveMinimum;  // TODO: convert to primitive defaulting to extreme
-  private final Double exclusiveMaximum;  // TODO: convert to primitive defaulting to extreme
+  private final double minimum;
+  private final double maximum;
+  private final Double exclusiveMinimum;
+  private final Double exclusiveMaximum;
   private final Double multipleOf;
-  private final Integer minLength;  // TODO: convert to primitive defaulting to extreme
-  private final Integer maxLength;  // TODO: convert to primitive defaulting to extreme
-  private final int minProperties;  // TODO: use nullable
+  private final int minLength;
+  private final int maxLength;
+  private final int minProperties;
   private final Schema additionalProperties;
   private final Map<String, Schema> definitions = new HashMap<>();
   private final Object _const;
@@ -174,17 +174,9 @@ public class ObjectSchema extends Schema {
       oneOf = null;
     }
 
-    if (jsonObject.has("minimum")) {
-      minimum = jsonObject.getDouble("minimum");
-    } else {
-      minimum = null;
-    }
+    minimum = jsonObject.optDouble("minimum", -Double.MAX_VALUE);
 
-    if (jsonObject.has("maximum")) {
-      maximum = jsonObject.getDouble("maximum");
-    } else {
-      maximum = null;
-    }
+    maximum = jsonObject.optDouble("maximum", Double.MAX_VALUE);
 
     if (jsonObject.has("exclusiveMinimum")) {
       exclusiveMinimum = jsonObject.getDouble("exclusiveMinimum");
@@ -204,29 +196,10 @@ public class ObjectSchema extends Schema {
       multipleOf = null;
     }
 
-    if (jsonObject.has("minLength")) {
-      minLength = jsonObject.getInt("minLength");
-    } else {
-      minLength = null;
-    }
-
-    if (jsonObject.has("maxLength")) {
-      maxLength = jsonObject.getInt("maxLength");
-    } else {
-      maxLength = null;
-    }
-
-    if (jsonObject.has("minProperties")) {
-      minProperties = jsonObject.getInt("minProperties");
-    } else {
-      minProperties = 0;
-    }
-
-    if (jsonObject.has("const")) {
-      _const = jsonObject.get("const");
-    } else {
-      _const = null;
-    }
+    minLength = jsonObject.optInt("minLength", 0);
+    maxLength = jsonObject.optInt("maxLength", Integer.MAX_VALUE);
+    minProperties = jsonObject.optInt("minProperties", 0);
+    _const = jsonObject.opt("const");
 
     if (jsonObject.has("enum")) {
       _enum = new HashSet<>();
@@ -270,21 +243,21 @@ public class ObjectSchema extends Schema {
         errorConsumer.accept(new ValidationError("Type mismatch"));
       }
       Number number = (Number) object;
-      if (minimum != null) {
-        if (number.doubleValue() < minimum) {
-          errorConsumer.accept(new ValidationError("Less than minimum"));
-        }
+
+      if (number.doubleValue() < minimum) {
+        errorConsumer.accept(new ValidationError("Less than minimum"));
       }
+
       if (exclusiveMinimum != null) {
         if (number.doubleValue() <= exclusiveMinimum) {
           errorConsumer.accept(new ValidationError("Less than or equal to exclusive minimum"));
         }
       }
-      if (maximum != null) {
-        if (number.doubleValue() > maximum) {
-          errorConsumer.accept(new ValidationError("Greater than maximum"));
-        }
+
+      if (number.doubleValue() > maximum) {
+        errorConsumer.accept(new ValidationError("Greater than maximum"));
       }
+
       if (exclusiveMaximum != null) {
         if (number.doubleValue() >= exclusiveMaximum) {
           errorConsumer.accept(new ValidationError("Greater than or equal to exclusive maximum"));
@@ -304,15 +277,13 @@ public class ObjectSchema extends Schema {
         errorConsumer.accept(new ValidationError("Type mismatch"));
       }
       String string = (String) object;
-      if (minLength != null) {
-        if (string.length() < minLength) {
-          errorConsumer.accept(new ValidationError("Shorter than minLength"));
-        }
+
+      if (string.length() < minLength) {
+        errorConsumer.accept(new ValidationError("Shorter than minLength"));
       }
-      if (maxLength != null) {
-        if (string.length() > maxLength) {
-          errorConsumer.accept(new ValidationError("Longer than maxLength"));
-        }
+
+      if (string.length() > maxLength) {
+        errorConsumer.accept(new ValidationError("Longer than maxLength"));
       }
     } else if (object instanceof JSONArray) {
       if (explicitTypes != null && !explicitTypes.contains("array")) {
