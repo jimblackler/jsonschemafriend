@@ -18,8 +18,7 @@ public class ValidationError {
   @Override
   public String toString() {
     URI schemaPath = schema.getPath();
-    Object v = PathUtils.objectAtPath(document, path);
-    String s = v.toString();
+    String s = PathUtils.objectAtPath(document, path).toString();
     return (s.length() <= 20 ? "\"" + s + "\" " : "")
         + (path.toString().isEmpty() ? "" : "at " + path + " ") + "failed "
         + (schemaPath.toString().isEmpty() ? "" : "against " + schemaPath + " ")
