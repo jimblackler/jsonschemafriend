@@ -13,7 +13,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import org.json.JSONPointer;
 
 public class SchemaStore {
   private final Map<URI, Schema> builtPaths = new HashMap<>();
@@ -30,7 +29,7 @@ public class SchemaStore {
     URI finalPath = idRefMap.finalPath(uri);
     Schema schema = builtPaths.get(finalPath);
     List<ValidationError> errors = new ArrayList<>();
-    schema.validate(jsonObject, errors::add);
+    schema.validate(jsonObject, URI.create(""), errors::add);
     return errors;
   }
 
@@ -52,10 +51,7 @@ public class SchemaStore {
       if (mapped.add(documentUri)) {
         idRefMap.map(this, documentUri, documentUri);
       }
-      if (path.getFragment() == null) {
-        return document;
-      }
-      return new JSONPointer("#" + path.getRawFragment()).queryFrom(document);
+      return PathUtils.objectAtPath(document, path);
     } catch (URISyntaxException e) {
       throw new GenerationException(e);
     }

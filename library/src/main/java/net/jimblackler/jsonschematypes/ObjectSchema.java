@@ -1,6 +1,6 @@
 package net.jimblackler.jsonschematypes;
 
-import static net.jimblackler.jsonschematypes.JsonSchemaRef.append;
+import static net.jimblackler.jsonschematypes.PathUtils.append;
 
 import java.net.URI;
 import java.util.ArrayList;
@@ -245,76 +245,77 @@ public class ObjectSchema extends Schema {
   }
 
   @Override
-  public void validate(Object object, Consumer<ValidationError> errorConsumer) {
+  public void validate(Object document, URI path, Consumer<ValidationError> errorConsumer) {
+    Object object = PathUtils.objectAtPath(document, path);
     if (object instanceof Number) {
       if (object instanceof Integer) {
         if (explicitTypes != null && !explicitTypes.contains("integer")
             && !explicitTypes.contains("number")) {
-          errorConsumer.accept(new ValidationError("Type mismatch"));
+          errorConsumer.accept(error(document, path, "Type mismatch"));
         }
       } else if (explicitTypes != null && !explicitTypes.contains("number")) {
-        errorConsumer.accept(new ValidationError("Type mismatch"));
+        errorConsumer.accept(error(document, path, "Type mismatch"));
       }
       Number number = (Number) object;
 
       if (number.doubleValue() < minimum) {
-        errorConsumer.accept(new ValidationError("Less than minimum"));
+        errorConsumer.accept(error(document, path, "Less than minimum"));
       }
 
       if (exclusiveMinimum != null) {
         if (number.doubleValue() <= exclusiveMinimum) {
-          errorConsumer.accept(new ValidationError("Less than or equal to exclusive minimum"));
+          errorConsumer.accept(error(document, path, "Less than or equal to exclusive minimum"));
         }
       }
 
       if (number.doubleValue() > maximum) {
-        errorConsumer.accept(new ValidationError("Greater than maximum"));
+        errorConsumer.accept(error(document, path, "Greater than maximum"));
       }
 
       if (exclusiveMaximum != null) {
         if (number.doubleValue() >= exclusiveMaximum) {
-          errorConsumer.accept(new ValidationError("Greater than or equal to exclusive maximum"));
+          errorConsumer.accept(error(document, path, "Greater than or equal to exclusive maximum"));
         }
       }
       if (multipleOf != null) {
         if (number.doubleValue() / multipleOf % 1 != 0) {
-          errorConsumer.accept(new ValidationError("Not a multiple"));
+          errorConsumer.accept(error(document, path, "Not a multiple"));
         }
       }
     } else if (object instanceof Boolean) {
       if (explicitTypes != null && !explicitTypes.contains("boolean")) {
-        errorConsumer.accept(new ValidationError("Type mismatch"));
+        errorConsumer.accept(error(document, path, "Type mismatch"));
       }
     } else if (object instanceof String) {
       if (explicitTypes != null && !explicitTypes.contains("string")) {
-        errorConsumer.accept(new ValidationError("Type mismatch"));
+        errorConsumer.accept(error(document, path, "Type mismatch"));
       }
       String string = (String) object;
 
       if (string.length() < minLength) {
-        errorConsumer.accept(new ValidationError("Shorter than minLength"));
+        errorConsumer.accept(error(document, path, "Shorter than minLength"));
       }
 
       if (string.length() > maxLength) {
-        errorConsumer.accept(new ValidationError("Longer than maxLength"));
+        errorConsumer.accept(error(document, path, "Longer than maxLength"));
       }
     } else if (object instanceof JSONArray) {
       if (explicitTypes != null && !explicitTypes.contains("array")) {
-        errorConsumer.accept(new ValidationError("Type mismatch"));
+        errorConsumer.accept(error(document, path, "Type mismatch"));
       }
 
       JSONArray jsonArray = (JSONArray) object;
       if (jsonArray.length() < minItems) {
-        errorConsumer.accept(new ValidationError("Below min items"));
+        errorConsumer.accept(error(document, path, "Below min items"));
       }
 
       if (jsonArray.length() > maxItems) {
-        errorConsumer.accept(new ValidationError("Above max length"));
+        errorConsumer.accept(error(document, path, "Above max length"));
       }
 
       if (itemsSingle != null) {
         for (int idx = 0; idx != jsonArray.length(); idx++) {
-          itemsSingle.validate(jsonArray.get(idx), errorConsumer);
+          itemsSingle.validate(document, append(path, String.valueOf(idx)), errorConsumer);
         }
       }
 
@@ -322,29 +323,29 @@ public class ObjectSchema extends Schema {
         boolean onePassed = false;
         for (int idx = 0; idx != jsonArray.length(); idx++) {
           List<ValidationError> errors = new ArrayList<>();
-          contains.validate(jsonArray.get(idx), errors::add);
+          contains.validate(document, append(path, String.valueOf(idx)), errors::add);
           if (errors.isEmpty()) {
             onePassed = true;
             break;
           }
         }
         if (!onePassed) {
-          errorConsumer.accept(new ValidationError("No element in the array matched contains"));
+          errorConsumer.accept(error(document, path, "No element in the array matched contains"));
         }
       }
     } else if (object instanceof JSONObject) {
       if (explicitTypes != null && !explicitTypes.contains("object")) {
-        errorConsumer.accept(new ValidationError("Type mismatch"));
+        errorConsumer.accept(error(document, path, "Type mismatch"));
       }
       JSONObject jsonObject = (JSONObject) object;
       if (jsonObject.length() < minProperties) {
-        errorConsumer.accept(new ValidationError("Too few properties"));
+        errorConsumer.accept(error(document, path, "Too few properties"));
       }
       Set<String> remainingProperties = new HashSet<>(jsonObject.keySet());
       for (String property : jsonObject.keySet()) {
         if (_properties.containsKey(property)) {
           Schema schema = _properties.get(property);
-          schema.validate(jsonObject.get(property), errorConsumer);
+          schema.validate(document, append(path, property), errorConsumer);
           remainingProperties.remove(property);
         }
         Iterator<Ecma262Pattern> it0 = patternPropertiesPatterns.iterator();
@@ -353,20 +354,20 @@ public class ObjectSchema extends Schema {
           Ecma262Pattern pattern = it0.next();
           Schema schema = it1.next();
           if (pattern.matches(property)) {
-            schema.validate(jsonObject.get(property), errorConsumer);
+            schema.validate(document, append(path, property), errorConsumer);
             remainingProperties.remove(property);
           }
         }
       }
       if (additionalProperties != null) {
         for (String property : remainingProperties) {
-          additionalProperties.validate(jsonObject.get(property), errorConsumer);
+          additionalProperties.validate(document, append(path, property), errorConsumer);
         }
       }
 
       for (String property : required) {
         if (!jsonObject.has(property)) {
-          errorConsumer.accept(new ValidationError("Missing required property " + property));
+          errorConsumer.accept(error(document, path, "Missing required property " + property));
         }
       }
 
@@ -382,7 +383,7 @@ public class ObjectSchema extends Schema {
             continue;
           }
           errorConsumer.accept(
-              new ValidationError("Missing dependency " + property + " -> " + dependency));
+              error(document, path, "Missing dependency " + property + " -> " + dependency));
         }
       }
 
@@ -393,17 +394,17 @@ public class ObjectSchema extends Schema {
         }
 
         Schema schema = entry.getValue();
-        schema.validate(jsonObject, errorConsumer);
+        schema.validate(document, path, errorConsumer);
       }
     } else if (object == JSONObject.NULL) {
       if (explicitTypes != null && !explicitTypes.contains("null")) {
-        errorConsumer.accept(new ValidationError("Type mismatch"));
+        errorConsumer.accept(error(document, path, "Type mismatch"));
       }
     }
 
     if (_const != null) {
       if (!compare(_const, object)) {
-        errorConsumer.accept(new ValidationError("Values didn't match"));
+        errorConsumer.accept(error(document, path, "Values didn't match"));
       }
     }
 
@@ -416,13 +417,13 @@ public class ObjectSchema extends Schema {
         }
       }
       if (!matchedOne) {
-        errorConsumer.accept(new ValidationError("Object not in enum"));
+        errorConsumer.accept(error(document, path, "Object not in enum"));
       }
     }
 
     if (allOf != null) {
       for (Schema schema : allOf) {
-        schema.validate(object, errorConsumer);
+        schema.validate(document, path, errorConsumer);
       }
     }
 
@@ -430,14 +431,14 @@ public class ObjectSchema extends Schema {
       boolean onePassed = false;
       for (Schema schema : anyOf) {
         List<ValidationError> errors = new ArrayList<>();
-        schema.validate(object, errors::add);
+        schema.validate(document, path, errors::add);
         if (errors.isEmpty()) {
           onePassed = true;
           break;
         }
       }
       if (!onePassed) {
-        errorConsumer.accept(new ValidationError("All anyOf failed"));
+        errorConsumer.accept(error(document, path, "All anyOf failed"));
       }
     }
 
@@ -445,13 +446,13 @@ public class ObjectSchema extends Schema {
       int numberPassed = 0;
       for (Schema schema : oneOf) {
         List<ValidationError> errors = new ArrayList<>();
-        schema.validate(object, errors::add);
+        schema.validate(document, path, errors::add);
         if (errors.isEmpty()) {
           numberPassed++;
         }
       }
       if (numberPassed != 1) {
-        errorConsumer.accept(new ValidationError(numberPassed + " passed oneOf"));
+        errorConsumer.accept(error(document, path, numberPassed + " passed oneOf"));
       }
     }
   }

@@ -2,8 +2,9 @@ package net.jimblackler.jsonschematypes;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import org.json.JSONPointer;
 
-public class JsonSchemaRef {
+public class PathUtils {
   public static URI append(URI uri, String value) {
     try {
       String fragment = uri.getFragment();
@@ -19,5 +20,12 @@ public class JsonSchemaRef {
     } catch (URISyntaxException e) {
       throw new IllegalStateException(e);
     }
+  }
+
+  static Object objectAtPath(Object document, URI path) {
+    if (path.getFragment() == null) {
+      return document;
+    }
+    return new JSONPointer("#" + path.getRawFragment()).queryFrom(document);
   }
 }

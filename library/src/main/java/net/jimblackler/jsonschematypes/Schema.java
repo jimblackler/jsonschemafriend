@@ -21,5 +21,9 @@ public abstract class Schema {
     return path.toString();
   }
 
-  abstract void validate(Object object, Consumer<ValidationError> errorConsumer);
+  ValidationError error(Object document, URI path, String message) {
+    return new ValidationError(path, document, message, this);
+  }
+
+  abstract void validate(Object document, URI path, Consumer<ValidationError> errorConsumer);
 }

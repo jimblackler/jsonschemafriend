@@ -34,12 +34,12 @@ class IdRefMap {
       }
 
       for (String key : jsonObject.keySet()) {
-        map(schemaStore, JsonSchemaRef.append(path, key), activeId);
+        map(schemaStore, PathUtils.append(path, key), activeId);
       }
     } else if (object instanceof JSONArray) {
       JSONArray jsonArray = (JSONArray) object;
       for (int idx = 0; idx != jsonArray.length(); idx++) {
-        map(schemaStore, JsonSchemaRef.append(path, String.valueOf(idx)), activeId);
+        map(schemaStore, PathUtils.append(path, String.valueOf(idx)), activeId);
       }
     }
   }

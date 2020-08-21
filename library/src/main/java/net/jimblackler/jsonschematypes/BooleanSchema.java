@@ -12,9 +12,9 @@ public class BooleanSchema extends Schema {
   }
 
   @Override
-  public void validate(Object object, Consumer<ValidationError> errorConsumer) {
+  public void validate(Object document, URI path, Consumer<ValidationError> errorConsumer) {
     if (!value) {
-      errorConsumer.accept(new ValidationError("Boolean schema was false"));
+      errorConsumer.accept(error(document, path, "Boolean schema was false"));
     }
   }
 }

@@ -1,14 +1,27 @@
 package net.jimblackler.jsonschematypes;
 
+import java.net.URI;
+
 public class ValidationError {
+  private final URI path;
+  private final Object document;
+  private final Schema schema;
   private final String message;
 
-  public ValidationError(String message) {
+  public ValidationError(URI path, Object document, String message, Schema schema) {
+    this.path = path;
+    this.document = document;
+    this.schema = schema;
     this.message = message;
   }
 
   @Override
   public String toString() {
-    return message;
+    URI schemaPath = schema.getPath();
+    Object v = PathUtils.objectAtPath(document, path);
+    String s = v.toString();
+    return (path.toString().isEmpty() ? "" : path + " ") + (s.length() <= 10 ? "(" + s + ") " : "")
+        + "failed " + (schemaPath.toString().isEmpty() ? "" : "against " + schemaPath + " ")
+        + (schema instanceof BooleanSchema ? "" : "because \"" + message + "\"");
   }
 }

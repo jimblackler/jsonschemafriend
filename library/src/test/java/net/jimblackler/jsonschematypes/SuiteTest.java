@@ -149,16 +149,16 @@ public class SuiteTest {
 
             Collection<ValidationError> errors = schemaStore.validate(URI.create(""), data);
 
-            if (!errors.isEmpty()) {
+            System.out.print("Expected to " + (valid ? "pass" : "fail") + " ... ");
+            if (errors.isEmpty()) {
+              System.out.println("Passed");
+            } else {
               System.out.println("Failures:");
               for (ValidationError error : errors) {
                 System.out.println(error);
               }
               System.out.println();
             }
-
-            System.out.print("Expected to " + (valid ? "pass" : "fail") + " ... ");
-            System.out.println((errors.isEmpty() ? "passed" : "failed"));
 
             assertEquals(errors.isEmpty(), valid);
           }));
