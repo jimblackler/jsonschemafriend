@@ -31,6 +31,8 @@ public class ObjectSchema extends Schema {
   private final Double exclusiveMinimum;
   private final Double exclusiveMaximum;
   private final Double multipleOf;
+  private final Integer minLength;
+  private final Integer maxLength;
   private final Schema additionalProperties;
 
   public ObjectSchema(SchemaStore schemaStore, URI path) throws GenerationException {
@@ -170,6 +172,18 @@ public class ObjectSchema extends Schema {
     } else {
       multipleOf = null;
     }
+
+    if (jsonObject.has("minLength")) {
+      minLength = jsonObject.getInt("minLength");
+    } else {
+      minLength = null;
+    }
+
+    if (jsonObject.has("maxLength")) {
+      maxLength = jsonObject.getInt("maxLength");
+    } else {
+      maxLength = null;
+    }
   }
 
   @Override
@@ -199,6 +213,18 @@ public class ObjectSchema extends Schema {
       if (multipleOf != null) {
         if (number.doubleValue() / multipleOf % 1 != 0) {
           errorConsumer.accept(new ValidationError("Not a multiple"));
+        }
+      }
+    } else if (object instanceof String) {
+      String string = (String) object;
+      if (minLength != null) {
+        if (string.length() < minLength) {
+          errorConsumer.accept(new ValidationError("Shorter than minLength"));
+        }
+      }
+      if (maxLength != null) {
+        if (string.length() > maxLength) {
+          errorConsumer.accept(new ValidationError("Longer than maxLength"));
         }
       }
     } else if (object instanceof JSONObject) {
