@@ -1,0 +1,86 @@
+[
+  {
+    "description": "? handled correctly in paths",
+    "schema": {
+      "hello?world": {
+        "type": "string"
+      },
+      "properties": {
+        "someProperty": {
+          "$ref": "#/hello?world"
+        }
+      }
+    },
+    "tests": [
+      {
+        "data": {
+          "someProperty": "hello"
+        },
+        "valid": true
+      },
+      {
+        "data": {
+          "someProperty": 5
+        },
+        "valid": false
+      }
+    ]
+  },
+  {
+    "description": "! handled correctly in paths",
+    "schema": {
+      "hello!world": {
+        "type": "string"
+      },
+      "properties": {
+        "someProperty": {
+          "$ref": "#/hello!world"
+        }
+      }
+    },
+    "tests": [
+      {
+        "data": {
+          "someProperty": "hello"
+        },
+        "valid": true
+      },
+      {
+        "data": {
+          "someProperty": 5
+        },
+        "valid": false
+      }
+    ]
+  },
+  {
+    "description": "Space handled correctly in paths",
+    "schema": {
+      "hello world": {
+        "type": "string"
+      },
+      "properties": {
+        "someProperty": {
+          "$ref": "#/hello%20world"
+        }
+      }
+    },
+    "tests": [
+      {
+        "data": {
+          "someProperty": "hello"
+        },
+        "valid": true
+      },
+      {
+        "data": {
+          "someProperty": 5
+        },
+        "valid": false
+      }
+    ]
+  }
+
+
+
+]
