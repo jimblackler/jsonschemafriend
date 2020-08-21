@@ -42,6 +42,9 @@ public class ObjectSchema extends Schema {
   private final Object _const;
   private final Set<Object> _enum;
   private final Schema contains;
+  private final Schema _if;
+  private final Schema _then;
+  private final Schema _else;
   private final Map<String, Collection<String>> dependencies = new HashMap<>();
   private final Map<String, Schema> schemaDependencies = new HashMap<>();
 
@@ -136,6 +139,24 @@ public class ObjectSchema extends Schema {
       contains = schemaStore.getSchema(append(path, "contains"));
     } else {
       contains = null;
+    }
+
+    if (jsonObject.has("if")) {
+      _if = schemaStore.getSchema(append(path, "if"));
+    } else {
+      _if = null;
+    }
+
+    if (jsonObject.has("then")) {
+      _then = schemaStore.getSchema(append(path, "then"));
+    } else {
+      _then = null;
+    }
+
+    if (jsonObject.has("else")) {
+      _else = schemaStore.getSchema(append(path, "else"));
+    } else {
+      _else = null;
     }
 
     if (jsonObject.has("allOf")) {
@@ -404,7 +425,7 @@ public class ObjectSchema extends Schema {
 
     if (_const != null) {
       if (!compare(_const, object)) {
-        errorConsumer.accept(error(document, path, "Values didn't match"));
+        errorConsumer.accept(error(document, path, "Const mismatch"));
       }
     }
 
@@ -418,6 +439,20 @@ public class ObjectSchema extends Schema {
       }
       if (!matchedOne) {
         errorConsumer.accept(error(document, path, "Object not in enum"));
+      }
+    }
+
+    if (_if != null) {
+      List<ValidationError> errors = new ArrayList<>();
+      _if.validate(document, path, errors::add);
+      Schema useSchema;
+      if (errors.isEmpty()) {
+        useSchema = _then;
+      } else {
+        useSchema = _else;
+      }
+      if (useSchema != null) {
+        useSchema.validate(document, path, errorConsumer);
       }
     }
 
