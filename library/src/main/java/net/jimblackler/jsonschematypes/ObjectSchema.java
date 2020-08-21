@@ -1,5 +1,6 @@
 package net.jimblackler.jsonschematypes;
 
+import static net.jimblackler.jsonschematypes.ComparableMutable.makeComparable;
 import static net.jimblackler.jsonschematypes.PathUtils.append;
 
 import java.net.URI;
@@ -25,6 +26,7 @@ public class ObjectSchema extends Schema {
   private final Set<String> required = new HashSet<>();
   private final List<Schema> itemsArray = new ArrayList<>();
   private final Schema itemsSingle;
+  private final boolean uniqueItems;
   private final int minItems;
   private final int maxItems;
   private final Collection<Schema> allOf;
@@ -148,6 +150,8 @@ public class ObjectSchema extends Schema {
         }
       }
     }
+
+    uniqueItems = jsonObject.optBoolean("uniqueItems", false);
 
     minItems = jsonObject.optInt("minItems", 0);
     maxItems = jsonObject.optInt("maxItems", Integer.MAX_VALUE);
@@ -285,13 +289,12 @@ public class ObjectSchema extends Schema {
   }
 
   private static boolean compare(Object a, Object b) {
+    a = makeComparable(a);
+    b = makeComparable(b);
     if (a instanceof Integer && b instanceof Integer) {
       return a.equals(b);
     } else if (a instanceof Number && b instanceof Number) {
       return ((Number) a).doubleValue() == ((Number) b).doubleValue();
-    } else if ((a instanceof JSONObject && b instanceof JSONObject)
-        || (a instanceof JSONArray && b instanceof JSONArray)) {
-      return a.toString().equals(b.toString());
     } else {
       return a.equals(b);
     }
@@ -357,6 +360,15 @@ public class ObjectSchema extends Schema {
       typeCheck(Set.of("array"), document, path, errorConsumer);
 
       JSONArray jsonArray = (JSONArray) object;
+      if (uniqueItems) {
+        Collection<Object> items = new HashSet<>();
+        for (int idx = 0; idx != jsonArray.length(); idx++) {
+          if (!items.add(makeComparable(jsonArray.get(idx)))) {
+            errorConsumer.accept(error(document, path, "Non-unique item found"));
+          }
+        }
+      }
+
       if (jsonArray.length() < minItems) {
         errorConsumer.accept(error(document, path, "Below min items"));
       }
