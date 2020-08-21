@@ -22,6 +22,7 @@ import org.everit.json.schema.ValidationException;
 import org.everit.json.schema.loader.SchemaLoader;
 import org.json.JSONArray;
 import org.json.JSONObject;
+import org.junit.jupiter.api.DynamicContainer;
 import org.junit.jupiter.api.DynamicNode;
 import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.TestFactory;
@@ -30,45 +31,54 @@ public class SuiteTest {
   @TestFactory
   DynamicNode own() {
     Path own = Path.of("/suites").resolve("own");
-    return scan(own, own.resolve("remotes"), "http://json-schema.org/draft-07/schema#", false);
+    return scan(
+        own, own.resolve("remotes"), "http://json-schema.org/draft-07/schema#", true, false);
   }
 
   @TestFactory
   DynamicNode draft4() {
     Path jsts = Path.of("/suites").resolve("jsts");
     return scan(jsts.resolve("tests").resolve("draft4"), jsts.resolve("remotes"),
-        "http://json-schema.org/draft-04/schema#", false);
+        "http://json-schema.org/draft-04/schema#", true, false);
   }
 
   @TestFactory
   DynamicNode draft6() {
     Path jsts = Path.of("/suites").resolve("jsts");
     return scan(jsts.resolve("tests").resolve("draft6"), jsts.resolve("remotes"),
-        "http://json-schema.org/draft-06/schema#", false);
+        "http://json-schema.org/draft-06/schema#", true, false);
   }
 
   @TestFactory
   DynamicNode draft7() {
     Path jsts = Path.of("/suites").resolve("jsts");
     return scan(jsts.resolve("tests").resolve("draft7"), jsts.resolve("remotes"),
-        "http://json-schema.org/draft-07/schema#", false);
+        "http://json-schema.org/draft-07/schema#", true, false);
+  }
+
+  @TestFactory
+  DynamicNode draft7Own() {
+    Path jsts = Path.of("/suites").resolve("jsts");
+    return scan(jsts.resolve("tests").resolve("draft7"), jsts.resolve("remotes"),
+        "http://json-schema.org/draft-07/schema#", false, false);
   }
 
   @TestFactory
   DynamicNode draft2019_09() {
     Path jsts = Path.of("/suites").resolve("jsts");
     return scan(jsts.resolve("tests").resolve("draft2019-09"), jsts.resolve("remotes"),
-        "https://json-schema.org/draft/2019-09/schema#", false);
+        "https://json-schema.org/draft/2019-09/schema#", true, false);
   }
 
   @TestFactory
   DynamicNode draft7SchemaOnly() {
     Path jsts = Path.of("/suites").resolve("jsts");
     return scan(jsts.resolve("tests").resolve("draft7"), jsts.resolve("remotes"),
-        "http://json-schema.org/draft-07/schema#", true);
+        "http://json-schema.org/draft-07/schema#", true, true);
   }
 
-  private static DynamicNode scan(Path testDir, Path remotes, String version, boolean schemaOnly) {
+  private static DynamicNode scan(
+      Path testDir, Path remotes, String version, boolean everit, boolean schemaOnly) {
     Collection<DynamicNode> allFileTests = new ArrayList<>();
     try (InputStream inputStream = ExampleTest.class.getResourceAsStream(testDir.toString());
          BufferedReader bufferedReader =
@@ -76,7 +86,7 @@ public class SuiteTest {
       String resource;
       while ((resource = bufferedReader.readLine()) != null) {
         if (resource.endsWith(".json")) {
-          allFileTests.add(jsonTestFile(testDir, remotes, resource, version, schemaOnly));
+          allFileTests.add(jsonTestFile(testDir, remotes, resource, version, everit, schemaOnly));
         }
       }
     } catch (IOException | GenerationException e) {
@@ -86,7 +96,7 @@ public class SuiteTest {
   }
 
   private static DynamicNode jsonTestFile(Path testDir, Path remotes, String resource,
-      String version, boolean schemaOnly) throws GenerationException {
+      String version, boolean everit, boolean schemaOnly) throws GenerationException {
     Collection<DynamicNode> nodes = new ArrayList<>();
     JSONArray data = (JSONArray) Utils.getJsonObject(testDir.resolve(resource).toString());
     for (int idx = 0; idx != data.length(); idx++) {
@@ -94,13 +104,13 @@ public class SuiteTest {
       if (!testSet.has("schema")) {
         continue; // ever happens?
       }
-      nodes.add(singleSchemaTest(testSet, remotes, version, schemaOnly));
+      nodes.add(singleSchemaTest(testSet, remotes, version, everit, schemaOnly));
     }
     return dynamicContainer(resource, nodes);
   }
 
   private static DynamicNode singleSchemaTest(
-      JSONObject testSet, Path remotes, String version, boolean schemaOnly) {
+      JSONObject testSet, Path remotes, String version, boolean everit, boolean schemaOnly) {
     Collection<DynamicTest> everitTests = new ArrayList<>();
     Collection<DynamicTest> ownTests = new ArrayList<>();
     Object schema = testSet.get("schema");
@@ -154,7 +164,7 @@ public class SuiteTest {
           }));
         }
         if (schema instanceof JSONObject) {
-          if (!schemaOnly) {
+          if (everit) {
             everitTests.add(dynamicTest(description, () -> {
               JSONObject schema1 = (JSONObject) schema;
               System.out.println("Schema:");
@@ -217,7 +227,12 @@ public class SuiteTest {
         schemaStore.loadBaseObject(schema);
       }));
     }
-    return dynamicContainer(testSet.getString("description"),
-        List.of(dynamicContainer("everit", everitTests), dynamicContainer("own", ownTests)));
+    if (everit) {
+      List<DynamicContainer> dynamicNodes =
+          List.of(dynamicContainer("everit", everitTests), dynamicContainer("own", ownTests));
+      return dynamicContainer(testSet.getString("description"), dynamicNodes);
+    } else {
+      return dynamicContainer(testSet.getString("description"), ownTests);
+    }
   }
 }
