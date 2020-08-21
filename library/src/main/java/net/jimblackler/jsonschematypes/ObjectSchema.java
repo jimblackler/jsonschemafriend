@@ -33,6 +33,7 @@ public class ObjectSchema extends Schema {
   private final Double multipleOf;
   private final Integer minLength;
   private final Integer maxLength;
+  private final int minProperties;
   private final Schema additionalProperties;
   private final Object _const;
   private final Schema contains;
@@ -198,6 +199,12 @@ public class ObjectSchema extends Schema {
       maxLength = null;
     }
 
+    if (jsonObject.has("minProperties")) {
+      minProperties = jsonObject.getInt("minProperties");
+    } else {
+      minProperties = 0;
+    }
+
     if (jsonObject.has("const")) {
       _const = jsonObject.get("const");
     } else {
@@ -311,6 +318,9 @@ public class ObjectSchema extends Schema {
         errorConsumer.accept(new ValidationError("Type mismatch"));
       }
       JSONObject jsonObject = (JSONObject) object;
+      if (jsonObject.length() < minProperties) {
+        errorConsumer.accept(new ValidationError("Too few properties"));
+      }
       Set<String> remainingProperties = new HashSet<>(jsonObject.keySet());
       for (String property : jsonObject.keySet()) {
         if (_properties.containsKey(property)) {
