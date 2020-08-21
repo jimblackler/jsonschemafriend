@@ -37,6 +37,7 @@ public class ObjectSchema extends Schema {
   private final int minLength;
   private final int maxLength;
   private final int minProperties;
+  private final int maxProperties;
   private final Schema additionalProperties;
   private final Schema additionalItems;
   private final Map<String, Schema> definitions = new HashMap<>();
@@ -227,6 +228,7 @@ public class ObjectSchema extends Schema {
     minLength = jsonObject.optInt("minLength", 0);
     maxLength = jsonObject.optInt("maxLength", Integer.MAX_VALUE);
     minProperties = jsonObject.optInt("minProperties", 0);
+    maxProperties = jsonObject.optInt("maxProperties", Integer.MAX_VALUE);
     _const = jsonObject.opt("const");
 
     if (jsonObject.has("enum")) {
@@ -368,6 +370,9 @@ public class ObjectSchema extends Schema {
       JSONObject jsonObject = (JSONObject) object;
       if (jsonObject.length() < minProperties) {
         errorConsumer.accept(error(document, path, "Too few properties"));
+      }
+      if (jsonObject.length() > maxProperties) {
+        errorConsumer.accept(error(document, path, "Too mamy properties"));
       }
       Set<String> remainingProperties = new HashSet<>(jsonObject.keySet());
       for (String property : jsonObject.keySet()) {
@@ -525,6 +530,5 @@ public class ObjectSchema extends Schema {
     }
 
     errorConsumer.accept(error(document, path, "Object is " + part1 + part2));
-
   }
 }
