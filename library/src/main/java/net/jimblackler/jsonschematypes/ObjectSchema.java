@@ -12,13 +12,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Consumer;
-import java.util.regex.Pattern;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
 public class ObjectSchema extends Schema {
   private final Map<String, Schema> _properties = new HashMap<>();
-  private final Collection<Pattern> patternPropertiesPatterns = new ArrayList<>();
+  private final Collection<Ecma262Pattern> patternPropertiesPatterns = new ArrayList<>();
   private final Collection<Schema> patternPropertiesSchemas = new ArrayList<>();
   private final Set<String> required = new HashSet<>();
   private final Collection<Schema> arrayTypes = new ArrayList<>();
@@ -71,7 +70,7 @@ public class ObjectSchema extends Schema {
       Iterator<String> it = patternProperties.keys();
       while (it.hasNext()) {
         String propertyPattern = it.next();
-        patternPropertiesPatterns.add(Pattern.compile(propertyPattern));
+        patternPropertiesPatterns.add(new Ecma262Pattern(propertyPattern));
         patternPropertiesSchemas.add(
             schemaStore.getSchema(append(propertiesPointer, propertyPattern)));
       }
@@ -211,12 +210,12 @@ public class ObjectSchema extends Schema {
           schema.validate(jsonObject.get(property), errorConsumer);
           remainingProperties.remove(property);
         }
-        Iterator<Pattern> it0 = patternPropertiesPatterns.iterator();
+        Iterator<Ecma262Pattern> it0 = patternPropertiesPatterns.iterator();
         Iterator<Schema> it1 = patternPropertiesSchemas.iterator();
         while (it0.hasNext()) {
-          Pattern pattern = it0.next();
+          Ecma262Pattern pattern = it0.next();
           Schema schema = it1.next();
-          if (pattern.matcher(property).matches()) {
+          if (pattern.matches(property)) {
             schema.validate(jsonObject.get(property), errorConsumer);
             remainingProperties.remove(property);
           }
@@ -250,6 +249,12 @@ public class ObjectSchema extends Schema {
     if (explicitTypes.contains("string")) {
       if (!(object instanceof String)) {
         errorConsumer.accept(new ValidationError("Not a string"));
+      }
+    }
+
+    if (explicitTypes.contains("boolean")) {
+      if (!(object instanceof Boolean)) {
+        errorConsumer.accept(new ValidationError("Not a boolean"));
       }
     }
 
