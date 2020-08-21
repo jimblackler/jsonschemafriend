@@ -41,6 +41,7 @@ public class ObjectSchema extends Schema {
   private final Schema additionalProperties;
   private final Schema additionalItems;
   private final Map<String, Schema> definitions = new HashMap<>();
+  private final Ecma262Pattern pattern;
   private final Object _const;
   private final Set<Object> _enum;
   private final Schema contains;
@@ -236,6 +237,13 @@ public class ObjectSchema extends Schema {
     maxLength = jsonObject.optInt("maxLength", Integer.MAX_VALUE);
     minProperties = jsonObject.optInt("minProperties", 0);
     maxProperties = jsonObject.optInt("maxProperties", Integer.MAX_VALUE);
+
+    if (jsonObject.has("pattern")) {
+      pattern = new Ecma262Pattern(jsonObject.getString("pattern"));
+    } else {
+      pattern = null;
+    }
+
     _const = jsonObject.opt("const");
 
     if (jsonObject.has("enum")) {
@@ -328,6 +336,12 @@ public class ObjectSchema extends Schema {
       }
       if (unicodeCompliantLength > maxLength) {
         errorConsumer.accept(error(document, path, "Longer than maxLength"));
+      }
+
+      if (pattern != null) {
+        if (!pattern.matches(string)) {
+          errorConsumer.accept(error(document, path, "Pattern did not match"));
+        }
       }
     } else if (object instanceof JSONArray) {
       typeCheck(Set.of("array"), document, path, errorConsumer);
