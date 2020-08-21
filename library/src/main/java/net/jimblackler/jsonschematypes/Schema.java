@@ -4,7 +4,6 @@ import java.net.URI;
 import java.util.function.Consumer;
 
 public abstract class Schema {
-
   private final URI path;
 
   Schema(SchemaStore schemaStore, URI path) throws GenerationException {
