@@ -231,6 +231,21 @@ public class ObjectSchema extends Schema {
     }
   }
 
+  private static boolean compare(Object a, Object b) {
+    if (a instanceof Integer && b instanceof Integer) {
+      return a.equals(b);
+    } else if (a instanceof Number && b instanceof Number) {
+      Number constNumber = (Number) a;
+      Number objectNumber = (Number) b;
+      return constNumber.doubleValue() == objectNumber.doubleValue();
+    } else if ((a instanceof JSONObject && b instanceof JSONObject)
+        || (a instanceof JSONArray && b instanceof JSONArray)) {
+      return a.toString().equals(b.toString());
+    } else {
+      return a.equals(b);
+    }
+  }
+
   @Override
   public void validate(Object object, Consumer<ValidationError> errorConsumer) {
     if (object instanceof Number) {
@@ -382,38 +397,27 @@ public class ObjectSchema extends Schema {
         Schema schema = entry.getValue();
         schema.validate(jsonObject, errorConsumer);
       }
-    }
-
-    if (_const != null) {
-      if (_const instanceof Integer && object instanceof Integer) {
-        if (!_const.equals(object)) {
-          errorConsumer.accept(new ValidationError("const integers didn't match"));
-        }
-      } else if (_const instanceof Number && object instanceof Number) {
-        Number constNumber = (Number) _const;
-        Number objectNumber = (Number) object;
-        if (constNumber.doubleValue() != objectNumber.doubleValue()) {
-          errorConsumer.accept(new ValidationError("const numbers didn't match"));
-        }
-      } else if ((_const instanceof JSONObject && object instanceof JSONObject)
-          || (_const instanceof JSONArray && object instanceof JSONArray)) {
-        if (!_const.toString().equals(object.toString())) {
-          errorConsumer.accept(new ValidationError("const json types didn't match"));
-        }
-      } else {
-        if (!_const.equals(object)) {
-          errorConsumer.accept(new ValidationError("const didn't match"));
-        }
-      }
     } else if (object == JSONObject.NULL) {
       if (explicitTypes != null && !explicitTypes.contains("null")) {
         errorConsumer.accept(new ValidationError("Type mismatch"));
       }
     }
 
+    if (_const != null) {
+      if (!compare(_const, object)) {
+        errorConsumer.accept(new ValidationError("Values didn't match"));
+      }
+    }
+
     if (_enum != null) {
-      if (!_enum.contains(object)) {
-        // TODO: write test for enums of objects.
+      boolean matchedOne = false;
+      for (Object value : _enum) {
+        if (compare(object, value)) {
+          matchedOne = true;
+          break;
+        }
+      }
+      if (!matchedOne) {
         errorConsumer.accept(new ValidationError("Object not in enum"));
       }
     }
