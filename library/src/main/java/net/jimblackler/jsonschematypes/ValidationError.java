@@ -20,9 +20,9 @@ public class ValidationError {
     URI schemaPath = schema.getPath();
     Object v = PathUtils.objectAtPath(document, path);
     String s = v.toString();
-    return (s.length() <= 20 ? "\"" + s + "\" " : "") +
-        (path.toString().isEmpty() ? "" : "at " + path + " ") +
-        "failed " + (schemaPath.toString().isEmpty() ? "" : "against " + schemaPath + " ")
+    return (s.length() <= 20 ? "\"" + s + "\" " : "")
+        + (path.toString().isEmpty() ? "" : "at " + path + " ") + "failed "
+        + (schemaPath.toString().isEmpty() ? "" : "against " + schemaPath + " ")
         + (schema instanceof BooleanSchema ? "" : "with \"" + message + "\"");
   }
 }
