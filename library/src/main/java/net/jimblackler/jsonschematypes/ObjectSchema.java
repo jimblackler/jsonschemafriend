@@ -25,7 +25,7 @@ public class ObjectSchema extends Schema {
   private final Collection<Schema> allOf;
   private final Collection<Schema> anyOf;
   private final Collection<Schema> oneOf;
-  private final Set<String> explicitTypes = new HashSet<>();
+  private final Set<String> explicitTypes;
   private final Double minimum;
   private final Double maximum;
   private final Double exclusiveMinimum;
@@ -46,14 +46,16 @@ public class ObjectSchema extends Schema {
 
     // Get explicit types.
     Object type = jsonObject.opt("type");
-
     if (type instanceof JSONArray) {
+      explicitTypes = new HashSet<>();
       JSONArray array = (JSONArray) type;
       for (int idx = 0; idx != array.length(); idx++) {
         explicitTypes.add(array.getString(idx));
       }
     } else if (type instanceof String) {
-      explicitTypes.add(type.toString());
+      explicitTypes = Set.of(type.toString());
+    } else {
+      explicitTypes = null;
     }
 
     // Get properties.
@@ -204,6 +206,14 @@ public class ObjectSchema extends Schema {
   @Override
   public void validate(Object object, Consumer<ValidationError> errorConsumer) {
     if (object instanceof Number) {
+      if (object instanceof Integer) {
+        if (explicitTypes != null && !explicitTypes.contains("integer")
+            && !explicitTypes.contains("number")) {
+          errorConsumer.accept(new ValidationError("Type mismatch"));
+        }
+      } else if (explicitTypes != null && !explicitTypes.contains("number")) {
+        errorConsumer.accept(new ValidationError("Type mismatch"));
+      }
       Number number = (Number) object;
       if (minimum != null) {
         if (number.doubleValue() < minimum) {
@@ -230,7 +240,14 @@ public class ObjectSchema extends Schema {
           errorConsumer.accept(new ValidationError("Not a multiple"));
         }
       }
+    } else if (object instanceof Boolean) {
+      if (explicitTypes != null && !explicitTypes.contains("boolean")) {
+        errorConsumer.accept(new ValidationError("Type mismatch"));
+      }
     } else if (object instanceof String) {
+      if (explicitTypes != null && !explicitTypes.contains("string")) {
+        errorConsumer.accept(new ValidationError("Type mismatch"));
+      }
       String string = (String) object;
       if (minLength != null) {
         if (string.length() < minLength) {
@@ -243,6 +260,9 @@ public class ObjectSchema extends Schema {
         }
       }
     } else if (object instanceof JSONArray) {
+      if (explicitTypes != null && !explicitTypes.contains("array")) {
+        errorConsumer.accept(new ValidationError("Type mismatch"));
+      }
       if (itemsSingle != null) {
         JSONArray jsonArray = (JSONArray) object;
         for (int idx = 0; idx != jsonArray.length(); idx++) {
@@ -266,6 +286,9 @@ public class ObjectSchema extends Schema {
         }
       }
     } else if (object instanceof JSONObject) {
+      if (explicitTypes != null && !explicitTypes.contains("object")) {
+        errorConsumer.accept(new ValidationError("Type mismatch"));
+      }
       JSONObject jsonObject = (JSONObject) object;
       Set<String> remainingProperties = new HashSet<>(jsonObject.keySet());
       for (String property : jsonObject.keySet()) {
@@ -319,35 +342,9 @@ public class ObjectSchema extends Schema {
           errorConsumer.accept(new ValidationError("const didn't match"));
         }
       }
-    }
-
-    if (explicitTypes.contains("number")) {
-      if (!(object instanceof Number)) {
-        errorConsumer.accept(new ValidationError("Not a number"));
-      }
-    }
-
-    if (explicitTypes.contains("integer")) {
-      if (!(object instanceof Integer)) {
-        errorConsumer.accept(new ValidationError("Not an integer"));
-      }
-    }
-
-    if (explicitTypes.contains("string")) {
-      if (!(object instanceof String)) {
-        errorConsumer.accept(new ValidationError("Not a string"));
-      }
-    }
-
-    if (explicitTypes.contains("boolean")) {
-      if (!(object instanceof Boolean)) {
-        errorConsumer.accept(new ValidationError("Not a boolean"));
-      }
-    }
-
-    if (explicitTypes.contains("null")) {
-      if (object != JSONObject.NULL) {
-        errorConsumer.accept(new ValidationError("Not null"));
+    } else if (object == JSONObject.NULL) {
+      if (explicitTypes != null && !explicitTypes.contains("null")) {
+        errorConsumer.accept(new ValidationError("Type mismatch"));
       }
     }
 
