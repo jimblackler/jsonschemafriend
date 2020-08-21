@@ -21,7 +21,7 @@ public class ObjectSchema extends Schema {
   private final Collection<Ecma262Pattern> patternPropertiesPatterns = new ArrayList<>();
   private final Collection<Schema> patternPropertiesSchemas = new ArrayList<>();
   private final Set<String> required = new HashSet<>();
-  private final Collection<Schema> itemsArray = new ArrayList<>();
+  private final List<Schema> itemsArray = new ArrayList<>();
   private final Schema itemsSingle;
   private final int minItems;
   private final int maxItems;
@@ -38,6 +38,7 @@ public class ObjectSchema extends Schema {
   private final int maxLength;
   private final int minProperties;
   private final Schema additionalProperties;
+  private final Schema additionalItems;
   private final Map<String, Schema> definitions = new HashMap<>();
   private final Object _const;
   private final Set<Object> _enum;
@@ -99,6 +100,12 @@ public class ObjectSchema extends Schema {
       additionalProperties = schemaStore.getSchema(append(path, "additionalProperties"));
     } else {
       additionalProperties = null;
+    }
+
+    if (jsonObject.has("additionalItems")) {
+      additionalItems = schemaStore.getSchema(append(path, "additionalItems"));
+    } else {
+      additionalItems = null;
     }
 
     if (jsonObject.has("definitions")) {
@@ -337,6 +344,15 @@ public class ObjectSchema extends Schema {
       if (itemsSingle != null) {
         for (int idx = 0; idx != jsonArray.length(); idx++) {
           itemsSingle.validate(document, append(path, String.valueOf(idx)), errorConsumer);
+        }
+      }
+
+      if (!itemsArray.isEmpty()) {
+        if (jsonArray.length() > itemsArray.size() && additionalItems != null) {
+          additionalItems.validate(document, path, errorConsumer);
+        }
+        for (int idx = 0; idx != Math.min(itemsArray.size(), jsonArray.length()); idx++) {
+          itemsArray.get(idx).validate(document, append(path, String.valueOf(idx)), errorConsumer);
         }
       }
 
