@@ -288,18 +288,6 @@ public class ObjectSchema extends Schema {
     }
   }
 
-  private static boolean compare(Object a, Object b) {
-    a = makeComparable(a);
-    b = makeComparable(b);
-    if (a instanceof Integer && b instanceof Integer) {
-      return a.equals(b);
-    } else if (a instanceof Number && b instanceof Number) {
-      return ((Number) a).doubleValue() == ((Number) b).doubleValue();
-    } else {
-      return a.equals(b);
-    }
-  }
-
   @Override
   public void validate(Object document, URI path, Consumer<ValidationError> errorConsumer) {
     Object object = PathUtils.objectAtPath(document, path);
@@ -496,15 +484,16 @@ public class ObjectSchema extends Schema {
     }
 
     if (_const != null) {
-      if (!compare(_const, object)) {
+      if (!makeComparable(_const).equals(makeComparable(object))) {
         errorConsumer.accept(error(document, path, "Const mismatch"));
       }
     }
 
     if (_enum != null) {
       boolean matchedOne = false;
+      Object o = makeComparable(object);
       for (Object value : _enum) {
-        if (compare(object, value)) {
+        if (o.equals(makeComparable(value))) {
           matchedOne = true;
           break;
         }
