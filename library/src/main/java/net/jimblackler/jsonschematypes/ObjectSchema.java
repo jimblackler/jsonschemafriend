@@ -315,11 +315,11 @@ public class ObjectSchema extends Schema {
       typeCheck(Set.of("string"), document, path, errorConsumer);
       String string = (String) object;
 
-      if (string.length() < minLength) {
+      int unicodeCompliantLength = string.codePointCount(0, string.length());
+      if (unicodeCompliantLength < minLength) {
         errorConsumer.accept(error(document, path, "Shorter than minLength"));
       }
-
-      if (string.codePointCount(0, string.length()) > maxLength) {
+      if (unicodeCompliantLength > maxLength) {
         errorConsumer.accept(error(document, path, "Longer than maxLength"));
       }
     } else if (object instanceof JSONArray) {
