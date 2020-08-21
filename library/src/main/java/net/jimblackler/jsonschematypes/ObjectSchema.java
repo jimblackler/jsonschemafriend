@@ -277,12 +277,9 @@ public class ObjectSchema extends Schema {
     Object object = PathUtils.objectAtPath(document, path);
     if (object instanceof Number) {
       if (object instanceof Integer) {
-        if (explicitTypes != null && !explicitTypes.contains("integer")
-            && !explicitTypes.contains("number")) {
-          errorConsumer.accept(error(document, path, "Type mismatch"));
-        }
-      } else if (explicitTypes != null && !explicitTypes.contains("number")) {
-        errorConsumer.accept(error(document, path, "Type mismatch"));
+        typeCheck(Set.of("integer", "number"), document, path, errorConsumer);
+      } else {
+        typeCheck(Set.of("number"), document, path, errorConsumer);
       }
       Number number = (Number) object;
 
@@ -311,13 +308,9 @@ public class ObjectSchema extends Schema {
         }
       }
     } else if (object instanceof Boolean) {
-      if (explicitTypes != null && !explicitTypes.contains("boolean")) {
-        errorConsumer.accept(error(document, path, "Type mismatch"));
-      }
+      typeCheck(Set.of("boolean"), document, path, errorConsumer);
     } else if (object instanceof String) {
-      if (explicitTypes != null && !explicitTypes.contains("string")) {
-        errorConsumer.accept(error(document, path, "Type mismatch"));
-      }
+      typeCheck(Set.of("string"), document, path, errorConsumer);
       String string = (String) object;
 
       if (string.length() < minLength) {
@@ -328,9 +321,7 @@ public class ObjectSchema extends Schema {
         errorConsumer.accept(error(document, path, "Longer than maxLength"));
       }
     } else if (object instanceof JSONArray) {
-      if (explicitTypes != null && !explicitTypes.contains("array")) {
-        errorConsumer.accept(error(document, path, "Type mismatch"));
-      }
+      typeCheck(Set.of("array"), document, path, errorConsumer);
 
       JSONArray jsonArray = (JSONArray) object;
       if (jsonArray.length() < minItems) {
@@ -349,7 +340,9 @@ public class ObjectSchema extends Schema {
 
       if (!itemsArray.isEmpty()) {
         if (jsonArray.length() > itemsArray.size() && additionalItems != null) {
-          additionalItems.validate(document, path, errorConsumer);
+          for (int idx = itemsArray.size(); idx != jsonArray.length(); idx++) {
+            additionalItems.validate(document, append(path, String.valueOf(idx)), errorConsumer);
+          }
         }
         for (int idx = 0; idx != Math.min(itemsArray.size(), jsonArray.length()); idx++) {
           itemsArray.get(idx).validate(document, append(path, String.valueOf(idx)), errorConsumer);
@@ -371,9 +364,7 @@ public class ObjectSchema extends Schema {
         }
       }
     } else if (object instanceof JSONObject) {
-      if (explicitTypes != null && !explicitTypes.contains("object")) {
-        errorConsumer.accept(error(document, path, "Type mismatch"));
-      }
+      typeCheck(Set.of("object"), document, path, errorConsumer);
       JSONObject jsonObject = (JSONObject) object;
       if (jsonObject.length() < minProperties) {
         errorConsumer.accept(error(document, path, "Too few properties"));
@@ -506,5 +497,34 @@ public class ObjectSchema extends Schema {
         errorConsumer.accept(error(document, path, numberPassed + " passed oneOf"));
       }
     }
+  }
+
+  private void typeCheck(
+      Set<String> types, Object document, URI path, Consumer<ValidationError> errorConsumer) {
+    if (explicitTypes == null) {
+      return;
+    }
+    Set<String> typesIn = new HashSet<>(types);
+    typesIn.retainAll(explicitTypes);
+    if (!typesIn.isEmpty()) {
+      return;
+    }
+
+    String part1;
+    if (types.size() == 1) {
+      part1 = "type " + types.iterator().next() + " ";
+    } else {
+      part1 = "one of: " + String.join(", ", types) + " ";
+    }
+
+    String part2;
+    if (explicitTypes.size() == 1) {
+      part2 = "not " + explicitTypes.iterator().next();
+    } else {
+      part2 = "not one of: " + String.join(", ", explicitTypes);
+    }
+
+    errorConsumer.accept(error(document, path, "Object is " + part1 + part2));
+
   }
 }
