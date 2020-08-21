@@ -36,6 +36,7 @@ public class ObjectSchema extends Schema {
   private final Schema additionalProperties;
   private final Object _const;
   private final Schema contains;
+  private final Map<String, Collection<String>> dependencies = new HashMap<>();
 
   public ObjectSchema(SchemaStore schemaStore, URI path) throws GenerationException {
     super(schemaStore, path);
@@ -201,6 +202,18 @@ public class ObjectSchema extends Schema {
     } else {
       _const = null;
     }
+
+    if (jsonObject.has("dependencies")) {
+      JSONObject dependenciesObject = jsonObject.getJSONObject("dependencies");
+      for (String dependency : dependenciesObject.keySet()) {
+        List<String> spec = new ArrayList<>();
+        JSONArray array = dependenciesObject.getJSONArray(dependency);
+        for (int idx = 0; idx != array.length(); idx++) {
+          spec.add(array.getString(idx));
+        }
+        dependencies.put(dependency, spec);
+      }
+    }
   }
 
   @Override
@@ -317,6 +330,22 @@ public class ObjectSchema extends Schema {
       for (String property : required) {
         if (!jsonObject.has(property)) {
           errorConsumer.accept(new ValidationError("Missing required property " + property));
+        }
+      }
+
+      for (Map.Entry<String, Collection<String>> entry : dependencies.entrySet()) {
+        String property = entry.getKey();
+        if (!jsonObject.has(property)) {
+          continue;
+        }
+
+        Collection<String> _dependencies = entry.getValue();
+        for (String dependency : _dependencies) {
+          if (jsonObject.has(dependency)) {
+            continue;
+          }
+          errorConsumer.accept(
+              new ValidationError("Missing dependency " + property + " -> " + dependency));
         }
       }
     }
