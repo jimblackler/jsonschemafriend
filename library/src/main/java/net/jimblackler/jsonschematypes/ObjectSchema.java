@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Consumer;
+
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -20,8 +21,8 @@ public class ObjectSchema extends Schema {
   private final Collection<Ecma262Pattern> patternPropertiesPatterns = new ArrayList<>();
   private final Collection<Schema> patternPropertiesSchemas = new ArrayList<>();
   private final Set<String> required = new HashSet<>();
-  private final Collection<Schema> arrayTypes = new ArrayList<>();
-  private final Schema singleType;
+  private final Collection<Schema> itemsArray = new ArrayList<>();
+  private final Schema itemsSingle;
   private final Collection<Schema> allOf;
   private final Collection<Schema> anyOf;
   private final Collection<Schema> oneOf;
@@ -35,6 +36,7 @@ public class ObjectSchema extends Schema {
   private final Integer maxLength;
   private final Schema additionalProperties;
   private final Object _const;
+  private final Schema contains;
 
   public ObjectSchema(SchemaStore schemaStore, URI path) throws GenerationException {
     super(schemaStore, path);
@@ -97,15 +99,22 @@ public class ObjectSchema extends Schema {
     Object items = jsonObject.opt("items");
     URI itemsPath = append(path, "items");
     if (items instanceof JSONObject || items instanceof Boolean) {
-      singleType = schemaStore.getSchema(itemsPath);
+      itemsSingle = schemaStore.getSchema(itemsPath);
     } else {
-      singleType = null;
+      itemsSingle = null;
       if (items instanceof JSONArray) {
         JSONArray jsonArray = (JSONArray) items;
         for (int idx = 0; idx != jsonArray.length(); idx++) {
-          arrayTypes.add(schemaStore.getSchema(append(itemsPath, String.valueOf(idx))));
+          itemsArray.add(schemaStore.getSchema(append(itemsPath, String.valueOf(idx))));
         }
       }
+    }
+
+    // https://tools.ietf.org/html/draft-handrews-json-schema-02#section-9.3.1.4
+    if (jsonObject.has("contains")) {
+      contains = schemaStore.getSchema(append(path, "contains"));
+    } else {
+      contains = null;
     }
 
     if (jsonObject.has("allOf")) {
@@ -232,6 +241,29 @@ public class ObjectSchema extends Schema {
       if (maxLength != null) {
         if (string.length() > maxLength) {
           errorConsumer.accept(new ValidationError("Longer than maxLength"));
+        }
+      }
+    } else if (object instanceof JSONArray) {
+      if (itemsSingle != null) {
+        JSONArray jsonArray = (JSONArray) object;
+        for (int idx = 0; idx != jsonArray.length(); idx++) {
+          itemsSingle.validate(jsonArray.get(idx), errorConsumer);
+        }
+      }
+
+      if (contains != null) {
+        JSONArray jsonArray = (JSONArray) object;
+        boolean onePassed = false;
+        for (int idx = 0; idx != jsonArray.length(); idx++) {
+          List<ValidationError> errors = new ArrayList<>();
+          contains.validate(jsonArray.get(idx), errors::add);
+          if (errors.isEmpty()) {
+            onePassed = true;
+            break;
+          }
+        }
+        if (!onePassed) {
+          errorConsumer.accept(new ValidationError("No element in the array matched contains"));
         }
       }
     } else if (object instanceof JSONObject) {
