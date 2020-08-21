@@ -16,26 +16,31 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 public class ObjectSchema extends Schema {
+  private final JSONObject schemaJson;  // Kept for debugging only.
   private final Map<String, Schema> _properties = new HashMap<>();
   private final Collection<Ecma262Pattern> patternPropertiesPatterns = new ArrayList<>();
   private final Collection<Schema> patternPropertiesSchemas = new ArrayList<>();
   private final Set<String> required = new HashSet<>();
   private final Collection<Schema> itemsArray = new ArrayList<>();
   private final Schema itemsSingle;
+  private final int minItems;
+  private final int maxItems;
   private final Collection<Schema> allOf;
   private final Collection<Schema> anyOf;
   private final Collection<Schema> oneOf;
   private final Set<String> explicitTypes;
-  private final Double minimum;
-  private final Double maximum;
-  private final Double exclusiveMinimum;
-  private final Double exclusiveMaximum;
+  private final Double minimum;  // TODO: convert to primitive defaulting to extreme
+  private final Double maximum;  // TODO: convert to primitive defaulting to extreme
+  private final Double exclusiveMinimum;  // TODO: convert to primitive defaulting to extreme
+  private final Double exclusiveMaximum;  // TODO: convert to primitive defaulting to extreme
   private final Double multipleOf;
-  private final Integer minLength;
-  private final Integer maxLength;
-  private final int minProperties;
+  private final Integer minLength;  // TODO: convert to primitive defaulting to extreme
+  private final Integer maxLength;  // TODO: convert to primitive defaulting to extreme
+  private final int minProperties;  // TODO: use nullable
   private final Schema additionalProperties;
+  private final Map<String, Schema> definitions = new HashMap<>();
   private final Object _const;
+  private final Set<Object> _enum;
   private final Schema contains;
   private final Map<String, Collection<String>> dependencies = new HashMap<>();
   private final Map<String, Schema> schemaDependencies = new HashMap<>();
@@ -43,6 +48,7 @@ public class ObjectSchema extends Schema {
   public ObjectSchema(SchemaStore schemaStore, URI path) throws GenerationException {
     super(schemaStore, path);
     JSONObject jsonObject = (JSONObject) schemaStore.getSchemaJson(path);
+    this.schemaJson = jsonObject;
     if (jsonObject == null) {
       throw new GenerationException("Could not obtain " + path);
     }
@@ -92,6 +98,14 @@ public class ObjectSchema extends Schema {
       additionalProperties = null;
     }
 
+    if (jsonObject.has("definitions")) {
+      URI definitionsPointer = append(path, "definitions");
+      JSONObject definitionsObject = jsonObject.getJSONObject("definitions");
+      for (String definition : definitionsObject.keySet()) {
+        definitions.put(definition, schemaStore.getSchema(append(definitionsPointer, definition)));
+      }
+    }
+
     if (jsonObject.has("required")) {
       JSONArray array = jsonObject.getJSONArray("required");
       for (int idx = 0; idx != array.length(); idx++) {
@@ -113,6 +127,9 @@ public class ObjectSchema extends Schema {
         }
       }
     }
+
+    minItems = jsonObject.optInt("minItems", 0);
+    maxItems = jsonObject.optInt("maxItems", Integer.MAX_VALUE);
 
     // https://tools.ietf.org/html/draft-handrews-json-schema-02#section-9.3.1.4
     if (jsonObject.has("contains")) {
@@ -211,6 +228,16 @@ public class ObjectSchema extends Schema {
       _const = null;
     }
 
+    if (jsonObject.has("enum")) {
+      _enum = new HashSet<>();
+      JSONArray enumArray = jsonObject.getJSONArray("enum");
+      for (int idx = 0; idx != enumArray.length(); idx++) {
+        _enum.add(enumArray.get(idx));
+      }
+    } else {
+      _enum = null;
+    }
+
     if (jsonObject.has("dependencies")) {
       JSONObject dependenciesObject = jsonObject.getJSONObject("dependencies");
       for (String dependency : dependenciesObject.keySet()) {
@@ -291,15 +318,23 @@ public class ObjectSchema extends Schema {
       if (explicitTypes != null && !explicitTypes.contains("array")) {
         errorConsumer.accept(new ValidationError("Type mismatch"));
       }
+
+      JSONArray jsonArray = (JSONArray) object;
+      if (jsonArray.length() < minItems) {
+        errorConsumer.accept(new ValidationError("Below min items"));
+      }
+
+      if (jsonArray.length() > maxItems) {
+        errorConsumer.accept(new ValidationError("Above max length"));
+      }
+
       if (itemsSingle != null) {
-        JSONArray jsonArray = (JSONArray) object;
         for (int idx = 0; idx != jsonArray.length(); idx++) {
           itemsSingle.validate(jsonArray.get(idx), errorConsumer);
         }
       }
 
       if (contains != null) {
-        JSONArray jsonArray = (JSONArray) object;
         boolean onePassed = false;
         for (int idx = 0; idx != jsonArray.length(); idx++) {
           List<ValidationError> errors = new ArrayList<>();
@@ -402,6 +437,13 @@ public class ObjectSchema extends Schema {
     } else if (object == JSONObject.NULL) {
       if (explicitTypes != null && !explicitTypes.contains("null")) {
         errorConsumer.accept(new ValidationError("Type mismatch"));
+      }
+    }
+
+    if (_enum != null) {
+      if (!_enum.contains(object)) {
+        // TODO: write test for enums of objects.
+        errorConsumer.accept(new ValidationError("Object not in enum"));
       }
     }
 
