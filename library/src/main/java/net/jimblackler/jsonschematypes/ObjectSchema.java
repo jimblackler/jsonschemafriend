@@ -37,6 +37,7 @@ public class ObjectSchema extends Schema {
   private final Object _const;
   private final Schema contains;
   private final Map<String, Collection<String>> dependencies = new HashMap<>();
+  private final Map<String, Schema> schemaDependencies = new HashMap<>();
 
   public ObjectSchema(SchemaStore schemaStore, URI path) throws GenerationException {
     super(schemaStore, path);
@@ -207,11 +208,18 @@ public class ObjectSchema extends Schema {
       JSONObject dependenciesObject = jsonObject.getJSONObject("dependencies");
       for (String dependency : dependenciesObject.keySet()) {
         List<String> spec = new ArrayList<>();
-        JSONArray array = dependenciesObject.getJSONArray(dependency);
-        for (int idx = 0; idx != array.length(); idx++) {
-          spec.add(array.getString(idx));
+        Object dependencyObject = dependenciesObject.get(dependency);
+        if (dependencyObject instanceof JSONArray) {
+          JSONArray array = (JSONArray) dependencyObject;
+          for (int idx = 0; idx != array.length(); idx++) {
+            spec.add(array.getString(idx));
+          }
+          dependencies.put(dependency, spec);
+        } else {
+          URI dependenciesPpinter = append(path, "dependencies");
+          schemaDependencies.put(
+              dependency, schemaStore.getSchema(append(dependenciesPpinter, dependency)));
         }
-        dependencies.put(dependency, spec);
       }
     }
   }
@@ -347,6 +355,16 @@ public class ObjectSchema extends Schema {
           errorConsumer.accept(
               new ValidationError("Missing dependency " + property + " -> " + dependency));
         }
+      }
+
+      for (Map.Entry<String, Schema> entry : schemaDependencies.entrySet()) {
+        String property = entry.getKey();
+        if (!jsonObject.has(property)) {
+          continue;
+        }
+
+        Schema schema = entry.getValue();
+        schema.validate(jsonObject, errorConsumer);
       }
     }
 
