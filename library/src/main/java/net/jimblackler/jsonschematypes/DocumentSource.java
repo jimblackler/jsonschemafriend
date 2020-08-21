@@ -14,7 +14,7 @@ public class DocumentSource {
   private final Iterable<UrlRewriter> rewriters;
   private final Map<URI, Object> cache = new HashMap<>();
 
-  DocumentSource(Iterable<UrlRewriter> rewriters) {
+  public DocumentSource(Iterable<UrlRewriter> rewriters) {
     this.rewriters = rewriters;
   }
 

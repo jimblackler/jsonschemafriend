@@ -1,6 +1,7 @@
 package net.jimblackler.jsonschematypes.plugin;
 
 import java.nio.file.Path;
+import java.util.List;
 import net.jimblackler.jsonschematypes.DocumentSource;
 import net.jimblackler.jsonschematypes.GenerationException;
 import net.jimblackler.jsonschematypes.Main2;
@@ -29,7 +30,7 @@ public class GenerateJsonSchemaTypesJavaTask extends DefaultTask {
     resources = resources.resolve(extension.getResourcesPath());
 
     try {
-      SchemaStore schemaStore = new SchemaStore(new DocumentSource());
+      SchemaStore schemaStore = new SchemaStore(new DocumentSource(List.of()));
       schemaStore.loadResources(resources);
       Main2.outputTypes(outPath, schemaStore, extension.getPackageOut());
     } catch (GenerationException e) {
