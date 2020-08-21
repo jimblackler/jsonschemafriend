@@ -258,6 +258,12 @@ public class ObjectSchema extends Schema {
       }
     }
 
+    if (explicitTypes.contains("null")) {
+      if (object != JSONObject.NULL) {
+        errorConsumer.accept(new ValidationError("Not null"));
+      }
+    }
+
     if (allOf != null) {
       for (Schema schema : allOf) {
         schema.validate(object, errorConsumer);
