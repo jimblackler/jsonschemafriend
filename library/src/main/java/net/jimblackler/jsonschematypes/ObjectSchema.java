@@ -235,9 +235,7 @@ public class ObjectSchema extends Schema {
     if (a instanceof Integer && b instanceof Integer) {
       return a.equals(b);
     } else if (a instanceof Number && b instanceof Number) {
-      Number constNumber = (Number) a;
-      Number objectNumber = (Number) b;
-      return constNumber.doubleValue() == objectNumber.doubleValue();
+      return ((Number) a).doubleValue() == ((Number) b).doubleValue();
     } else if ((a instanceof JSONObject && b instanceof JSONObject)
         || (a instanceof JSONArray && b instanceof JSONArray)) {
       return a.toString().equals(b.toString());
