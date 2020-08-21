@@ -3,6 +3,7 @@ package net.jimblackler.jsonschematypes;
 import static net.jimblackler.jsonschematypes.PathUtils.append;
 
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -20,6 +21,7 @@ public class ObjectSchema extends Schema {
   private final Map<String, Schema> _properties = new HashMap<>();
   private final Collection<Ecma262Pattern> patternPropertiesPatterns = new ArrayList<>();
   private final Collection<Schema> patternPropertiesSchemas = new ArrayList<>();
+  private final Schema propertyNames;
   private final Set<String> required = new HashSet<>();
   private final List<Schema> itemsArray = new ArrayList<>();
   private final Schema itemsSingle;
@@ -96,6 +98,12 @@ public class ObjectSchema extends Schema {
         patternPropertiesSchemas.add(
             schemaStore.getSchema(append(propertiesPointer, propertyPattern)));
       }
+    }
+
+    if (jsonObject.has("propertyNames")) {
+      propertyNames = schemaStore.getSchema(append(path, "propertyNames"));
+    } else {
+      propertyNames = null;
     }
 
     // https://tools.ietf.org/html/draft-handrews-json-schema-02#section-9.3.2.3
@@ -397,6 +405,23 @@ public class ObjectSchema extends Schema {
       }
       Set<String> remainingProperties = new HashSet<>(jsonObject.keySet());
       for (String property : jsonObject.keySet()) {
+        if (propertyNames != null) {
+          try {
+            // To provide developer-friendly validation error messages, the validator takes a URL to
+            // the object being validated, relative to the base document. In turn, to avoid
+            // redundant coupled parameters, the object is not passed as a parameter but converted
+            // to the object inside the validator. This is a problem for propertyName validation
+            // because the property name itself cannot have a path using the current version of JSON
+            // Pointers. Relative JSON Pointers does support property names; but the standard states
+            // these pointers are not suitable for use in URIs. As a workaround we use the query
+            // part of the URL to carry the property name into the child iteration of the validator.
+            URI propertyPath = new URI(path.getScheme(), path.getAuthority(), path.getPath(),
+                property, path.getFragment());
+            propertyNames.validate(document, propertyPath, errorConsumer);
+          } catch (URISyntaxException e) {
+            throw new IllegalStateException(e);
+          }
+        }
         if (_properties.containsKey(property)) {
           Schema schema = _properties.get(property);
           schema.validate(document, append(path, property), errorConsumer);

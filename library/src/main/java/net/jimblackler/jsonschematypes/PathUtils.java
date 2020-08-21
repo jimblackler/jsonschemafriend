@@ -23,6 +23,13 @@ public class PathUtils {
   }
 
   static Object objectAtPath(Object document, URI path) {
+    String query = path.getQuery();
+    if (query != null && !query.isEmpty()) {
+      // Query part can carry a string for validation while preserving the rest of the URI for error
+      // messages. This is used for propertyName validation where it's not possible to link to the
+      // name with a standard JSON Pointer.
+      return query;
+    }
     if (path.getFragment() == null) {
       return document;
     }
