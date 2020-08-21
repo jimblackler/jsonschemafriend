@@ -43,10 +43,24 @@ public class SuiteTest {
   }
 
   @TestFactory
+  DynamicNode draft4Own() {
+    Path jsts = Path.of("/suites").resolve("jsts");
+    return scan(jsts.resolve("tests").resolve("draft4"), jsts.resolve("remotes"),
+        "http://json-schema.org/draft-04/schema#", false, false);
+  }
+
+  @TestFactory
   DynamicNode draft6() {
     Path jsts = Path.of("/suites").resolve("jsts");
     return scan(jsts.resolve("tests").resolve("draft6"), jsts.resolve("remotes"),
         "http://json-schema.org/draft-06/schema#", true, false);
+  }
+
+  @TestFactory
+  DynamicNode draft6Own() {
+    Path jsts = Path.of("/suites").resolve("jsts");
+    return scan(jsts.resolve("tests").resolve("draft6"), jsts.resolve("remotes"),
+        "http://json-schema.org/draft-06/schema#", false, false);
   }
 
   @TestFactory

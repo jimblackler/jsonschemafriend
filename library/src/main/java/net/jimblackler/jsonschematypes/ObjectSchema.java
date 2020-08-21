@@ -36,7 +36,9 @@ public class ObjectSchema extends Schema {
   private final double minimum;
   private final double maximum;
   private final Double exclusiveMinimum;
+  private final boolean exclusiveMinimumBoolean;
   private final Double exclusiveMaximum;
+  private final boolean exclusiveMaximumBoolean;
   private final Double multipleOf;
   private final int minLength;
   private final int maxLength;
@@ -227,14 +229,18 @@ public class ObjectSchema extends Schema {
 
     maximum = jsonObject.optDouble("maximum", Double.MAX_VALUE);
 
-    if (jsonObject.has("exclusiveMinimum")) {
-      exclusiveMinimum = jsonObject.getDouble("exclusiveMinimum");
+    exclusiveMinimumBoolean = jsonObject.optBoolean("exclusiveMinimum");
+    Object exclusiveMinimumObject = jsonObject.opt("exclusiveMinimum");
+    if (exclusiveMinimumObject instanceof Number) {
+      exclusiveMinimum = ((Number) exclusiveMinimumObject).doubleValue();
     } else {
       exclusiveMinimum = null;
     }
 
-    if (jsonObject.has("exclusiveMaximum")) {
-      exclusiveMaximum = jsonObject.getDouble("exclusiveMaximum");
+    exclusiveMaximumBoolean = jsonObject.optBoolean("exclusiveMaximum");
+    Object exclusiveMaximumObject = jsonObject.opt("exclusiveMaximum");
+    if (exclusiveMaximumObject instanceof Number) {
+      exclusiveMaximum = ((Number) exclusiveMaximumObject).doubleValue();
     } else {
       exclusiveMaximum = null;
     }
@@ -301,7 +307,8 @@ public class ObjectSchema extends Schema {
 
       typeCheck(okTypes, document, path, errorConsumer);
 
-      if (number.doubleValue() < minimum) {
+      if (exclusiveMinimumBoolean ? number.doubleValue() <= minimum
+                                  : number.doubleValue() < minimum) {
         errorConsumer.accept(error(document, path, "Less than minimum"));
       }
 
@@ -311,7 +318,8 @@ public class ObjectSchema extends Schema {
         }
       }
 
-      if (number.doubleValue() > maximum) {
+      if (exclusiveMaximumBoolean ? number.doubleValue() >= maximum
+                                  : number.doubleValue() > maximum) {
         errorConsumer.accept(error(document, path, "Greater than maximum"));
       }
 
