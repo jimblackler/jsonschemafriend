@@ -317,7 +317,7 @@ public class ObjectSchema extends Schema {
         errorConsumer.accept(error(document, path, "Shorter than minLength"));
       }
 
-      if (string.length() > maxLength) {
+      if (string.codePointCount(0, string.length()) > maxLength) {
         errorConsumer.accept(error(document, path, "Longer than maxLength"));
       }
     } else if (object instanceof JSONArray) {
