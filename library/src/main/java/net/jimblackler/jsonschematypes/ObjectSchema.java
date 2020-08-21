@@ -44,6 +44,7 @@ public class ObjectSchema extends Schema {
   private final Object _const;
   private final Set<Object> _enum;
   private final Schema contains;
+  private final Schema not;
   private final Schema _if;
   private final Schema _then;
   private final Schema _else;
@@ -147,6 +148,12 @@ public class ObjectSchema extends Schema {
       contains = schemaStore.getSchema(append(path, "contains"));
     } else {
       contains = null;
+    }
+
+    if (jsonObject.has("not")) {
+      not = schemaStore.getSchema(append(path, "not"));
+    } else {
+      not = null;
     }
 
     if (jsonObject.has("if")) {
@@ -451,6 +458,14 @@ public class ObjectSchema extends Schema {
       }
       if (!matchedOne) {
         errorConsumer.accept(error(document, path, "Object not in enum"));
+      }
+    }
+
+    if (not != null) {
+      List<ValidationError> errors = new ArrayList<>();
+      not.validate(document, path, errors::add);
+      if (errors.isEmpty()) {
+        errorConsumer.accept(error(document, path, "not condition passed"));
       }
     }
 
