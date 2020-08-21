@@ -301,12 +301,14 @@ public class ObjectSchema extends Schema {
   public void validate(Object document, URI path, Consumer<ValidationError> errorConsumer) {
     Object object = PathUtils.objectAtPath(document, path);
     if (object instanceof Number) {
-      if (object instanceof Integer) {
-        typeCheck(Set.of("integer", "number"), document, path, errorConsumer);
-      } else {
-        typeCheck(Set.of("number"), document, path, errorConsumer);
-      }
       Number number = (Number) object;
+      Set<String> okTypes = new HashSet<>();
+      okTypes.add("number");
+      if (number.doubleValue() == number.intValue()) {
+        okTypes.add("integer");
+      }
+
+      typeCheck(okTypes, document, path, errorConsumer);
 
       if (number.doubleValue() < minimum) {
         errorConsumer.accept(error(document, path, "Less than minimum"));
