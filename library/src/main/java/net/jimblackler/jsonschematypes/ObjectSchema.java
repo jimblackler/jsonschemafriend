@@ -24,8 +24,8 @@ public class ObjectSchema extends Schema {
   private final Collection<Schema> patternPropertiesSchemas = new ArrayList<>();
   private final Schema propertyNames;
   private final Set<String> required = new HashSet<>();
-  private final List<Schema> itemsArray = new ArrayList<>();
-  private final Schema itemsSingle;
+  private final List<Schema> itemsArray;
+  private final Schema _items;
   private final boolean uniqueItems;
   private final int minItems;
   private final int maxItems;
@@ -142,14 +142,18 @@ public class ObjectSchema extends Schema {
     Object items = jsonObject.opt("items");
     URI itemsPath = append(path, "items");
     if (items instanceof JSONObject || items instanceof Boolean) {
-      itemsSingle = schemaStore.getSchema(itemsPath);
+      _items = schemaStore.getSchema(itemsPath);
+      itemsArray = null;
     } else {
-      itemsSingle = null;
+      _items = null;
       if (items instanceof JSONArray) {
+        itemsArray = new ArrayList<>();
         JSONArray jsonArray = (JSONArray) items;
         for (int idx = 0; idx != jsonArray.length(); idx++) {
           itemsArray.add(schemaStore.getSchema(append(itemsPath, String.valueOf(idx))));
         }
+      } else {
+        itemsArray = null;
       }
     }
 
@@ -285,7 +289,7 @@ public class ObjectSchema extends Schema {
             spec.add(array.getString(idx));
           }
           dependencies.put(dependency, spec);
-        } else if (dependencyObject instanceof JSONObject) {
+        } else if (dependencyObject instanceof JSONObject || dependencyObject instanceof Boolean) {
           URI dependenciesPpinter = append(path, "dependencies");
           schemaDependencies.put(
               dependency, schemaStore.getSchema(append(dependenciesPpinter, dependency)));
@@ -375,18 +379,19 @@ public class ObjectSchema extends Schema {
         errorConsumer.accept(error(document, path, "Above max length"));
       }
 
-      if (itemsSingle != null) {
+      if (_items != null) {
         for (int idx = 0; idx != jsonArray.length(); idx++) {
-          itemsSingle.validate(document, append(path, String.valueOf(idx)), errorConsumer);
+          _items.validate(document, append(path, String.valueOf(idx)), errorConsumer);
         }
       }
 
-      if (!itemsArray.isEmpty()) {
+      if (itemsArray != null) {
         if (jsonArray.length() > itemsArray.size() && additionalItems != null) {
           for (int idx = itemsArray.size(); idx != jsonArray.length(); idx++) {
             additionalItems.validate(document, append(path, String.valueOf(idx)), errorConsumer);
           }
         }
+
         for (int idx = 0; idx != Math.min(itemsArray.size(), jsonArray.length()); idx++) {
           itemsArray.get(idx).validate(document, append(path, String.valueOf(idx)), errorConsumer);
         }
