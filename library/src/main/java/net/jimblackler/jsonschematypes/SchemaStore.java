@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import org.json.JSONObject;
 
 public class SchemaStore {
   private final Map<URI, Schema> builtPaths = new HashMap<>();
@@ -33,10 +34,10 @@ public class SchemaStore {
     return errors;
   }
 
-  public void loadBaseObject(Object jsonObject) throws GenerationException {
-    documentSource.store(basePointer, jsonObject);
+  public void loadBaseObject(Object object) throws GenerationException {
+    documentSource.store(basePointer, object);
     if (mapped.add(basePointer)) {
-      idRefMap.map(this, basePointer, basePointer);
+      idRefMap.map(this, basePointer);
     }
     // Parsing the schema JSON can cause the final path to change (e.g. in the case of a $ref on
     // the root element
@@ -49,7 +50,7 @@ public class SchemaStore {
       URI documentUri = new URI(path.getScheme(), path.getSchemeSpecificPart(), null);
       Object document = documentSource.fetchDocument(documentUri);
       if (mapped.add(documentUri)) {
-        idRefMap.map(this, documentUri, documentUri);
+        idRefMap.map(this, documentUri);
       }
       return PathUtils.objectAtPath(document, path);
     } catch (URISyntaxException e) {

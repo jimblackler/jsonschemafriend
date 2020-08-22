@@ -10,11 +10,26 @@ class IdRefMap {
   private final Map<URI, URI> idToPath = new HashMap<>();
   private final Map<URI, URI> refs = new HashMap<>();
 
-  void map(SchemaStore schemaStore, URI path, URI activeId) throws GenerationException {
+  void map(SchemaStore schemaStore, URI path) throws GenerationException {
+    Object object = schemaStore.getSchemaJson(path);
+    int schemaNumber = Integer.MAX_VALUE;
+    if (object instanceof JSONObject) {
+      // A valid schema can be a JSONObject or a boolean, but only a JSONObject could set a
+      // metaschema.
+      JSONObject jsonObject = (JSONObject) object;
+      if (jsonObject.has("$schema")) {
+        schemaNumber = MetaSchema.getNumber(jsonObject.getString("$schema"));
+      }
+    }
+    map(schemaStore, path, path, schemaNumber <= 4 ? "id" : "$id");
+  }
+
+  private void map(SchemaStore schemaStore, URI path, URI activeId, String idKey)
+      throws GenerationException {
     Object object = schemaStore.getSchemaJson(path);
     if (object instanceof JSONObject) {
       JSONObject jsonObject = (JSONObject) object;
-      Object idObject = jsonObject.opt("$id");
+      Object idObject = jsonObject.opt(idKey);
       if (idObject instanceof String) {
         URI newId = URI.create((String) idObject);
         if (activeId != null) {
@@ -34,12 +49,12 @@ class IdRefMap {
       }
 
       for (String key : jsonObject.keySet()) {
-        map(schemaStore, PathUtils.append(path, key), activeId);
+        map(schemaStore, PathUtils.append(path, key), activeId, idKey);
       }
     } else if (object instanceof JSONArray) {
       JSONArray jsonArray = (JSONArray) object;
       for (int idx = 0; idx != jsonArray.length(); idx++) {
-        map(schemaStore, PathUtils.append(path, String.valueOf(idx)), activeId);
+        map(schemaStore, PathUtils.append(path, String.valueOf(idx)), activeId, idKey);
       }
     }
   }
