@@ -106,8 +106,22 @@ public class ObjectSchema extends Schema {
       Iterator<String> it = properties.keys();
       while (it.hasNext()) {
         String propertyName = it.next();
-        _properties.put(
-            propertyName, schemaStore.getSchema(append(propertiesPointer, propertyName)));
+        URI propertyUri = append(propertiesPointer, propertyName);
+
+        // This is the only time that a schema conditions are directly changed by something in a
+        // child schema (presence of 'required=true'). It requires this unorthodox process to look
+        // inside the child schema ahead of the normal time (the child schema itself ignores the
+        // 'required=true'). It's probably why this method of specifying required properties was
+        // removed from Draft 4 onwards. It's only here for legacy support.
+        Object propertyObject = schemaStore.getSchemaJson(propertyUri);
+        if (propertyObject instanceof JSONObject) {
+          JSONObject propertyJsonObject = (JSONObject) propertyObject;
+          if (propertyJsonObject.optBoolean("required")) {
+            required.add(propertyName);
+          }
+        }
+
+        _properties.put(propertyName, schemaStore.getSchema(propertyUri));
       }
     }
 
@@ -150,8 +164,9 @@ public class ObjectSchema extends Schema {
       }
     }
 
-    if (jsonObject.has("required")) {
-      JSONArray array = jsonObject.getJSONArray("required");
+    Object requiredObject = jsonObject.opt("required");
+    if (requiredObject instanceof JSONArray) {
+      JSONArray array = (JSONArray) requiredObject;
       for (int idx = 0; idx != array.length(); idx++) {
         required.add(array.getString(idx));
       }
