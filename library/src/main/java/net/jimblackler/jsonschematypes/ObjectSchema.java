@@ -3,6 +3,7 @@ package net.jimblackler.jsonschematypes;
 import static net.jimblackler.jsonschematypes.ComparableMutable.makeComparable;
 import static net.jimblackler.jsonschematypes.PathUtils.append;
 
+import java.math.BigInteger;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
@@ -15,6 +16,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.Consumer;
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 public class ObjectSchema extends Schema {
@@ -370,12 +372,19 @@ public class ObjectSchema extends Schema {
   @Override
   public void validate(Object document, URI path, Consumer<ValidationError> errorConsumer) {
     Object object = PathUtils.objectAtPath(document, path);
+    object = rewriteObject(object);
+
     if (object instanceof Number) {
       Number number = (Number) object;
       Set<String> okTypes = new HashSet<>();
       okTypes.add("number");
-      if (number.doubleValue() == number.intValue()) {
-        okTypes.add("integer");
+      String asString = object.toString();
+      try {
+        if (new BigInteger(asString).toString().equals(asString)) {
+          okTypes.add("integer");
+        }
+      } catch (NumberFormatException e) {
+        // Intentionally ignored.
       }
 
       typeCheck(document, path, okTypes, disallow, errorConsumer);
@@ -658,6 +667,29 @@ public class ObjectSchema extends Schema {
       if (numberPassed != 1) {
         errorConsumer.accept(error(document, path, numberPassed + " passed oneOf"));
       }
+    }
+  }
+
+  private Object rewriteObject(Object object) {
+    if (!(object instanceof String)) {
+      return object;
+    }
+    String string = (String) object;
+    // Reverse what org.json does to long numbers (converts them into strings).
+    // Strings are rewritten as a number in the cases where a string would have been the only way to
+    // serialize the number.
+    // It would be better to have a JSON deserializer that used BigInteger where necessary.
+    // But this won't be added to org.json soon: https://github.com/stleary/JSON-java/issues/157
+    try {
+      JSONArray testObject = new JSONArray(String.format("[%s]", string));
+      if (testObject.get(0) instanceof String) {
+        BigInteger bigInteger = new BigInteger(string);
+        return bigInteger;
+      }
+      return object;
+    } catch (NumberFormatException | JSONException e) {
+      // Doesn't look like a number after all.
+      return object;
     }
   }
 
