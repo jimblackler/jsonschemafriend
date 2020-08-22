@@ -62,6 +62,7 @@ public class ObjectSchema extends Schema {
   private final Schema _else;
   private final Map<String, Collection<String>> dependencies = new HashMap<>();
   private final Map<String, Schema> schemaDependencies = new HashMap<>();
+  private final Schema metaSchema;
 
   public ObjectSchema(SchemaStore schemaStore, URI path) throws GenerationException {
     super(schemaStore, path);
@@ -71,7 +72,12 @@ public class ObjectSchema extends Schema {
       throw new GenerationException("Could not obtain " + path);
     }
 
-    // Get explicit types.
+    if (jsonObject.has("$schema")) {
+      metaSchema = schemaStore.getSchema(URI.create(jsonObject.getString("$schema")));
+    } else {
+      metaSchema = null;
+    }
+
     Object typeObject = jsonObject.opt("type");
     if (typeObject instanceof JSONArray) {
       URI typePointer = append(path, "type");
@@ -560,6 +566,9 @@ public class ObjectSchema extends Schema {
       }
     } else if (object == JSONObject.NULL) {
       typeCheck(document, path, Set.of("null"), disallow, errorConsumer);
+    } else {
+      errorConsumer.accept(
+          error(document, path, "Cannot validate type " + object.getClass().getSimpleName()));
     }
 
     if (_const != null) {
@@ -650,6 +659,11 @@ public class ObjectSchema extends Schema {
         errorConsumer.accept(error(document, path, numberPassed + " passed oneOf"));
       }
     }
+  }
+
+  @Override
+  public Schema getMetaSchema() {
+    return metaSchema;
   }
 
   private void typeCheck(Object document, URI path, Set<String> types, Set<String> disallow,

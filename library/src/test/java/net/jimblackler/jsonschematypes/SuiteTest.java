@@ -161,13 +161,15 @@ public class SuiteTest {
                 -> URI.create(
                     in.toString().replace("http://localhost:1234", resource.toString()))));
             SchemaStore schemaStore = new SchemaStore(documentSource);
-            schemaStore.loadBaseObject(schema);
+            net.jimblackler.jsonschematypes.Schema schema1 =
+                schemaStore.getSchemaFromJson(schema, URI.create(""));
 
             System.out.println("Test:");
             System.out.println(test.toString(2));
             System.out.println();
 
-            Collection<ValidationError> errors = schemaStore.validate(URI.create(""), data);
+            List<ValidationError> errors = new ArrayList<>();
+            schema1.validate(data, URI.create(""), errors::add);
 
             System.out.print("Expected to " + (valid ? "pass" : "fail") + " ... ");
             if (errors.isEmpty()) {
@@ -244,7 +246,7 @@ public class SuiteTest {
         DocumentSource documentSource = new DocumentSource(List.of(
             in -> URI.create(in.toString().replace("http://localhost:1234", resource.toString()))));
         SchemaStore schemaStore = new SchemaStore(documentSource);
-        schemaStore.loadBaseObject(schema);
+        schemaStore.getSchemaFromJson(schema, URI.create(""));
       }));
     }
     if (everit) {

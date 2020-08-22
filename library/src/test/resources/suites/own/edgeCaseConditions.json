@@ -54,29 +54,5 @@
         "data": 50
       }
     ]
-  },
-  {
-    "description": "Empty conditions",
-    "schema": {
-      "anyOf": [
-      ]
-    },
-    "tests": [
-      {
-        "description": "Integers fail",
-        "valid": false,
-        "data": [3]
-      },
-      {
-        "description": "Empty array fails",
-        "valid": false,
-        "data": [3]
-      },
-      {
-        "description": "Null still fails",
-        "valid": false,
-        "data": null
-      }
-    ]
   }
 ]

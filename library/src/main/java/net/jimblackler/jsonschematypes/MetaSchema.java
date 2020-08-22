@@ -1,6 +1,8 @@
 package net.jimblackler.jsonschematypes;
 
 public class MetaSchema {
+  public static String DEFAULT = "http://json-schema.org/draft-07/schema#";
+
   public static int getNumber(String schema) {
     if (schema.contains("//json-schema.org/draft-03/schema")) {
       return 3;

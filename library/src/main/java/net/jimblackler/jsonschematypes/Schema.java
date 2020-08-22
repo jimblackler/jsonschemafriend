@@ -26,4 +26,6 @@ public abstract class Schema {
   }
 
   abstract void validate(Object document, URI path, Consumer<ValidationError> errorConsumer);
+
+  public abstract Schema getMetaSchema();
 }

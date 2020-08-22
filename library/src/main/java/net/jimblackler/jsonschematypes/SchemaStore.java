@@ -13,11 +13,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import org.json.JSONObject;
 
 public class SchemaStore {
+  private static final URI ROOT = URI.create("");
+
   private final Map<URI, Schema> builtPaths = new HashMap<>();
-  private final URI basePointer = URI.create("");
   private final IdRefMap idRefMap = new IdRefMap();
   private final Collection<URI> mapped = new HashSet<>();
   private final DocumentSource documentSource;
@@ -26,23 +26,41 @@ public class SchemaStore {
     this.documentSource = documentSource;
   }
 
-  public Collection<ValidationError> validate(URI uri, Object jsonObject) {
-    URI finalPath = idRefMap.finalPath(uri);
-    Schema schema = builtPaths.get(finalPath);
-    List<ValidationError> errors = new ArrayList<>();
-    schema.validate(jsonObject, URI.create(""), errors::add);
-    return errors;
+  public Schema getSchemaFromJson(Object object, URI path) throws GenerationException {
+    documentSource.store(path, object);
+    if (mapped.add(path)) {
+      idRefMap.map(this, path);
+    }
+    return getAndValidate(path);
   }
 
-  public void loadBaseObject(Object object) throws GenerationException {
-    documentSource.store(basePointer, object);
-    if (mapped.add(basePointer)) {
-      idRefMap.map(this, basePointer);
+  private Schema getAndValidate(URI document) throws GenerationException {
+    Schema schema = getSchema(document);
+    // We validate the schema JSON against its metaschema AFTER the Schema object has been built
+    // from that JSON. It has to be done in that order because the schema and the metaschema could
+    // be the same thing.
+    Schema metaSchema = schema.getMetaSchema();
+    List<ValidationError> errors = new ArrayList<>();
+    if (metaSchema != null) {
+      metaSchema.validate(getSchemaJson(document), ROOT, errors::add);
+      if (!errors.isEmpty()) {
+        throw new GenerationException(errors.toString());
+      }
     }
-    // Parsing the schema JSON can cause the final path to change (e.g. in the case of a $ref on
-    // the root element
-    URI path = idRefMap.finalPath(basePointer);
-    getSchema(path);
+    return schema;
+  }
+
+  public void loadResources(Path resources) throws GenerationException {
+    try (Stream<Path> walk = Files.walk(resources)) {
+      for (Path path : walk.collect(Collectors.toList())) {
+        if (Files.isDirectory(path)) {
+          continue;
+        }
+        getAndValidate(new URI("file", path.toString(), null));
+      }
+    } catch (IOException | URISyntaxException ex) {
+      throw new GenerationException(ex);
+    }
   }
 
   public Object getSchemaJson(URI path) throws GenerationException {
@@ -55,19 +73,6 @@ public class SchemaStore {
       return PathUtils.objectAtPath(document, path);
     } catch (URISyntaxException e) {
       throw new GenerationException(e);
-    }
-  }
-
-  public void loadResources(Path resources) throws GenerationException {
-    try (Stream<Path> walk = Files.walk(resources)) {
-      for (Path path : walk.collect(Collectors.toList())) {
-        if (Files.isDirectory(path)) {
-          continue;
-        }
-        getSchema(new URI("file", path.toString(), null));
-      }
-    } catch (IOException | URISyntaxException ex) {
-      throw new GenerationException(ex);
     }
   }
 
