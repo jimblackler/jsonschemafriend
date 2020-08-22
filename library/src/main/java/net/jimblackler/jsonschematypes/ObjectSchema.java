@@ -41,6 +41,7 @@ public class ObjectSchema extends Schema {
   private final boolean exclusiveMinimumBoolean;
   private final Double exclusiveMaximum;
   private final boolean exclusiveMaximumBoolean;
+  private final Double divisibleBy;
   private final Double multipleOf;
   private final int minLength;
   private final int maxLength;
@@ -267,6 +268,12 @@ public class ObjectSchema extends Schema {
       exclusiveMaximum = null;
     }
 
+    if (jsonObject.has("divisibleBy")) {
+      divisibleBy = jsonObject.getDouble("divisibleBy");
+    } else {
+      divisibleBy = null;
+    }
+
     if (jsonObject.has("multipleOf")) {
       multipleOf = jsonObject.getDouble("multipleOf");
     } else {
@@ -350,6 +357,11 @@ public class ObjectSchema extends Schema {
       if (exclusiveMaximum != null) {
         if (number.doubleValue() >= exclusiveMaximum) {
           errorConsumer.accept(error(document, path, "Greater than or equal to exclusive maximum"));
+        }
+      }
+      if (divisibleBy != null) {
+        if (number.doubleValue() / divisibleBy % 1 != 0) {
+          errorConsumer.accept(error(document, path, "divisibleBy failed"));
         }
       }
       if (multipleOf != null) {
