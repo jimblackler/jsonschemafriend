@@ -29,10 +29,12 @@ public class ObjectSchema extends Schema {
   private final boolean uniqueItems;
   private final int minItems;
   private final int maxItems;
+  private final Collection<Schema> _extends = new HashSet<>();
   private final Collection<Schema> allOf;
   private final Collection<Schema> anyOf;
   private final Collection<Schema> oneOf;
   private final Set<String> types;
+  private final Set<Schema> typesSchema = new HashSet<>();
   private final Set<String> disallow = new HashSet<>();
   private final Set<Schema> disallowSchemas = new HashSet<>();
   private final double minimum;
@@ -72,10 +74,16 @@ public class ObjectSchema extends Schema {
     // Get explicit types.
     Object typeObject = jsonObject.opt("type");
     if (typeObject instanceof JSONArray) {
+      URI typePointer = append(path, "type");
       types = new HashSet<>();
       JSONArray array = (JSONArray) typeObject;
       for (int idx = 0; idx != array.length(); idx++) {
-        types.add(array.getString(idx));
+        Object arrayEntryObject = array.get(idx);
+        if (arrayEntryObject instanceof Boolean || arrayEntryObject instanceof JSONObject) {
+          typesSchema.add(schemaStore.getSchema(append(typePointer, String.valueOf(idx))));
+        } else {
+          types.add((String) arrayEntryObject);
+        }
       }
     } else if (typeObject instanceof String) {
       types = Set.of(typeObject.toString());
@@ -227,6 +235,19 @@ public class ObjectSchema extends Schema {
       _else = null;
     }
 
+    Object extendsObject = jsonObject.opt("extends");
+    if (extendsObject instanceof JSONArray) {
+      URI arrayPath = append(path, "extends");
+      JSONArray array = (JSONArray) extendsObject;
+      for (int idx = 0; idx != array.length(); idx++) {
+        URI indexPointer = append(arrayPath, String.valueOf(idx));
+        _extends.add(schemaStore.getSchema(indexPointer));
+      }
+    } else if (extendsObject instanceof JSONObject || extendsObject instanceof Boolean) {
+      URI arrayPath = append(path, "extends");
+      _extends.add(schemaStore.getSchema(arrayPath));
+    }
+
     if (jsonObject.has("allOf")) {
       allOf = new ArrayList<>();
       JSONArray array = jsonObject.getJSONArray("allOf");
@@ -351,7 +372,7 @@ public class ObjectSchema extends Schema {
         okTypes.add("integer");
       }
 
-      typeCheck(okTypes, disallow, path, errorConsumer, document);
+      typeCheck(document, path, okTypes, disallow, errorConsumer);
 
       if (exclusiveMinimumBoolean ? number.doubleValue() <= minimum
                                   : number.doubleValue() < minimum) {
@@ -385,9 +406,9 @@ public class ObjectSchema extends Schema {
         }
       }
     } else if (object instanceof Boolean) {
-      typeCheck(Set.of("boolean"), disallow, path, errorConsumer, document);
+      typeCheck(document, path, Set.of("boolean"), disallow, errorConsumer);
     } else if (object instanceof String) {
-      typeCheck(Set.of("string"), disallow, path, errorConsumer, document);
+      typeCheck(document, path, Set.of("string"), disallow, errorConsumer);
       String string = (String) object;
 
       int unicodeCompliantLength = string.codePointCount(0, string.length());
@@ -404,7 +425,7 @@ public class ObjectSchema extends Schema {
         }
       }
     } else if (object instanceof JSONArray) {
-      typeCheck(Set.of("array"), disallow, path, errorConsumer, document);
+      typeCheck(document, path, Set.of("array"), disallow, errorConsumer);
 
       JSONArray jsonArray = (JSONArray) object;
       if (uniqueItems) {
@@ -457,7 +478,7 @@ public class ObjectSchema extends Schema {
         }
       }
     } else if (object instanceof JSONObject) {
-      typeCheck(Set.of("object"), disallow, path, errorConsumer, document);
+      typeCheck(document, path, Set.of("object"), disallow, errorConsumer);
       JSONObject jsonObject = (JSONObject) object;
       if (jsonObject.length() < minProperties) {
         errorConsumer.accept(error(document, path, "Too few properties"));
@@ -538,9 +559,7 @@ public class ObjectSchema extends Schema {
         schema.validate(document, path, errorConsumer);
       }
     } else if (object == JSONObject.NULL) {
-      if (types != null && !types.contains("null")) {
-        errorConsumer.accept(error(document, path, "Type mismatch"));
-      }
+      typeCheck(document, path, Set.of("null"), disallow, errorConsumer);
     }
 
     if (_const != null) {
@@ -593,6 +612,10 @@ public class ObjectSchema extends Schema {
       }
     }
 
+    for (Schema schema : _extends) {
+      schema.validate(document, path, errorConsumer);
+    }
+
     if (allOf != null) {
       for (Schema schema : allOf) {
         schema.validate(document, path, errorConsumer);
@@ -629,8 +652,8 @@ public class ObjectSchema extends Schema {
     }
   }
 
-  private void typeCheck(Set<String> types, Set<String> disallow, URI path,
-      Consumer<ValidationError> errorConsumer, Object document) {
+  private void typeCheck(Object document, URI path, Set<String> types, Set<String> disallow,
+      Consumer<ValidationError> errorConsumer) {
     Set<String> typesIn0 = new HashSet<>(types);
     typesIn0.retainAll(disallow);
     if (!typesIn0.isEmpty()) {
@@ -640,6 +663,19 @@ public class ObjectSchema extends Schema {
     if (this.types == null) {
       return;
     }
+
+    for (Schema schema : typesSchema) {
+      List<ValidationError> errors = new ArrayList<>();
+      schema.validate(document, path, errors::add);
+      if (errors.isEmpty()) {
+        return;
+      }
+    }
+
+    if (this.types.contains("any")) {
+      return;
+    }
+
     Set<String> typesIn = new HashSet<>(types);
     typesIn.retainAll(this.types);
     if (!typesIn.isEmpty()) {
