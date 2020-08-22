@@ -61,7 +61,7 @@ public class ObjectSchema extends Schema {
   public ObjectSchema(SchemaStore schemaStore, URI path) throws GenerationException {
     super(schemaStore, path);
     JSONObject jsonObject = (JSONObject) schemaStore.getSchemaJson(path);
-    this.schemaJson = jsonObject;
+    schemaJson = jsonObject;
     if (jsonObject == null) {
       throw new GenerationException("Could not obtain " + path);
     }
@@ -285,10 +285,12 @@ public class ObjectSchema extends Schema {
             spec.add(array.getString(idx));
           }
           dependencies.put(dependency, spec);
-        } else {
+        } else if (dependencyObject instanceof JSONObject) {
           URI dependenciesPpinter = append(path, "dependencies");
           schemaDependencies.put(
               dependency, schemaStore.getSchema(append(dependenciesPpinter, dependency)));
+        } else {
+          dependencies.put(dependency, List.of((String) dependencyObject));
         }
       }
     }
