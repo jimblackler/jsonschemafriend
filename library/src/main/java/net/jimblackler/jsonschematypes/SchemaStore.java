@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import org.json.JSONObject;
 
 public class SchemaStore {
   private static final URI ROOT = URI.create("");
@@ -31,23 +32,29 @@ public class SchemaStore {
     if (mapped.add(path)) {
       idRefMap.map(this, path);
     }
-    return getAndValidate(path);
+    return validateAndGet(path);
   }
 
-  private Schema getAndValidate(URI document) throws GenerationException {
-    Schema schema = getSchema(document);
-    // We validate the schema JSON against its metaschema AFTER the Schema object has been built
-    // from that JSON. It has to be done in that order because the schema and the metaschema could
-    // be the same thing.
-    Schema metaSchema = schema.getMetaSchema();
-    List<ValidationError> errors = new ArrayList<>();
-    if (metaSchema != null) {
-      metaSchema.validate(getSchemaJson(document), ROOT, errors::add);
-      if (!errors.isEmpty()) {
-        throw new GenerationException(errors.toString());
+  private Schema validateAndGet(URI document) throws GenerationException {
+    Object schemaObject = getSchemaJson(document);
+    // If we can, we fetch and build the schema's meta-schema and validate the object against it,
+    // before we attempt to build the Schema.
+    // This can't be done inside the Schema builder because the schema's meta-schema might be in its
+    // own graph, so the meta-schema won't be built in full when it's first available.
+    if (schemaObject instanceof JSONObject) {
+      JSONObject schemaJson = (JSONObject) schemaObject;
+      String metaSchemaName = schemaJson.getString("$schema");
+      if (!metaSchemaName.isEmpty()) {
+        Schema metaSchema = getSchema(URI.create(metaSchemaName));
+        List<ValidationError> errors = new ArrayList<>();
+        metaSchema.validate(schemaObject, ROOT, errors::add);
+        if (!errors.isEmpty()) {
+          throw new GenerationException(errors.toString());
+        }
       }
     }
-    return schema;
+
+    return getSchema(document);
   }
 
   public void loadResources(Path resources) throws GenerationException {
@@ -56,7 +63,7 @@ public class SchemaStore {
         if (Files.isDirectory(path)) {
           continue;
         }
-        getAndValidate(new URI("file", path.toString(), null));
+        validateAndGet(new URI("file", path.toString(), null));
       }
     } catch (IOException | URISyntaxException ex) {
       throw new GenerationException(ex);
