@@ -87,7 +87,14 @@ public class SuiteTest {
   DynamicNode draft2019_09() {
     Path jsts = Path.of("/suites").resolve("jsts");
     return scan(jsts.resolve("tests").resolve("draft2019-09"), jsts.resolve("remotes"),
-        "https://json-schema.org/draft/2019-09/schema#", true, false);
+        "https://json-schema.org/draft/2019-09/schema", true, false);
+  }
+
+  @TestFactory
+  DynamicNode draft2019_09own() {
+    Path jsts = Path.of("/suites").resolve("jsts");
+    return scan(jsts.resolve("tests").resolve("draft2019-09"), jsts.resolve("remotes"),
+        "https://json-schema.org/draft/2019-09/schema", false, false);
   }
 
   @TestFactory
@@ -100,6 +107,11 @@ public class SuiteTest {
   private static DynamicNode scan(
       Path testDir, Path remotes, String version, boolean everit, boolean schemaOnly) {
     Collection<DynamicNode> allFileTests = new ArrayList<>();
+    return dirScan(testDir, remotes, version, everit, schemaOnly, allFileTests);
+  }
+
+  private static DynamicNode dirScan(Path testDir, Path remotes, String version, boolean everit,
+      boolean schemaOnly, Collection<DynamicNode> allFileTests) {
     try (InputStream inputStream = ExampleTest.class.getResourceAsStream(testDir.toString());
          BufferedReader bufferedReader =
              new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8))) {
@@ -107,6 +119,9 @@ public class SuiteTest {
       while ((resource = bufferedReader.readLine()) != null) {
         if (resource.endsWith(".json")) {
           allFileTests.add(jsonTestFile(testDir, remotes, resource, version, everit, schemaOnly));
+        } else {
+          if (false) // hack to exclude 'optional'
+            dirScan(testDir.resolve(resource), remotes, version, everit, schemaOnly, allFileTests);
         }
       }
     } catch (IOException | GenerationException e) {
