@@ -3,6 +3,7 @@ package net.jimblackler.jsonschematypes;
 import static net.jimblackler.jsonschematypes.ComparableMutable.makeComparable;
 import static net.jimblackler.jsonschematypes.PathUtils.append;
 
+import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -372,19 +373,18 @@ public class ObjectSchema extends Schema {
   @Override
   public void validate(Object document, URI path, Consumer<ValidationError> errorConsumer) {
     Object object = PathUtils.objectAtPath(document, path);
+    if (object == null) {
+      errorConsumer.accept(error(document, path, "Could not locate path"));
+    }
     object = rewriteObject(object);
 
     if (object instanceof Number) {
       Number number = (Number) object;
       Set<String> okTypes = new HashSet<>();
       okTypes.add("number");
-      String asString = object.toString();
-      try {
-        if (new BigInteger(asString).toString().equals(asString)) {
-          okTypes.add("integer");
-        }
-      } catch (NumberFormatException e) {
-        // Intentionally ignored.
+      if (new BigDecimal(number.toString()).remainder(BigDecimal.ONE).compareTo(BigDecimal.ZERO)
+          == 0) {
+        okTypes.add("integer");
       }
 
       typeCheck(document, path, okTypes, disallow, errorConsumer);
@@ -684,7 +684,9 @@ public class ObjectSchema extends Schema {
       JSONArray testObject = new JSONArray(String.format("[%s]", string));
       if (testObject.get(0) instanceof String) {
         BigInteger bigInteger = new BigInteger(string);
-        return bigInteger;
+        if (bigInteger.toString().equals(string)) {
+          return bigInteger;
+        }
       }
       return object;
     } catch (NumberFormatException | JSONException e) {
