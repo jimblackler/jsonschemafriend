@@ -32,8 +32,7 @@ public class ObjectSchema extends Schema {
   private final boolean uniqueItems;
   private final int minItems;
   private final int maxItems;
-  private final Collection<Schema> _extends = new HashSet<>();
-  private final Collection<Schema> allOf;
+  private final Collection<Schema> allOf = new ArrayList<>();
   private final Collection<Schema> anyOf;
   private final Collection<Schema> oneOf;
   private final Set<String> types;
@@ -250,25 +249,22 @@ public class ObjectSchema extends Schema {
       JSONArray array = (JSONArray) extendsObject;
       for (int idx = 0; idx != array.length(); idx++) {
         URI indexPointer = append(arrayPath, String.valueOf(idx));
-        _extends.add(schemaStore.getSchema(indexPointer));
+        allOf.add(schemaStore.getSchema(indexPointer));
       }
     } else if (extendsObject instanceof JSONObject || extendsObject instanceof Boolean) {
       URI arrayPath = append(path, "extends");
-      _extends.add(schemaStore.getSchema(arrayPath));
+      allOf.add(schemaStore.getSchema(arrayPath));
     }
 
-    if (jsonObject.has("allOf")) {
-      allOf = new ArrayList<>();
-      JSONArray array = jsonObject.getJSONArray("allOf");
+    Object allOfObject = jsonObject.opt("allOf");
+    if (allOfObject instanceof JSONArray) {
+      JSONArray array = (JSONArray) allOfObject;
       URI arrayPath = append(path, "allOf");
       for (int idx = 0; idx != array.length(); idx++) {
         URI indexPointer = append(arrayPath, String.valueOf(idx));
         allOf.add(schemaStore.getSchema(indexPointer));
       }
-    } else {
-      allOf = null;
     }
-
     if (jsonObject.has("anyOf")) {
       anyOf = new ArrayList<>();
       JSONArray array = jsonObject.getJSONArray("anyOf");
@@ -630,14 +626,8 @@ public class ObjectSchema extends Schema {
       }
     }
 
-    for (Schema schema : _extends) {
+    for (Schema schema : allOf) {
       schema.validate(document, path, errorConsumer);
-    }
-
-    if (allOf != null) {
-      for (Schema schema : allOf) {
-        schema.validate(document, path, errorConsumer);
-      }
     }
 
     if (anyOf != null) {
