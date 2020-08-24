@@ -40,14 +40,14 @@ public class ObjectSchema extends Schema {
   private final Collection<Schema> typesSchema = new HashSet<>();
   private final Set<String> disallow = new HashSet<>();
   private final Collection<Schema> disallowSchemas = new HashSet<>();
-  private final double minimum;
-  private final double maximum;
-  private final Double exclusiveMinimum;
+  private final Number minimum;
+  private final Number maximum;
+  private final Number exclusiveMinimum;
   private final boolean exclusiveMinimumBoolean;
-  private final Double exclusiveMaximum;
+  private final Number exclusiveMaximum;
   private final boolean exclusiveMaximumBoolean;
-  private final Double divisibleBy;
-  private final Double multipleOf;
+  private final Number divisibleBy;
+  private final Number multipleOf;
   private final int minLength;
   private final int maxLength;
   private final int minProperties;
@@ -276,37 +276,19 @@ public class ObjectSchema extends Schema {
       oneOf = null;
     }
 
-    minimum = jsonObject.optDouble("minimum", -Double.MAX_VALUE);
-
-    maximum = jsonObject.optDouble("maximum", Double.MAX_VALUE);
+    minimum = (Number) jsonObject.opt("minimum");
+    maximum = (Number) jsonObject.opt("maximum");
 
     exclusiveMinimumBoolean = jsonObject.optBoolean("exclusiveMinimum");
-    Object exclusiveMinimumObject = jsonObject.opt("exclusiveMinimum");
-    if (exclusiveMinimumObject instanceof Number) {
-      exclusiveMinimum = ((Number) exclusiveMinimumObject).doubleValue();
-    } else {
-      exclusiveMinimum = null;
-    }
+
+    exclusiveMinimum = (Number) jsonObject.opt("exclusiveMinimum");
+
 
     exclusiveMaximumBoolean = jsonObject.optBoolean("exclusiveMaximum");
-    Object exclusiveMaximumObject = jsonObject.opt("exclusiveMaximum");
-    if (exclusiveMaximumObject instanceof Number) {
-      exclusiveMaximum = ((Number) exclusiveMaximumObject).doubleValue();
-    } else {
-      exclusiveMaximum = null;
-    }
+    exclusiveMaximum = (Number) jsonObject.opt("exclusiveMaximum");
 
-    if (jsonObject.has("divisibleBy")) {
-      divisibleBy = jsonObject.getDouble("divisibleBy");
-    } else {
-      divisibleBy = null;
-    }
-
-    if (jsonObject.has("multipleOf")) {
-      multipleOf = jsonObject.getDouble("multipleOf");
-    } else {
-      multipleOf = null;
-    }
+    divisibleBy = (Number) jsonObject.opt("divisibleBy");
+    multipleOf = (Number) jsonObject.opt("multipleOf");
 
     minLength = jsonObject.optInt("minLength", 0);
     maxLength = jsonObject.optInt("maxLength", Integer.MAX_VALUE);
@@ -315,10 +297,10 @@ public class ObjectSchema extends Schema {
     maxProperties = jsonObject.optInt("maxProperties", Integer.MAX_VALUE);
 
     Object patternObject = jsonObject.opt("pattern");
-    if (patternObject != null) {
-      pattern = new Ecma262Pattern((String) patternObject);
-    } else {
+    if (patternObject == null) {
       pattern = null;
+    } else {
+      pattern = new Ecma262Pattern((String) patternObject);
     }
 
     _const = jsonObject.opt("const");
@@ -395,34 +377,40 @@ public class ObjectSchema extends Schema {
 
       typeCheck(document, uri, okTypes, disallow, errorConsumer);
 
-      if (exclusiveMinimumBoolean ? number.doubleValue() <= minimum
-                                  : number.doubleValue() < minimum) {
-        errorConsumer.accept(error(document, uri, "Less than minimum"));
+      if (minimum != null) {
+        if (exclusiveMinimumBoolean ? number.doubleValue() <= minimum.doubleValue()
+            : number.doubleValue() < minimum.doubleValue()) {
+          errorConsumer.accept(error(document, uri, "Less than minimum"));
+        }
       }
 
       if (exclusiveMinimum != null) {
-        if (number.doubleValue() <= exclusiveMinimum) {
+        if (number.doubleValue() <= exclusiveMinimum.doubleValue()) {
           errorConsumer.accept(error(document, uri, "Less than or equal to exclusive minimum"));
         }
       }
 
-      if (exclusiveMaximumBoolean ? number.doubleValue() >= maximum
-                                  : number.doubleValue() > maximum) {
-        errorConsumer.accept(error(document, uri, "Greater than maximum"));
+      if (maximum != null) {
+        if (exclusiveMaximumBoolean ? number.doubleValue() >= maximum.doubleValue()
+            : number.doubleValue() > maximum.doubleValue()) {
+          errorConsumer.accept(error(document, uri, "Greater than maximum"));
+        }
       }
 
       if (exclusiveMaximum != null) {
-        if (number.doubleValue() >= exclusiveMaximum) {
+        if (number.doubleValue() >= exclusiveMaximum.doubleValue()) {
           errorConsumer.accept(error(document, uri, "Greater than or equal to exclusive maximum"));
         }
       }
+
       if (divisibleBy != null) {
-        if (number.doubleValue() / divisibleBy % 1 != 0) {
+        if (number.doubleValue() / divisibleBy.doubleValue() % 1 != 0) {
           errorConsumer.accept(error(document, uri, "divisibleBy failed"));
         }
       }
+
       if (multipleOf != null) {
-        if (number.doubleValue() / multipleOf % 1 != 0) {
+        if (number.doubleValue() / multipleOf.doubleValue() % 1 != 0) {
           errorConsumer.accept(error(document, uri, "Not a multiple"));
         }
       }
