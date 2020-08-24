@@ -13,22 +13,33 @@ class IdRefMap {
   private final Map<URI, URI> refs = new HashMap<>();
   private final Collection<URI> mapped = new HashSet<>();
 
-  void map(DocumentSource documentSource, URI uri, URI activeId) throws GenerationException {
-    Object document = documentSource.fetchDocument(PathUtils.baseDocumentFromUri(uri));
-    if (document instanceof Boolean) {
+  private void map(DocumentSource documentSource, URI uri, URI defaultMetaSchema)
+      throws GenerationException {
+    URI baseDocumentUri = PathUtils.baseDocumentFromUri(uri);
+    Object baseDocumentObject = documentSource.fetchDocument(baseDocumentUri);
+    if (baseDocumentObject instanceof Boolean) {
       // The document can be a single boolean, and still hold a legal schema. There's noting to
       // map in this case.
       return;
     }
+    JSONObject baseDocument = (JSONObject) baseDocumentObject;
 
-    Object object = PathUtils.fetchFromPath(document, uri.getRawFragment());
+    URI metaSchemaUri;
+    if (baseDocument.has("$schema")) {
+      metaSchemaUri = URI.create(baseDocument.getString("$schema"));
+    } else {
+      metaSchemaUri = defaultMetaSchema;
+    }
 
     // A meta-schema is required to understand how to navigate the document.
-    URI metaSchema =
-        URI.create(((JSONObject) document).optString("$schema", SchemaUtils.DEFAULT_SCHEMA));
-    JSONObject metaSchemaDocument = (JSONObject) documentSource.fetchDocument(metaSchema);
+    JSONObject metaSchemaDocument = (JSONObject) documentSource.fetchDocument(metaSchemaUri);
+    map(baseDocument, uri, uri, metaSchemaDocument);
+  }
+
+  void map(JSONObject baseDocument, URI uri, URI activeId, JSONObject metaSchemaDocument) {
     String idKey = metaSchemaDocument.getJSONObject("properties").has("$id") ? "$id" : "id";
 
+    Object object = PathUtils.fetchFromPath(baseDocument, uri.getRawFragment());
     if (object instanceof JSONObject) {
       JSONObject jsonObject = (JSONObject) object;
       Object idObject = jsonObject.opt(idKey);
@@ -51,12 +62,12 @@ class IdRefMap {
       }
 
       for (String key : jsonObject.keySet()) {
-        map(documentSource, PathUtils.append(uri, key), activeId);
+        map(baseDocument, PathUtils.append(uri, key), activeId, metaSchemaDocument);
       }
     } else if (object instanceof JSONArray) {
       JSONArray jsonArray = (JSONArray) object;
       for (int idx = 0; idx != jsonArray.length(); idx++) {
-        map(documentSource, PathUtils.append(uri, String.valueOf(idx)), activeId);
+        map(baseDocument, PathUtils.append(uri, String.valueOf(idx)), activeId, metaSchemaDocument);
       }
     }
   }
@@ -64,15 +75,17 @@ class IdRefMap {
   /**
    * Converts a URI containing a path to the final uri of the schema.
    *
-   * @param uri           The id or uri.
-   * @param documentSource DocumentSource required to fetch any new documents found in the $refs.
+   * @param uri               The id or uri.
+   * @param documentSource    DocumentSource required to fetch any new documents found in the $refs.
+   * @param defaultMetaSchema
    * @return The final uri of the schema.
    */
-  public URI finalLocation(URI uri, DocumentSource documentSource) throws GenerationException {
+  public URI finalLocation(URI uri, DocumentSource documentSource, URI defaultMetaSchema)
+      throws GenerationException {
     while (true) {
       URI document = PathUtils.baseDocumentFromUri(uri);
       if (mapped.add(document)) {
-        map(documentSource, uri, uri);
+        map(documentSource, uri, defaultMetaSchema);
       }
       if (!refs.containsKey(uri)) {
         return uri;

@@ -66,22 +66,28 @@ public class ObjectSchema extends Schema {
   private final Map<String, Collection<String>> dependencies = new HashMap<>();
   private final Map<String, Schema> schemaDependencies = new HashMap<>();
 
-  public ObjectSchema(SchemaStore schemaStore, URI uri) throws GenerationException {
+  public ObjectSchema(SchemaStore schemaStore, URI uri, URI defaultMetaSchema)
+      throws GenerationException {
     super(schemaStore, uri);
-    JSONObject baseDocument = (JSONObject) schemaStore.getBaseDocument(uri);
 
-    // The meta-schema is taken from the base of its enclosing document. This is necessary to stop
-    // the same schemas from being interpreted with different meta-schemas, which could happen in
-    // the case that the builder takes a default meta-schema in a parameter.
-    URI metaSchemaUri = URI.create(baseDocument.optString("$schema", SchemaUtils.DEFAULT_SCHEMA));
+    URI baseDocumentUri = PathUtils.baseDocumentFromUri(uri);
+    JSONObject baseDocument =
+        (JSONObject) schemaStore.getDocumentSource().fetchDocument(baseDocumentUri);
+    JSONObject jsonObject =
+        (JSONObject) PathUtils.fetchFromPath(baseDocument, uri.getRawFragment());
+
+    URI metaSchemaUri;
+    if (baseDocument.has("$schema")) {
+      metaSchemaUri = URI.create(baseDocument.getString("$schema"));
+    } else {
+      metaSchemaUri = defaultMetaSchema;
+    }
+
     // It would be more convenient to work with a fully-built Schema from the meta-schema, not just
     // its JSON representation. However that isn't possible when building a self-referencing schema
     // (all JSON schema meta-schemas as self-referencing).
-    JSONObject metaSchemaObject =
+    JSONObject metaSchemaDocument =
         (JSONObject) schemaStore.getDocumentSource().fetchDocument(metaSchemaUri);
-
-    JSONObject jsonObject =
-        (JSONObject) PathUtils.fetchFromPath(baseDocument, uri.getRawFragment());
 
     schemaJson = jsonObject; // Retained for debugging convenience only.
 
@@ -93,7 +99,8 @@ public class ObjectSchema extends Schema {
       for (int idx = 0; idx != array.length(); idx++) {
         Object arrayEntryObject = array.get(idx);
         if (arrayEntryObject instanceof Boolean || arrayEntryObject instanceof JSONObject) {
-          typesSchema.add(schemaStore.getSchema(append(typePointer, String.valueOf(idx))));
+          typesSchema.add(
+              schemaStore.getSchema(append(typePointer, String.valueOf(idx)), defaultMetaSchema));
         } else {
           types.add((String) arrayEntryObject);
         }
@@ -115,7 +122,8 @@ public class ObjectSchema extends Schema {
         if (disallowEntryObject instanceof String) {
           disallow.add(array.getString(idx));
         } else {
-          disallowSchemas.add(schemaStore.getSchema(append(disallowPointer, String.valueOf(idx))));
+          disallowSchemas.add(schemaStore.getSchema(
+              append(disallowPointer, String.valueOf(idx)), defaultMetaSchema));
         }
       }
     }
@@ -143,7 +151,7 @@ public class ObjectSchema extends Schema {
           }
         }
 
-        _properties.put(propertyName, schemaStore.getSchema(propertyUri));
+        _properties.put(propertyName, schemaStore.getSchema(propertyUri, defaultMetaSchema));
       }
     }
 
@@ -155,25 +163,26 @@ public class ObjectSchema extends Schema {
         String propertyPattern = it.next();
         patternPropertiesPatterns.add(new Ecma262Pattern(propertyPattern));
         patternPropertiesSchemas.add(
-            schemaStore.getSchema(append(propertiesPointer, propertyPattern)));
+            schemaStore.getSchema(append(propertiesPointer, propertyPattern), defaultMetaSchema));
       }
     }
 
     if (jsonObject.has("propertyNames")) {
-      propertyNames = schemaStore.getSchema(append(uri, "propertyNames"));
+      propertyNames = schemaStore.getSchema(append(uri, "propertyNames"), defaultMetaSchema);
     } else {
       propertyNames = null;
     }
 
     // https://tools.ietf.org/html/draft-handrews-json-schema-02#section-9.3.2.3
     if (jsonObject.has("additionalProperties")) {
-      additionalProperties = schemaStore.getSchema(append(uri, "additionalProperties"));
+      additionalProperties =
+          schemaStore.getSchema(append(uri, "additionalProperties"), defaultMetaSchema);
     } else {
       additionalProperties = null;
     }
 
     if (jsonObject.has("additionalItems")) {
-      additionalItems = schemaStore.getSchema(append(uri, "additionalItems"));
+      additionalItems = schemaStore.getSchema(append(uri, "additionalItems"), defaultMetaSchema);
     } else {
       additionalItems = null;
     }
@@ -182,7 +191,8 @@ public class ObjectSchema extends Schema {
       URI definitionsPointer = append(uri, "definitions");
       JSONObject definitionsObject = jsonObject.getJSONObject("definitions");
       for (String definition : definitionsObject.keySet()) {
-        definitions.put(definition, schemaStore.getSchema(append(definitionsPointer, definition)));
+        definitions.put(definition,
+            schemaStore.getSchema(append(definitionsPointer, definition), defaultMetaSchema));
       }
     }
 
@@ -198,7 +208,7 @@ public class ObjectSchema extends Schema {
     Object items = jsonObject.opt("items");
     URI itemsPath = append(uri, "items");
     if (items instanceof JSONObject || items instanceof Boolean) {
-      _items = schemaStore.getSchema(itemsPath);
+      _items = schemaStore.getSchema(itemsPath, defaultMetaSchema);
       itemsArray = null;
     } else {
       _items = null;
@@ -206,7 +216,8 @@ public class ObjectSchema extends Schema {
         itemsArray = new ArrayList<>();
         JSONArray jsonArray = (JSONArray) items;
         for (int idx = 0; idx != jsonArray.length(); idx++) {
-          itemsArray.add(schemaStore.getSchema(append(itemsPath, String.valueOf(idx))));
+          itemsArray.add(
+              schemaStore.getSchema(append(itemsPath, String.valueOf(idx)), defaultMetaSchema));
         }
       } else {
         itemsArray = null;
@@ -220,31 +231,31 @@ public class ObjectSchema extends Schema {
 
     // https://tools.ietf.org/html/draft-handrews-json-schema-02#section-9.3.1.4
     if (jsonObject.has("contains")) {
-      contains = schemaStore.getSchema(append(uri, "contains"));
+      contains = schemaStore.getSchema(append(uri, "contains"), defaultMetaSchema);
     } else {
       contains = null;
     }
 
     if (jsonObject.has("not")) {
-      not = schemaStore.getSchema(append(uri, "not"));
+      not = schemaStore.getSchema(append(uri, "not"), defaultMetaSchema);
     } else {
       not = null;
     }
 
     if (jsonObject.has("if")) {
-      _if = schemaStore.getSchema(append(uri, "if"));
+      _if = schemaStore.getSchema(append(uri, "if"), defaultMetaSchema);
     } else {
       _if = null;
     }
 
     if (jsonObject.has("then")) {
-      _then = schemaStore.getSchema(append(uri, "then"));
+      _then = schemaStore.getSchema(append(uri, "then"), defaultMetaSchema);
     } else {
       _then = null;
     }
 
     if (jsonObject.has("else")) {
-      _else = schemaStore.getSchema(append(uri, "else"));
+      _else = schemaStore.getSchema(append(uri, "else"), defaultMetaSchema);
     } else {
       _else = null;
     }
@@ -255,11 +266,11 @@ public class ObjectSchema extends Schema {
       JSONArray array = (JSONArray) extendsObject;
       for (int idx = 0; idx != array.length(); idx++) {
         URI indexPointer = append(arrayPath, String.valueOf(idx));
-        allOf.add(schemaStore.getSchema(indexPointer));
+        allOf.add(schemaStore.getSchema(indexPointer, defaultMetaSchema));
       }
     } else if (extendsObject instanceof JSONObject || extendsObject instanceof Boolean) {
       URI arrayPath = append(uri, "extends");
-      allOf.add(schemaStore.getSchema(arrayPath));
+      allOf.add(schemaStore.getSchema(arrayPath, defaultMetaSchema));
     }
 
     Object allOfObject = jsonObject.opt("allOf");
@@ -268,7 +279,7 @@ public class ObjectSchema extends Schema {
       URI arrayPath = append(uri, "allOf");
       for (int idx = 0; idx != array.length(); idx++) {
         URI indexPointer = append(arrayPath, String.valueOf(idx));
-        allOf.add(schemaStore.getSchema(indexPointer));
+        allOf.add(schemaStore.getSchema(indexPointer, defaultMetaSchema));
       }
     }
     if (jsonObject.has("anyOf")) {
@@ -277,7 +288,7 @@ public class ObjectSchema extends Schema {
       URI arrayPath = append(uri, "anyOf");
       for (int idx = 0; idx != array.length(); idx++) {
         URI indexPointer = append(arrayPath, String.valueOf(idx));
-        anyOf.add(schemaStore.getSchema(indexPointer));
+        anyOf.add(schemaStore.getSchema(indexPointer, defaultMetaSchema));
       }
     } else {
       anyOf = null;
@@ -289,7 +300,7 @@ public class ObjectSchema extends Schema {
       URI arrayPath = append(uri, "oneOf");
       for (int idx = 0; idx != array.length(); idx++) {
         URI indexPointer = append(arrayPath, String.valueOf(idx));
-        oneOf.add(schemaStore.getSchema(indexPointer));
+        oneOf.add(schemaStore.getSchema(indexPointer, defaultMetaSchema));
       }
     } else {
       oneOf = null;
@@ -363,8 +374,8 @@ public class ObjectSchema extends Schema {
           dependencies.put(dependency, spec);
         } else if (dependencyObject instanceof JSONObject || dependencyObject instanceof Boolean) {
           URI dependenciesPpinter = append(uri, "dependencies");
-          schemaDependencies.put(
-              dependency, schemaStore.getSchema(append(dependenciesPpinter, dependency)));
+          schemaDependencies.put(dependency,
+              schemaStore.getSchema(append(dependenciesPpinter, dependency), defaultMetaSchema));
         } else {
           dependencies.put(dependency, List.of((String) dependencyObject));
         }

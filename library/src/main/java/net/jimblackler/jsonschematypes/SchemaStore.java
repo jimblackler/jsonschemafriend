@@ -27,6 +27,7 @@ public class SchemaStore {
   Schema validateAndGet(URI uri) throws GenerationException {
     Object document = documentSource.fetchDocument(PathUtils.baseDocumentFromUri(uri));
     Object schemaObject = PathUtils.fetchFromPath(document, uri.getRawFragment());
+    URI defaultMetaSchema = URI.create("http://json-schema.org/draft-07/schema#");
     // If we can, we fetch and build the schema's meta-schema and validate the object against it,
     // before we attempt to build the Schema.
     // This can't be done inside the Schema builder because the schema's meta-schema might be in its
@@ -36,7 +37,7 @@ public class SchemaStore {
         JSONObject schemaJson = (JSONObject) schemaObject;
         String metaSchemaName = schemaJson.getString("$schema");
         if (!metaSchemaName.isEmpty()) {
-          Schema metaSchema = getSchema(URI.create(metaSchemaName));
+          Schema metaSchema = getSchema(URI.create(metaSchemaName), defaultMetaSchema);
           List<ValidationError> errors = new ArrayList<>();
           metaSchema.validate(schemaObject, ROOT, errors::add);
           if (!errors.isEmpty()) {
@@ -46,7 +47,7 @@ public class SchemaStore {
       }
     }
 
-    return getSchema(uri);
+    return getSchema(uri, defaultMetaSchema);
   }
 
   public void loadResources(Path resources) throws GenerationException {
@@ -62,16 +63,11 @@ public class SchemaStore {
     }
   }
 
-  // TODO: Get rid of this somehow.
-  Object getBaseDocument(URI path) throws GenerationException {
-    return documentSource.fetchDocument(PathUtils.baseDocumentFromUri(path));
-  }
-
-  public Schema getSchema(URI uri) throws GenerationException {
+  public Schema getSchema(URI uri, URI defaultMetaSchema) throws GenerationException {
     // The schema at an uri can be requested by a client that doesn't know that the uri is the
     // beginning of a chain of $refs. We must find the end of the chain, where the actual schema is
     // to be found.
-    uri = idRefMap.finalLocation(uri, documentSource);
+    uri = idRefMap.finalLocation(uri, documentSource, defaultMetaSchema);
 
     // Now we have the final path we can see if we've already built it.
     if (builtSchemas.containsKey(uri)) {
@@ -86,7 +82,7 @@ public class SchemaStore {
       return new BooleanSchema(this, uri, (boolean) object);
     }
 
-    return new ObjectSchema(this, uri);
+    return new ObjectSchema(this, uri, defaultMetaSchema);
   }
 
   public void register(URI path, Schema schema) throws GenerationException {
