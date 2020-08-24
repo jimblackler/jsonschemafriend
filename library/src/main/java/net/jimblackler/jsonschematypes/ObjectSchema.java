@@ -298,20 +298,18 @@ public class ObjectSchema extends Schema {
 
     _const = jsonObject.opt("const");
 
-    Object enumObject = jsonObject.opt("enum");
-    if (enumObject instanceof JSONArray) {
+    JSONArray enumArray = jsonObject.optJSONArray("enum");
+    if (enumArray == null) {
+      _enum = null;
+    } else {
       _enum = new HashSet<>();
-      JSONArray enumArray = (JSONArray) enumObject;
       for (int idx = 0; idx != enumArray.length(); idx++) {
         _enum.add(enumArray.get(idx));
       }
-    } else {
-      _enum = null;
     }
 
-    Object dependenciesObject = jsonObject.opt("dependencies");
-    if (dependenciesObject != null) {
-      JSONObject dependenciesJsonObject = (JSONObject) dependenciesObject;
+    JSONObject dependenciesJsonObject = jsonObject.optJSONObject("dependencies");
+    if (dependenciesJsonObject != null) {
       for (String dependency : dependenciesJsonObject.keySet()) {
         List<String> spec = new ArrayList<>();
         Object dependencyObject = dependenciesJsonObject.get(dependency);
