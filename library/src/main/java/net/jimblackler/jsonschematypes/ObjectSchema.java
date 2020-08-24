@@ -210,7 +210,7 @@ public class ObjectSchema extends Schema {
     JSONObject dependenciesJsonObject = jsonObject.optJSONObject("dependencies");
     if (dependenciesJsonObject != null) {
       for (String dependency : dependenciesJsonObject.keySet()) {
-        List<String> spec = new ArrayList<>();
+        Collection<String> spec = new ArrayList<>();
         Object dependencyObject = dependenciesJsonObject.get(dependency);
         if (dependencyObject instanceof JSONArray) {
           JSONArray array = (JSONArray) dependencyObject;
@@ -250,7 +250,6 @@ public class ObjectSchema extends Schema {
       JSONArray array = (JSONArray) typeObject;
       for (int idx = 0; idx != array.length(); idx++) {
         Object arrayEntryObject = array.get(idx);
-        /// standard method??
         if (arrayEntryObject instanceof Boolean || arrayEntryObject instanceof JSONObject) {
           typesSchema.add(
               schemaStore.getSchema(append(typePointer, String.valueOf(idx)), defaultMetaSchema));
@@ -486,7 +485,7 @@ public class ObjectSchema extends Schema {
         }
       }
 
-      Set<String> remainingProperties = new HashSet<>(jsonObject.keySet());
+      Collection<String> remainingProperties = new HashSet<>(jsonObject.keySet());
       for (String property : jsonObject.keySet()) {
         if (_properties.containsKey(property)) {
           Schema schema = _properties.get(property);
