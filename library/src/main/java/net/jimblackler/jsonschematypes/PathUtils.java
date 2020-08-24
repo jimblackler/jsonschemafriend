@@ -15,7 +15,7 @@ public class PathUtils {
         fragment += "/";
       }
       // See https://tools.ietf.org/html/rfc6901#section-3
-      String escaped = value.replace("/", "~1").replace("~", "~1");
+      String escaped = value.replace("~", "~0").replace("/", "~1");
       return new URI(uri.getScheme(), uri.getSchemeSpecificPart(), fragment + escaped);
     } catch (URISyntaxException e) {
       throw new IllegalStateException(e);
