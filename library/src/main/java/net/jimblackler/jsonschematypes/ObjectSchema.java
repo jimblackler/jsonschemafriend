@@ -31,8 +31,8 @@ public class ObjectSchema extends Schema {
   private final List<Schema> itemsArray;
   private final Schema _items;
   private final boolean uniqueItems;
-  private final int minItems;
-  private final int maxItems;
+  private final Number minItems;
+  private final Number maxItems;
   private final Collection<Schema> allOf = new ArrayList<>();
   private final Collection<Schema> anyOf;
   private final Collection<Schema> oneOf;
@@ -42,16 +42,14 @@ public class ObjectSchema extends Schema {
   private final Collection<Schema> disallowSchemas = new HashSet<>();
   private final Number minimum;
   private final Number maximum;
-  private final Number exclusiveMinimum;
-  private final boolean exclusiveMinimumBoolean;
-  private final Number exclusiveMaximum;
-  private final boolean exclusiveMaximumBoolean;
+  private final Object exclusiveMinimum;
+  private final Object exclusiveMaximum;
   private final Number divisibleBy;
   private final Number multipleOf;
-  private final int minLength;
-  private final int maxLength;
-  private final int minProperties;
-  private final int maxProperties;
+  private final Number minLength;
+  private final Number maxLength;
+  private final Number minProperties;
+  private final Number maxProperties;
   private final Schema additionalProperties;
   private final Schema additionalItems;
   private final Ecma262Pattern pattern;
@@ -218,8 +216,8 @@ public class ObjectSchema extends Schema {
 
     uniqueItems = jsonObject.optBoolean("uniqueItems", false);
 
-    minItems = jsonObject.optInt("minItems", 0);
-    maxItems = jsonObject.optInt("maxItems", Integer.MAX_VALUE);
+    minItems = (Number) jsonObject.opt("minItems");
+    maxItems = (Number) jsonObject.opt("maxItems");
 
     contains = getSchema(jsonObject, "contains", schemaStore, defaultMetaSchema, uri);
     not = getSchema(jsonObject, "not", schemaStore, defaultMetaSchema, uri);
@@ -279,22 +277,17 @@ public class ObjectSchema extends Schema {
     minimum = (Number) jsonObject.opt("minimum");
     maximum = (Number) jsonObject.opt("maximum");
 
-    exclusiveMinimumBoolean = jsonObject.optBoolean("exclusiveMinimum");
-
-    exclusiveMinimum = (Number) jsonObject.opt("exclusiveMinimum");
-
-
-    exclusiveMaximumBoolean = jsonObject.optBoolean("exclusiveMaximum");
-    exclusiveMaximum = (Number) jsonObject.opt("exclusiveMaximum");
+    exclusiveMinimum = jsonObject.opt("exclusiveMinimum");
+    exclusiveMaximum = jsonObject.opt("exclusiveMaximum");
 
     divisibleBy = (Number) jsonObject.opt("divisibleBy");
     multipleOf = (Number) jsonObject.opt("multipleOf");
 
-    minLength = jsonObject.optInt("minLength", 0);
-    maxLength = jsonObject.optInt("maxLength", Integer.MAX_VALUE);
+    minLength = (Number) jsonObject.opt("minLength");
+    maxLength = (Number) jsonObject.opt("maxLength");
 
-    minProperties = jsonObject.optInt("minProperties", 0);
-    maxProperties = jsonObject.optInt("maxProperties", Integer.MAX_VALUE);
+    minProperties = (Number) jsonObject.opt("minProperties");
+    maxProperties = (Number) jsonObject.opt("maxProperties");
 
     Object patternObject = jsonObject.opt("pattern");
     if (patternObject == null) {
@@ -378,27 +371,29 @@ public class ObjectSchema extends Schema {
       typeCheck(document, uri, okTypes, disallow, errorConsumer);
 
       if (minimum != null) {
-        if (exclusiveMinimumBoolean ? number.doubleValue() <= minimum.doubleValue()
-            : number.doubleValue() < minimum.doubleValue()) {
+        if (exclusiveMinimum instanceof Boolean && (Boolean) exclusiveMinimum
+                ? number.doubleValue() <= minimum.doubleValue()
+                : number.doubleValue() < minimum.doubleValue()) {
           errorConsumer.accept(error(document, uri, "Less than minimum"));
         }
       }
 
-      if (exclusiveMinimum != null) {
-        if (number.doubleValue() <= exclusiveMinimum.doubleValue()) {
+      if (exclusiveMinimum instanceof Number) {
+        if (number.doubleValue() <= ((Number) exclusiveMinimum).doubleValue()) {
           errorConsumer.accept(error(document, uri, "Less than or equal to exclusive minimum"));
         }
       }
 
       if (maximum != null) {
-        if (exclusiveMaximumBoolean ? number.doubleValue() >= maximum.doubleValue()
-            : number.doubleValue() > maximum.doubleValue()) {
+        if (exclusiveMaximum instanceof Boolean && (Boolean) exclusiveMaximum
+                ? number.doubleValue() >= maximum.doubleValue()
+                : number.doubleValue() > maximum.doubleValue()) {
           errorConsumer.accept(error(document, uri, "Greater than maximum"));
         }
       }
 
-      if (exclusiveMaximum != null) {
-        if (number.doubleValue() >= exclusiveMaximum.doubleValue()) {
+      if (exclusiveMaximum instanceof Number) {
+        if (number.doubleValue() >= ((Number) exclusiveMaximum).doubleValue()) {
           errorConsumer.accept(error(document, uri, "Greater than or equal to exclusive maximum"));
         }
       }
@@ -421,10 +416,10 @@ public class ObjectSchema extends Schema {
       String string = (String) object;
 
       int unicodeCompliantLength = string.codePointCount(0, string.length());
-      if (unicodeCompliantLength < minLength) {
+      if (minLength != null && unicodeCompliantLength < minLength.intValue()) {
         errorConsumer.accept(error(document, uri, "Shorter than minLength"));
       }
-      if (unicodeCompliantLength > maxLength) {
+      if (maxLength != null && unicodeCompliantLength > maxLength.intValue()) {
         errorConsumer.accept(error(document, uri, "Longer than maxLength"));
       }
 
@@ -446,11 +441,11 @@ public class ObjectSchema extends Schema {
         }
       }
 
-      if (jsonArray.length() < minItems) {
+      if (minItems != null && jsonArray.length() < minItems.intValue()) {
         errorConsumer.accept(error(document, uri, "Below min items"));
       }
 
-      if (jsonArray.length() > maxItems) {
+      if (maxItems != null && jsonArray.length() > maxItems.intValue()) {
         errorConsumer.accept(error(document, uri, "Above max length"));
       }
 
@@ -489,10 +484,10 @@ public class ObjectSchema extends Schema {
     } else if (object instanceof JSONObject) {
       typeCheck(document, uri, Set.of("object"), disallow, errorConsumer);
       JSONObject jsonObject = (JSONObject) object;
-      if (jsonObject.length() < minProperties) {
+      if (minProperties != null && jsonObject.length() < minProperties.intValue()) {
         errorConsumer.accept(error(document, uri, "Too few properties"));
       }
-      if (jsonObject.length() > maxProperties) {
+      if (maxProperties != null && jsonObject.length() > maxProperties.intValue()) {
         errorConsumer.accept(error(document, uri, "Too mamy properties"));
       }
       Set<String> remainingProperties = new HashSet<>(jsonObject.keySet());
