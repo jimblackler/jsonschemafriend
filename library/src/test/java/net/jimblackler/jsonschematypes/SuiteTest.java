@@ -31,86 +31,93 @@ public class SuiteTest {
   @TestFactory
   DynamicNode own() {
     Path own = Path.of("/suites").resolve("own");
-    return scan(
-        own, own.resolve("remotes"), "http://json-schema.org/draft-07/schema#", true, false);
+    return scan(own, own.resolve("remotes"), URI.create("http://json-schema.org/draft-07/schema#"),
+        true, false);
   }
 
   @TestFactory
   DynamicNode draft3Own() {
     Path jsts = Path.of("/suites").resolve("jsts");
     return scan(jsts.resolve("tests").resolve("draft3"), jsts.resolve("remotes"),
-        "http://json-schema.org/draft-03/schema#", false, false);
+        URI.create("http://json-schema.org/draft-03/schema#"), false, false);
   }
   @TestFactory
   DynamicNode draft4() {
     Path jsts = Path.of("/suites").resolve("jsts");
     return scan(jsts.resolve("tests").resolve("draft4"), jsts.resolve("remotes"),
-        "http://json-schema.org/draft-04/schema#", true, false);
+        URI.create("http://json-schema.org/draft-04/schema#"), true, false);
   }
 
   @TestFactory
   DynamicNode draft4Own() {
     Path jsts = Path.of("/suites").resolve("jsts");
     return scan(jsts.resolve("tests").resolve("draft4"), jsts.resolve("remotes"),
-        "http://json-schema.org/draft-04/schema#", false, false);
+        URI.create("http://json-schema.org/draft-04/schema#"), false, false);
+  }
+
+  @TestFactory
+  DynamicNode backwardsCompatibilitySpecialTest() {
+    Path jsts = Path.of("/suites").resolve("jsts");
+    return scan(jsts.resolve("tests").resolve("draft4"), jsts.resolve("remotes"),
+        URI.create("http://json-schema.org/draft-07/schema#"), false, false);
   }
 
   @TestFactory
   DynamicNode draft6() {
     Path jsts = Path.of("/suites").resolve("jsts");
     return scan(jsts.resolve("tests").resolve("draft6"), jsts.resolve("remotes"),
-        "http://json-schema.org/draft-06/schema#", true, false);
+        URI.create("http://json-schema.org/draft-06/schema#"), true, false);
   }
 
   @TestFactory
   DynamicNode draft6Own() {
     Path jsts = Path.of("/suites").resolve("jsts");
     return scan(jsts.resolve("tests").resolve("draft6"), jsts.resolve("remotes"),
-        "http://json-schema.org/draft-06/schema#", false, false);
+        URI.create("http://json-schema.org/draft-06/schema#"), false, false);
   }
 
   @TestFactory
   DynamicNode draft7() {
     Path jsts = Path.of("/suites").resolve("jsts");
     return scan(jsts.resolve("tests").resolve("draft7"), jsts.resolve("remotes"),
-        "http://json-schema.org/draft-07/schema#", true, false);
+        URI.create("http://json-schema.org/draft-07/schema#"), true, false);
   }
 
   @TestFactory
   DynamicNode draft7Own() {
     Path jsts = Path.of("/suites").resolve("jsts");
     return scan(jsts.resolve("tests").resolve("draft7"), jsts.resolve("remotes"),
-        "http://json-schema.org/draft-07/schema#", false, false);
+        URI.create("http://json-schema.org/draft-07/schema#"), false, false);
   }
 
   @TestFactory
   DynamicNode draft2019_09() {
     Path jsts = Path.of("/suites").resolve("jsts");
     return scan(jsts.resolve("tests").resolve("draft2019-09"), jsts.resolve("remotes"),
-        "https://json-schema.org/draft/2019-09/schema", true, false);
+        URI.create("https://json-schema.org/draft/2019-09/schema"), true, false);
   }
 
   @TestFactory
   DynamicNode draft2019_09own() {
     Path jsts = Path.of("/suites").resolve("jsts");
     return scan(jsts.resolve("tests").resolve("draft2019-09"), jsts.resolve("remotes"),
-        "https://json-schema.org/draft/2019-09/schema", false, false);
+        URI.create("https://json-schema.org/draft/2019-09/schema"), false, false);
   }
 
   @TestFactory
   DynamicNode draft7SchemaOnly() {
     Path jsts = Path.of("/suites").resolve("jsts");
     return scan(jsts.resolve("tests").resolve("draft7"), jsts.resolve("remotes"),
-        "http://json-schema.org/draft-07/schema#", true, true);
+        URI.create("http://json-schema.org/draft-07/schema#"), true, true);
   }
 
   private static DynamicNode scan(
-      Path testDir, Path remotes, String version, boolean everit, boolean schemaOnly) {
+      Path testDir, Path remotes, URI metaSchema, boolean everit, boolean schemaOnly) {
     Collection<DynamicNode> allFileTests = new ArrayList<>();
-    return dirScan(testDir, remotes, version, everit, schemaOnly, allFileTests);
+    return dirScan(testDir, remotes, metaSchema, everit, schemaOnly, allFileTests);
   }
 
-  private static DynamicNode dirScan(Path testDir, Path remotes, String version, boolean everit,
+  private static DynamicNode dirScan(Path testDir, Path remotes, URI metaSchema, boolean everit,
       boolean schemaOnly, Collection<DynamicNode> allFileTests) {
     try (InputStream inputStream = ExampleTest.class.getResourceAsStream(testDir.toString());
          BufferedReader bufferedReader =
@@ -118,10 +125,12 @@ public class SuiteTest {
       String resource;
       while ((resource = bufferedReader.readLine()) != null) {
         if (resource.endsWith(".json")) {
-          allFileTests.add(jsonTestFile(testDir, remotes, resource, version, everit, schemaOnly));
+          allFileTests.add(
+              jsonTestFile(testDir, remotes, resource, metaSchema, everit, schemaOnly));
         } else {
           if (false) // hack to exclude 'optional'
-            dirScan(testDir.resolve(resource), remotes, version, everit, schemaOnly, allFileTests);
+            dirScan(
+                testDir.resolve(resource), remotes, metaSchema, everit, schemaOnly, allFileTests);
         }
       }
     } catch (IOException | GenerationException e) {
@@ -131,7 +140,7 @@ public class SuiteTest {
   }
 
   private static DynamicNode jsonTestFile(Path testDir, Path remotes, String resource,
-      String version, boolean everit, boolean schemaOnly) throws GenerationException {
+      URI metaSchema, boolean everit, boolean schemaOnly) throws GenerationException {
     Collection<DynamicNode> nodes = new ArrayList<>();
     JSONArray data = (JSONArray) Utils.getJsonObject(testDir.resolve(resource).toString());
     for (int idx = 0; idx != data.length(); idx++) {
@@ -139,13 +148,13 @@ public class SuiteTest {
       if (!testSet.has("schema")) {
         continue; // ever happens?
       }
-      nodes.add(singleSchemaTest(testSet, remotes, version, everit, schemaOnly));
+      nodes.add(singleSchemaTest(testSet, remotes, metaSchema, everit, schemaOnly));
     }
     return dynamicContainer(resource, nodes);
   }
 
   private static DynamicNode singleSchemaTest(
-      JSONObject testSet, Path remotes, String version, boolean everit, boolean schemaOnly) {
+      JSONObject testSet, Path remotes, URI metaSchema, boolean everit, boolean schemaOnly) {
     Collection<DynamicTest> everitTests = new ArrayList<>();
     Collection<DynamicTest> ownTests = new ArrayList<>();
     Object schema = testSet.get("schema");
@@ -153,7 +162,7 @@ public class SuiteTest {
     {
       if (schema instanceof JSONObject) {
         JSONObject schema1 = (JSONObject) schema;
-        schema1.put("$schema", version);
+        schema1.put("$schema", metaSchema.toString());
       }
       JSONArray tests1 = testSet.getJSONArray("tests");
       for (int idx2 = 0; idx2 != tests1.length(); idx2++) {
@@ -175,9 +184,10 @@ public class SuiteTest {
             DocumentSource documentSource = new DocumentSource(List.of(in
                 -> URI.create(
                     in.toString().replace("http://localhost:1234", resource.toString()))));
+            URI local = new URI("memory", "local", null, null);
+            documentSource.store(local, schema);
             SchemaStore schemaStore = new SchemaStore(documentSource);
-            net.jimblackler.jsonschematypes.Schema schema1 =
-                schemaStore.getSchemaFromJson(schema, URI.create(""));
+            net.jimblackler.jsonschematypes.Schema schema1 = schemaStore.getSchema(local);
 
             System.out.println("Test:");
             System.out.println(test.toString(2));
@@ -261,7 +271,9 @@ public class SuiteTest {
         DocumentSource documentSource = new DocumentSource(List.of(
             in -> URI.create(in.toString().replace("http://localhost:1234", resource.toString()))));
         SchemaStore schemaStore = new SchemaStore(documentSource);
-        schemaStore.getSchemaFromJson(schema, URI.create(""));
+        URI local = new URI("memory", "local", null, null);
+        documentSource.store(local, schema);
+        schemaStore.validateAndGet(local);
       }));
     }
     if (everit) {

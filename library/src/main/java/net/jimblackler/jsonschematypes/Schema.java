@@ -4,21 +4,21 @@ import java.net.URI;
 import java.util.function.Consumer;
 
 public abstract class Schema {
-  private final URI path;
+  private final URI uri;
 
-  Schema(SchemaStore schemaStore, URI path) throws GenerationException {
+  Schema(SchemaStore schemaStore, URI uri) throws GenerationException {
     // The schema is registered here to allow for circular graphs to be built in the constructors.
-    this.path = path;
-    schemaStore.register(path, this);
+    this.uri = uri;
+    schemaStore.register(uri, this);
   }
 
-  URI getPath() {
-    return path;
+  URI getUri() {
+    return uri;
   }
 
   @Override
   public String toString() {
-    return path.toString();
+    return uri.toString();
   }
 
   ValidationError error(Object document, URI path, String message) {
@@ -26,6 +26,4 @@ public abstract class Schema {
   }
 
   abstract void validate(Object document, URI path, Consumer<ValidationError> errorConsumer);
-
-  public abstract Schema getMetaSchema();
 }

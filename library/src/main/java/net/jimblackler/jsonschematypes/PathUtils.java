@@ -22,17 +22,22 @@ public class PathUtils {
     }
   }
 
-  static Object objectAtPath(Object document, URI path) {
-    String query = path.getQuery();
-    if (query != null && !query.isEmpty()) {
-      // Query part can carry a string for validation while preserving the rest of the URI for error
-      // messages. This is used for propertyName validation where it's not possible to link to the
-      // name with a standard JSON Pointer.
-      return query;
+  static URI baseDocumentFromUri(URI path) {
+    try {
+      return new URI(path.getScheme(), path.getSchemeSpecificPart(), null);
+    } catch (URISyntaxException e) {
+      throw new IllegalStateException(e);
     }
-    if (path.getFragment() == null) {
+  }
+
+  public static Object fetchFromPath(Object document, String path) {
+    if (path == null || path.isEmpty()) {
       return document;
     }
-    return new JSONPointer("#" + path.getRawFragment()).queryFrom(document);
+    try {
+      return new JSONPointer("#" + path).queryFrom(document);
+    } catch (IllegalArgumentException ex) {
+      throw new IllegalArgumentException("Probable attempt to use an $id as a URL", ex);
+    }
   }
 }

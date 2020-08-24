@@ -17,9 +17,4 @@ public class BooleanSchema extends Schema {
       errorConsumer.accept(error(document, path, "Boolean schema was false"));
     }
   }
-
-  @Override
-  public Schema getMetaSchema() {
-    return null;
-  }
 }

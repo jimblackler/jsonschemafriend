@@ -22,6 +22,9 @@ public class DocumentSource {
   }
 
   public Object fetchDocument(URI url) throws GenerationException {
+    if (url.getRawFragment() != null && !url.getRawFragment().isEmpty()) {
+      throw new GenerationException("Not a base document");
+    }
     for (UrlRewriter rewriter : rewriters) {
       url = rewriter.rewrite(url);
     }
@@ -31,7 +34,7 @@ public class DocumentSource {
 
     boolean useDiskCache = "http".equals(url.getScheme()) || "https".equals(url.getScheme());
 
-    Path diskCacheName = Path.of("cache").resolve(url + ".json");
+    Path diskCacheName = Path.of("cache" + url.getSchemeSpecificPart() + ".json");
     if (useDiskCache && Files.exists(diskCacheName)) {
       url = diskCacheName.toUri();
       useDiskCache = false;
@@ -64,7 +67,7 @@ public class DocumentSource {
     return object;
   }
 
-  public void store(URI basePointer, Object jsonObject) {
-    memoryCache.put(basePointer, jsonObject);
+  public void store(URI path, Object document) {
+    memoryCache.put(path, document);
   }
 }
