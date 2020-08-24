@@ -370,51 +370,37 @@ public class ObjectSchema extends Schema {
 
       typeCheck(document, uri, okTypes, disallow, errorConsumer);
 
-      if (minimum != null) {
-        if (exclusiveMinimum instanceof Boolean && (Boolean) exclusiveMinimum
-                ? number.doubleValue() <= minimum.doubleValue()
-                : number.doubleValue() < minimum.doubleValue()) {
-          errorConsumer.accept(error(document, uri, "Less than minimum"));
-        }
+      if (minimum != null
+          && (exclusiveMinimum instanceof Boolean && (Boolean) exclusiveMinimum
+                  ? number.doubleValue() <= minimum.doubleValue()
+                  : number.doubleValue() < minimum.doubleValue())) {
+        errorConsumer.accept(error(document, uri, "Less than minimum"));
       }
-
-      if (exclusiveMinimum instanceof Number) {
-        if (number.doubleValue() <= ((Number) exclusiveMinimum).doubleValue()) {
-          errorConsumer.accept(error(document, uri, "Less than or equal to exclusive minimum"));
-        }
+      if (exclusiveMinimum instanceof Number
+          && number.doubleValue() <= ((Number) exclusiveMinimum).doubleValue()) {
+        errorConsumer.accept(error(document, uri, "Less than or equal to exclusive minimum"));
       }
-
-      if (maximum != null) {
-        if (exclusiveMaximum instanceof Boolean && (Boolean) exclusiveMaximum
-                ? number.doubleValue() >= maximum.doubleValue()
-                : number.doubleValue() > maximum.doubleValue()) {
-          errorConsumer.accept(error(document, uri, "Greater than maximum"));
-        }
+      if (maximum != null
+          && (exclusiveMaximum instanceof Boolean && (Boolean) exclusiveMaximum
+                  ? number.doubleValue() >= maximum.doubleValue()
+                  : number.doubleValue() > maximum.doubleValue())) {
+        errorConsumer.accept(error(document, uri, "Greater than maximum"));
       }
-
-      if (exclusiveMaximum instanceof Number) {
-        if (number.doubleValue() >= ((Number) exclusiveMaximum).doubleValue()) {
-          errorConsumer.accept(error(document, uri, "Greater than or equal to exclusive maximum"));
-        }
+      if (exclusiveMaximum instanceof Number
+          && number.doubleValue() >= ((Number) exclusiveMaximum).doubleValue()) {
+        errorConsumer.accept(error(document, uri, "Greater than or equal to exclusive maximum"));
       }
-
-      if (divisibleBy != null) {
-        if (number.doubleValue() / divisibleBy.doubleValue() % 1 != 0) {
-          errorConsumer.accept(error(document, uri, "divisibleBy failed"));
-        }
+      if (divisibleBy != null && number.doubleValue() / divisibleBy.doubleValue() % 1 != 0) {
+        errorConsumer.accept(error(document, uri, "divisibleBy failed"));
       }
-
-      if (multipleOf != null) {
-        if (number.doubleValue() / multipleOf.doubleValue() % 1 != 0) {
-          errorConsumer.accept(error(document, uri, "Not a multiple"));
-        }
+      if (multipleOf != null && number.doubleValue() / multipleOf.doubleValue() % 1 != 0) {
+        errorConsumer.accept(error(document, uri, "Not a multiple"));
       }
     } else if (object instanceof Boolean) {
       typeCheck(document, uri, Set.of("boolean"), disallow, errorConsumer);
     } else if (object instanceof String) {
       typeCheck(document, uri, Set.of("string"), disallow, errorConsumer);
       String string = (String) object;
-
       int unicodeCompliantLength = string.codePointCount(0, string.length());
       if (minLength != null && unicodeCompliantLength < minLength.intValue()) {
         errorConsumer.accept(error(document, uri, "Shorter than minLength"));
@@ -422,11 +408,8 @@ public class ObjectSchema extends Schema {
       if (maxLength != null && unicodeCompliantLength > maxLength.intValue()) {
         errorConsumer.accept(error(document, uri, "Longer than maxLength"));
       }
-
-      if (pattern != null) {
-        if (!pattern.matches(string)) {
+      if (pattern != null && !pattern.matches(string)) {
           errorConsumer.accept(error(document, uri, "Pattern did not match"));
-        }
       }
     } else if (object instanceof JSONArray) {
       typeCheck(document, uri, Set.of("array"), disallow, errorConsumer);
