@@ -87,19 +87,23 @@ public class ObjectSchema extends Schema {
     // (all JSON schema meta-schemas as self-referencing).
     JSONObject metaSchemaDocument =
         (JSONObject) schemaStore.getDocumentSource().fetchDocument(metaSchemaUri);
-    JSONObject props2 = metaSchemaDocument.getJSONObject("properties");
+
     schemaJson = jsonObjectOriginal; // Retained for debugging convenience only.
 
+    // Create a new version of the object with only the properties that are explicitly in the
+    // metaschema. This means that features from other version of the metaschema from working when
+    // they shouldn't.
     JSONObject jsonObject = new JSONObject();
-    //
-    for (String property : props2.keySet()) {
-      if (!jsonObjectOriginal.has(property)) {
-        continue;
+    {
+      JSONObject props = metaSchemaDocument.getJSONObject("properties");
+      for (String property : props.keySet()) {
+        if (jsonObjectOriginal.has(property)) {
+          jsonObject.put(property, jsonObjectOriginal.get(property));
+        }
       }
-      jsonObject.put(property, jsonObjectOriginal.get(property));
     }
 
-    Object typeObject = getProperty("type", jsonObject);
+    Object typeObject = jsonObject.opt("type");
     if (typeObject instanceof JSONArray) {
       URI typePointer = append(uri, "type");
       types = new HashSet<>();
@@ -119,7 +123,7 @@ public class ObjectSchema extends Schema {
       types = null;
     }
 
-    Object disallowObject = getProperty("disallow", jsonObject);
+    Object disallowObject = jsonObject.opt("disallow");
     URI disallowPointer = append(uri, "disallow");
     if (disallowObject instanceof String) {
       disallow.add(disallowObject.toString());
@@ -137,7 +141,7 @@ public class ObjectSchema extends Schema {
     }
 
     // Get properties.
-    Object propertiesObject = getProperty("properties", jsonObject);
+    Object propertiesObject = jsonObject.opt("properties");
     if (propertiesObject instanceof JSONObject) {
       JSONObject properties = (JSONObject) propertiesObject;
       URI propertiesPointer = append(uri, "properties");
@@ -164,7 +168,7 @@ public class ObjectSchema extends Schema {
       }
     }
 
-    Object patternPropertiesObject = getProperty("patternProperties", jsonObject);
+    Object patternPropertiesObject = jsonObject.opt("patternProperties");
     if (patternPropertiesObject instanceof JSONObject) {
       JSONObject patternProperties = (JSONObject) patternPropertiesObject;
       URI propertiesPointer = append(uri, "patternProperties");
@@ -184,7 +188,7 @@ public class ObjectSchema extends Schema {
 
     additionalItems = getSchema(jsonObject, "additionalItems", schemaStore, defaultMetaSchema, uri);
 
-    Object requiredObject = getProperty("required", jsonObject);
+    Object requiredObject = jsonObject.opt("required");
     if (requiredObject instanceof JSONArray) {
       JSONArray array = (JSONArray) requiredObject;
       for (int idx = 0; idx != array.length(); idx++) {
@@ -193,7 +197,7 @@ public class ObjectSchema extends Schema {
     }
 
     // https://tools.ietf.org/html/draft-handrews-json-schema-02#section-9.3.1.1
-    Object itemsObject = getProperty("items", jsonObject);
+    Object itemsObject = jsonObject.opt("items");
     URI itemsPath = append(uri, "items");
     if (itemsObject instanceof JSONObject || itemsObject instanceof Boolean) {
       _items = schemaStore.getSchema(itemsPath, defaultMetaSchema);
@@ -223,7 +227,7 @@ public class ObjectSchema extends Schema {
     _then = getSchema(jsonObject, "then", schemaStore, defaultMetaSchema, uri);
     _else = getSchema(jsonObject, "else", schemaStore, defaultMetaSchema, uri);
 
-    Object extendsObject = getProperty("extends", jsonObject);
+    Object extendsObject = jsonObject.opt("extends");
     if (extendsObject instanceof JSONArray) {
       URI arrayPath = append(uri, "extends");
       JSONArray array = (JSONArray) extendsObject;
@@ -236,7 +240,7 @@ public class ObjectSchema extends Schema {
       allOf.add(schemaStore.getSchema(arrayPath, defaultMetaSchema));
     }
 
-    Object allOfObject = getProperty("allOf", jsonObject);
+    Object allOfObject = jsonObject.opt("allOf");
     if (allOfObject instanceof JSONArray) {
       JSONArray array = (JSONArray) allOfObject;
       URI arrayPath = append(uri, "allOf");
@@ -246,7 +250,7 @@ public class ObjectSchema extends Schema {
       }
     }
 
-    Object anyOfObject = getProperty("anyOf", jsonObject);
+    Object anyOfObject = jsonObject.opt("anyOf");
     if (anyOfObject instanceof JSONArray) {
       anyOf = new ArrayList<>();
       JSONArray array = (JSONArray) anyOfObject;
@@ -259,7 +263,7 @@ public class ObjectSchema extends Schema {
       anyOf = null;
     }
 
-    Object oneOfObject = getProperty("oneOf", jsonObject);
+    Object oneOfObject = jsonObject.opt("oneOf");
     if (oneOfObject instanceof JSONArray) {
       oneOf = new ArrayList<>();
       JSONArray array = (JSONArray) oneOfObject;
@@ -277,7 +281,7 @@ public class ObjectSchema extends Schema {
     maximum = jsonObject.optDouble("maximum", Double.MAX_VALUE);
 
     exclusiveMinimumBoolean = jsonObject.optBoolean("exclusiveMinimum");
-    Object exclusiveMinimumObject = getProperty("exclusiveMinimum", jsonObject);
+    Object exclusiveMinimumObject = jsonObject.opt("exclusiveMinimum");
     if (exclusiveMinimumObject instanceof Number) {
       exclusiveMinimum = ((Number) exclusiveMinimumObject).doubleValue();
     } else {
@@ -285,7 +289,7 @@ public class ObjectSchema extends Schema {
     }
 
     exclusiveMaximumBoolean = jsonObject.optBoolean("exclusiveMaximum");
-    Object exclusiveMaximumObject = getProperty("exclusiveMaximum", jsonObject);
+    Object exclusiveMaximumObject = jsonObject.opt("exclusiveMaximum");
     if (exclusiveMaximumObject instanceof Number) {
       exclusiveMaximum = ((Number) exclusiveMaximumObject).doubleValue();
     } else {
@@ -310,7 +314,7 @@ public class ObjectSchema extends Schema {
     minProperties = jsonObject.optInt("minProperties", 0);
     maxProperties = jsonObject.optInt("maxProperties", Integer.MAX_VALUE);
 
-    Object patternObject = getProperty("pattern", jsonObject);
+    Object patternObject = jsonObject.opt("pattern");
     if (patternObject != null) {
       pattern = new Ecma262Pattern((String) patternObject);
     } else {
@@ -319,7 +323,7 @@ public class ObjectSchema extends Schema {
 
     _const = jsonObject.opt("const");
 
-    Object enumObject = getProperty("enum", jsonObject);
+    Object enumObject = jsonObject.opt("enum");
     if (enumObject instanceof JSONArray) {
       _enum = new HashSet<>();
       JSONArray enumArray = (JSONArray) enumObject;
@@ -330,7 +334,7 @@ public class ObjectSchema extends Schema {
       _enum = null;
     }
 
-    Object dependenciesObject = getProperty("dependencies", jsonObject);
+    Object dependenciesObject = jsonObject.opt("dependencies");
     if (dependenciesObject != null) {
       JSONObject dependenciesJsonObject = (JSONObject) dependenciesObject;
       for (String dependency : dependenciesJsonObject.keySet()) {
@@ -353,13 +357,9 @@ public class ObjectSchema extends Schema {
     }
   }
 
-  private static Object getProperty(String name, JSONObject jsonObject) {
-    return jsonObject.opt(name);
-  }
-
   private static Schema getSchema(JSONObject jsonObject, String name, SchemaStore schemaStore,
       URI defaultMetaSchema, URI uri) throws GenerationException {
-    Object object = getProperty(name, jsonObject);
+    Object object = jsonObject.opt(name);
     if (object instanceof JSONObject || object instanceof Boolean) {
       return schemaStore.getSchema(append(uri, name), defaultMetaSchema);
     }
