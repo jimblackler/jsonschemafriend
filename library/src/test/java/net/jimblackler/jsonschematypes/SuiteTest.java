@@ -56,10 +56,10 @@ public class SuiteTest {
   }
 
   @TestFactory
-  DynamicNode backwardsCompatibilitySpecialTest() {
+  DynamicNode forwardsCompatibilitySpecialTest() {
     Path jsts = Path.of("/suites").resolve("jsts");
-    return scan(jsts.resolve("tests").resolve("draft4"), jsts.resolve("remotes"),
-        URI.create("http://json-schema.org/draft-07/schema#"), false, false);
+    return scan(jsts.resolve("tests").resolve("draft7"), jsts.resolve("remotes"),
+        URI.create("http://json-schema.org/draft-06/schema#"), false, false);
   }
 
   @TestFactory
