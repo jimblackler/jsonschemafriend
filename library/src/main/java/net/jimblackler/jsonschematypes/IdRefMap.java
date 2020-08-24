@@ -13,29 +13,6 @@ class IdRefMap {
   private final Map<URI, URI> refs = new HashMap<>();
   private final Collection<URI> mapped = new HashSet<>();
 
-  private void map(DocumentSource documentSource, URI uri, URI defaultMetaSchema)
-      throws GenerationException {
-    URI baseDocumentUri = PathUtils.baseDocumentFromUri(uri);
-    Object baseDocumentObject = documentSource.fetchDocument(baseDocumentUri);
-    if (baseDocumentObject instanceof Boolean) {
-      // The document can be a single boolean, and still hold a legal schema. There's noting to
-      // map in this case.
-      return;
-    }
-    JSONObject baseDocument = (JSONObject) baseDocumentObject;
-
-    URI metaSchemaUri;
-    if (baseDocument.has("$schema")) {
-      metaSchemaUri = URI.create(baseDocument.getString("$schema"));
-    } else {
-      metaSchemaUri = defaultMetaSchema;
-    }
-
-    // A meta-schema is required to understand how to navigate the document.
-    JSONObject metaSchemaDocument = (JSONObject) documentSource.fetchDocument(metaSchemaUri);
-    map(baseDocument, uri, uri, metaSchemaDocument);
-  }
-
   void map(JSONObject baseDocument, URI uri, URI activeId, JSONObject metaSchemaDocument) {
     String idKey = metaSchemaDocument.getJSONObject("properties").has("$id") ? "$id" : "id";
 
@@ -77,15 +54,25 @@ class IdRefMap {
    *
    * @param uri               The id or uri.
    * @param documentSource    DocumentSource required to fetch any new documents found in the $refs.
-   * @param defaultMetaSchema
+   * @param defaultMetaSchema The default meta-schema to use.
    * @return The final uri of the schema.
    */
   public URI finalLocation(URI uri, DocumentSource documentSource, URI defaultMetaSchema)
       throws GenerationException {
     while (true) {
-      URI document = PathUtils.baseDocumentFromUri(uri);
-      if (mapped.add(document)) {
-        map(documentSource, uri, defaultMetaSchema);
+      URI baseDocumentUri = PathUtils.baseDocumentFromUri(uri);
+      if (mapped.add(baseDocumentUri)) {
+        Object baseDocumentObject = documentSource.fetchDocument(baseDocumentUri);
+        // The document can be a single boolean, and still hold a legal schema. There's nothing to
+        // do in this case.
+        if (baseDocumentObject instanceof Boolean) {
+          return uri;
+        }
+        JSONObject baseDocument = (JSONObject) baseDocumentObject;
+        URI metaSchemaUri = baseDocument.has("$schema")
+            ? URI.create(baseDocument.getString("$schema"))
+            : defaultMetaSchema;
+        map(baseDocument, uri, uri, (JSONObject) documentSource.fetchDocument(metaSchemaUri));
       }
       if (!refs.containsKey(uri)) {
         return uri;
