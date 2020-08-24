@@ -319,11 +319,11 @@ public class ObjectSchema extends Schema {
     not = getSchema(jsonObject, "not", schemaStore, defaultMetaSchema, uri);
 
     Object disallowObject = jsonObject.opt("disallow");
-    URI disallowPointer = append(uri, "disallow");
     if (disallowObject instanceof String) {
       disallow.add(disallowObject.toString());
     } else if (disallowObject instanceof JSONArray) {
       JSONArray array = (JSONArray) disallowObject;
+      URI disallowPointer = append(uri, "disallow");
       for (int idx = 0; idx != array.length(); idx++) {
         Object disallowEntryObject = array.get(idx);
         if (disallowEntryObject instanceof String) {
