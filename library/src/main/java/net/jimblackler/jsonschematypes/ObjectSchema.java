@@ -77,7 +77,7 @@ public class ObjectSchema extends Schema {
         (JSONObject) PathUtils.fetchFromPath(baseDocument, uri.getRawFragment());
 
     URI metaSchemaUri;
-    if (baseDocument.has("$schema")) {
+    if (baseDocument == jsonObject && baseDocument.has("$schema")) {
       metaSchemaUri = URI.create(baseDocument.getString("$schema"));
     } else {
       metaSchemaUri = defaultMetaSchema;
