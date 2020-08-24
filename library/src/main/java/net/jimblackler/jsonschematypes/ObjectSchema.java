@@ -23,45 +23,56 @@ import org.json.JSONPointer;
 
 public class ObjectSchema extends Schema {
   private final JSONObject schemaJson; // Kept for debugging only.
+
+  // number checks
+  private final Number multipleOf;
+  private final Number maximum;
+  private final Object exclusiveMaximum;
+  private final Number minimum;
+  private final Object exclusiveMinimum;
+  private final Number divisibleBy;
+
+  // string checks
+  private final Number maxLength;
+  private final Number minLength;
+  private final Ecma262Pattern pattern;
+
+  // array checks
+  private final Schema additionalItems;
+  private final Schema _items;
+  private final List<Schema> itemsArray;
+  private final Number maxItems;
+  private final Number minItems;
+  private final boolean uniqueItems;
+  private final Schema contains;
+
+  // object checks
+  private final Number maxProperties;
+  private final Number minProperties;
+  private final Collection<String> required = new HashSet<>();
+  private final Schema additionalProperties;
   private final Map<String, Schema> _properties = new HashMap<>();
   private final Collection<Ecma262Pattern> patternPropertiesPatterns = new ArrayList<>();
   private final Collection<Schema> patternPropertiesSchemas = new ArrayList<>();
+  private final Map<String, Collection<String>> dependencies = new HashMap<>();
+  private final Map<String, Schema> schemaDependencies = new HashMap<>();
   private final Schema propertyNames;
-  private final Collection<String> required = new HashSet<>();
-  private final List<Schema> itemsArray;
-  private final Schema _items;
-  private final boolean uniqueItems;
-  private final Number minItems;
-  private final Number maxItems;
-  private final Collection<Schema> allOf = new ArrayList<>();
-  private final Collection<Schema> anyOf;
-  private final Collection<Schema> oneOf;
-  private final Set<String> types;
-  private final Collection<Schema> typesSchema = new HashSet<>();
-  private final Set<String> disallow = new HashSet<>();
-  private final Collection<Schema> disallowSchemas = new HashSet<>();
-  private final Number minimum;
-  private final Number maximum;
-  private final Object exclusiveMinimum;
-  private final Object exclusiveMaximum;
-  private final Number divisibleBy;
-  private final Number multipleOf;
-  private final Number minLength;
-  private final Number maxLength;
-  private final Number minProperties;
-  private final Number maxProperties;
-  private final Schema additionalProperties;
-  private final Schema additionalItems;
-  private final Ecma262Pattern pattern;
+
+  // all types checks
   private final Object _const;
   private final Set<Object> _enum;
-  private final Schema contains;
-  private final Schema not;
+  private final Set<String> types;
+  private final Collection<Schema> typesSchema = new HashSet<>();
   private final Schema _if;
   private final Schema _then;
   private final Schema _else;
-  private final Map<String, Collection<String>> dependencies = new HashMap<>();
-  private final Map<String, Schema> schemaDependencies = new HashMap<>();
+  private final Collection<Schema> allOf = new ArrayList<>();
+  private final Collection<Schema> anyOf;
+  private final Collection<Schema> oneOf;
+  private final Schema not;
+
+  private final Set<String> disallow = new HashSet<>();
+  private final Collection<Schema> disallowSchemas = new HashSet<>();
 
   public ObjectSchema(SchemaStore schemaStore, URI uri, URI defaultMetaSchema)
       throws GenerationException {
@@ -101,44 +112,61 @@ public class ObjectSchema extends Schema {
       }
     }
 
-    Object typeObject = jsonObject.opt("type");
-    if (typeObject instanceof JSONArray) {
-      URI typePointer = append(uri, "type");
-      types = new HashSet<>();
-      JSONArray array = (JSONArray) typeObject;
-      for (int idx = 0; idx != array.length(); idx++) {
-        Object arrayEntryObject = array.get(idx);
-        if (arrayEntryObject instanceof Boolean || arrayEntryObject instanceof JSONObject) {
-          typesSchema.add(
-              schemaStore.getSchema(append(typePointer, String.valueOf(idx)), defaultMetaSchema));
-        } else {
-          types.add((String) arrayEntryObject);
-        }
-      }
-    } else if (typeObject instanceof String) {
-      types = Set.of(typeObject.toString());
+    // number checks
+    multipleOf = (Number) jsonObject.opt("multipleOf");
+    maximum = (Number) jsonObject.opt("maximum");
+    exclusiveMaximum = jsonObject.opt("exclusiveMaximum");
+    minimum = (Number) jsonObject.opt("minimum");
+    exclusiveMinimum = jsonObject.opt("exclusiveMinimum");
+    maxLength = (Number) jsonObject.opt("maxLength");
+    minLength = (Number) jsonObject.opt("minLength");
+    divisibleBy = (Number) jsonObject.opt("divisibleBy");
+
+    // string checks
+    Object patternObject = jsonObject.opt("pattern");
+    if (patternObject == null) {
+      pattern = null;
     } else {
-      types = null;
+      pattern = new Ecma262Pattern((String) patternObject);
     }
 
-    Object disallowObject = jsonObject.opt("disallow");
-    URI disallowPointer = append(uri, "disallow");
-    if (disallowObject instanceof String) {
-      disallow.add(disallowObject.toString());
-    } else if (disallowObject instanceof JSONArray) {
-      JSONArray array = (JSONArray) disallowObject;
+    // array checks
+    additionalItems = getSchema(jsonObject, "additionalItems", schemaStore, defaultMetaSchema, uri);
+    _items = getSchema(jsonObject, "items", schemaStore, defaultMetaSchema, uri);
+
+    Object itemsObject = jsonObject.opt("items");
+    URI itemsPath = append(uri, "items");
+    if (itemsObject instanceof JSONArray) {
+      itemsArray = new ArrayList<>();
+      JSONArray jsonArray = (JSONArray) itemsObject;
+      for (int idx = 0; idx != jsonArray.length(); idx++) {
+        itemsArray.add(
+            schemaStore.getSchema(append(itemsPath, String.valueOf(idx)), defaultMetaSchema));
+      }
+    } else {
+      itemsArray = null;
+    }
+
+    maxItems = (Number) jsonObject.opt("maxItems");
+    minItems = (Number) jsonObject.opt("minItems");
+    uniqueItems = jsonObject.optBoolean("uniqueItems", false);
+    contains = getSchema(jsonObject, "contains", schemaStore, defaultMetaSchema, uri);
+
+    // object checks
+    maxProperties = (Number) jsonObject.opt("maxProperties");
+    minProperties = (Number) jsonObject.opt("minProperties");
+
+    Object requiredObject = jsonObject.opt("required");
+    if (requiredObject instanceof JSONArray) {
+      JSONArray array = (JSONArray) requiredObject;
       for (int idx = 0; idx != array.length(); idx++) {
-        Object disallowEntryObject = array.get(idx);
-        if (disallowEntryObject instanceof String) {
-          disallow.add(array.getString(idx));
-        } else {
-          disallowSchemas.add(schemaStore.getSchema(
-              append(disallowPointer, String.valueOf(idx)), defaultMetaSchema));
-        }
+        required.add(array.getString(idx));
       }
     }
 
-    // Get properties.
+    additionalProperties =
+        getSchema(jsonObject, "additionalProperties", schemaStore, defaultMetaSchema, uri);
+
     Object propertiesObject = jsonObject.opt("properties");
     if (propertiesObject instanceof JSONObject) {
       JSONObject properties = (JSONObject) propertiesObject;
@@ -179,51 +207,76 @@ public class ObjectSchema extends Schema {
       }
     }
 
+    JSONObject dependenciesJsonObject = jsonObject.optJSONObject("dependencies");
+    if (dependenciesJsonObject != null) {
+      for (String dependency : dependenciesJsonObject.keySet()) {
+        List<String> spec = new ArrayList<>();
+        Object dependencyObject = dependenciesJsonObject.get(dependency);
+        if (dependencyObject instanceof JSONArray) {
+          JSONArray array = (JSONArray) dependencyObject;
+          for (int idx = 0; idx != array.length(); idx++) {
+            spec.add(array.getString(idx));
+          }
+          dependencies.put(dependency, spec);
+        } else if (dependencyObject instanceof JSONObject || dependencyObject instanceof Boolean) {
+          URI dependenciesPpinter = append(uri, "dependencies");
+          schemaDependencies.put(dependency,
+              schemaStore.getSchema(append(dependenciesPpinter, dependency), defaultMetaSchema));
+        } else {
+          dependencies.put(dependency, List.of((String) dependencyObject));
+        }
+      }
+    }
+
     propertyNames = getSchema(jsonObject, "propertyNames", schemaStore, defaultMetaSchema, uri);
 
-    additionalProperties =
-        getSchema(jsonObject, "additionalProperties", schemaStore, defaultMetaSchema, uri);
+    // all types checks
+    _const = jsonObject.opt("const");
 
-    additionalItems = getSchema(jsonObject, "additionalItems", schemaStore, defaultMetaSchema, uri);
-
-    Object requiredObject = jsonObject.opt("required");
-    if (requiredObject instanceof JSONArray) {
-      JSONArray array = (JSONArray) requiredObject;
-      for (int idx = 0; idx != array.length(); idx++) {
-        required.add(array.getString(idx));
-      }
-    }
-
-    // https://tools.ietf.org/html/draft-handrews-json-schema-02#section-9.3.1.1
-    Object itemsObject = jsonObject.opt("items");
-    URI itemsPath = append(uri, "items");
-    if (itemsObject instanceof JSONObject || itemsObject instanceof Boolean) {
-      _items = schemaStore.getSchema(itemsPath, defaultMetaSchema);
-      itemsArray = null;
+    JSONArray enumArray = jsonObject.optJSONArray("enum");
+    if (enumArray == null) {
+      _enum = null;
     } else {
-      _items = null;
-      if (itemsObject instanceof JSONArray) {
-        itemsArray = new ArrayList<>();
-        JSONArray jsonArray = (JSONArray) itemsObject;
-        for (int idx = 0; idx != jsonArray.length(); idx++) {
-          itemsArray.add(
-              schemaStore.getSchema(append(itemsPath, String.valueOf(idx)), defaultMetaSchema));
-        }
-      } else {
-        itemsArray = null;
+      _enum = new HashSet<>();
+      for (int idx = 0; idx != enumArray.length(); idx++) {
+        _enum.add(enumArray.get(idx));
       }
     }
 
-    uniqueItems = jsonObject.optBoolean("uniqueItems", false);
+    Object typeObject = jsonObject.opt("type");
+    if (typeObject instanceof JSONArray) {
+      URI typePointer = append(uri, "type");
+      types = new HashSet<>();
+      JSONArray array = (JSONArray) typeObject;
+      for (int idx = 0; idx != array.length(); idx++) {
+        Object arrayEntryObject = array.get(idx);
+        /// standard method??
+        if (arrayEntryObject instanceof Boolean || arrayEntryObject instanceof JSONObject) {
+          typesSchema.add(
+              schemaStore.getSchema(append(typePointer, String.valueOf(idx)), defaultMetaSchema));
+        } else {
+          types.add((String) arrayEntryObject);
+        }
+      }
+    } else if (typeObject instanceof String) {
+      types = Set.of(typeObject.toString());
+    } else {
+      types = null;
+    }
 
-    minItems = (Number) jsonObject.opt("minItems");
-    maxItems = (Number) jsonObject.opt("maxItems");
-
-    contains = getSchema(jsonObject, "contains", schemaStore, defaultMetaSchema, uri);
-    not = getSchema(jsonObject, "not", schemaStore, defaultMetaSchema, uri);
     _if = getSchema(jsonObject, "if", schemaStore, defaultMetaSchema, uri);
     _then = getSchema(jsonObject, "then", schemaStore, defaultMetaSchema, uri);
     _else = getSchema(jsonObject, "else", schemaStore, defaultMetaSchema, uri);
+
+    Object allOfObject = jsonObject.opt("allOf");
+    if (allOfObject instanceof JSONArray) {
+      JSONArray array = (JSONArray) allOfObject;
+      URI arrayPath = append(uri, "allOf");
+      for (int idx = 0; idx != array.length(); idx++) {
+        URI indexPointer = append(arrayPath, String.valueOf(idx));
+        allOf.add(schemaStore.getSchema(indexPointer, defaultMetaSchema));
+      }
+    }
 
     Object extendsObject = jsonObject.opt("extends");
     if (extendsObject instanceof JSONArray) {
@@ -236,16 +289,6 @@ public class ObjectSchema extends Schema {
     } else if (extendsObject instanceof JSONObject || extendsObject instanceof Boolean) {
       URI arrayPath = append(uri, "extends");
       allOf.add(schemaStore.getSchema(arrayPath, defaultMetaSchema));
-    }
-
-    Object allOfObject = jsonObject.opt("allOf");
-    if (allOfObject instanceof JSONArray) {
-      JSONArray array = (JSONArray) allOfObject;
-      URI arrayPath = append(uri, "allOf");
-      for (int idx = 0; idx != array.length(); idx++) {
-        URI indexPointer = append(arrayPath, String.valueOf(idx));
-        allOf.add(schemaStore.getSchema(indexPointer, defaultMetaSchema));
-      }
     }
 
     Object anyOfObject = jsonObject.opt("anyOf");
@@ -274,57 +317,21 @@ public class ObjectSchema extends Schema {
       oneOf = null;
     }
 
-    minimum = (Number) jsonObject.opt("minimum");
-    maximum = (Number) jsonObject.opt("maximum");
+    not = getSchema(jsonObject, "not", schemaStore, defaultMetaSchema, uri);
 
-    exclusiveMinimum = jsonObject.opt("exclusiveMinimum");
-    exclusiveMaximum = jsonObject.opt("exclusiveMaximum");
-
-    divisibleBy = (Number) jsonObject.opt("divisibleBy");
-    multipleOf = (Number) jsonObject.opt("multipleOf");
-
-    minLength = (Number) jsonObject.opt("minLength");
-    maxLength = (Number) jsonObject.opt("maxLength");
-
-    minProperties = (Number) jsonObject.opt("minProperties");
-    maxProperties = (Number) jsonObject.opt("maxProperties");
-
-    Object patternObject = jsonObject.opt("pattern");
-    if (patternObject == null) {
-      pattern = null;
-    } else {
-      pattern = new Ecma262Pattern((String) patternObject);
-    }
-
-    _const = jsonObject.opt("const");
-
-    JSONArray enumArray = jsonObject.optJSONArray("enum");
-    if (enumArray == null) {
-      _enum = null;
-    } else {
-      _enum = new HashSet<>();
-      for (int idx = 0; idx != enumArray.length(); idx++) {
-        _enum.add(enumArray.get(idx));
-      }
-    }
-
-    JSONObject dependenciesJsonObject = jsonObject.optJSONObject("dependencies");
-    if (dependenciesJsonObject != null) {
-      for (String dependency : dependenciesJsonObject.keySet()) {
-        List<String> spec = new ArrayList<>();
-        Object dependencyObject = dependenciesJsonObject.get(dependency);
-        if (dependencyObject instanceof JSONArray) {
-          JSONArray array = (JSONArray) dependencyObject;
-          for (int idx = 0; idx != array.length(); idx++) {
-            spec.add(array.getString(idx));
-          }
-          dependencies.put(dependency, spec);
-        } else if (dependencyObject instanceof JSONObject || dependencyObject instanceof Boolean) {
-          URI dependenciesPpinter = append(uri, "dependencies");
-          schemaDependencies.put(dependency,
-              schemaStore.getSchema(append(dependenciesPpinter, dependency), defaultMetaSchema));
+    Object disallowObject = jsonObject.opt("disallow");
+    URI disallowPointer = append(uri, "disallow");
+    if (disallowObject instanceof String) {
+      disallow.add(disallowObject.toString());
+    } else if (disallowObject instanceof JSONArray) {
+      JSONArray array = (JSONArray) disallowObject;
+      for (int idx = 0; idx != array.length(); idx++) {
+        Object disallowEntryObject = array.get(idx);
+        if (disallowEntryObject instanceof String) {
+          disallow.add(array.getString(idx));
         } else {
-          dependencies.put(dependency, List.of((String) dependencyObject));
+          disallowSchemas.add(schemaStore.getSchema(
+              append(disallowPointer, String.valueOf(idx)), defaultMetaSchema));
         }
       }
     }
@@ -359,15 +366,20 @@ public class ObjectSchema extends Schema {
 
     if (object instanceof Number) {
       Number number = (Number) object;
-      Set<String> okTypes = new HashSet<>();
-      okTypes.add("number");
-      if (new BigDecimal(number.toString()).remainder(BigDecimal.ONE).compareTo(BigDecimal.ZERO)
-          == 0) {
-        okTypes.add("integer");
+      if (multipleOf != null && number.doubleValue() / multipleOf.doubleValue() % 1 != 0) {
+        errorConsumer.accept(error(document, uri, "Not a multiple"));
+      }
+      if (maximum != null
+          && (exclusiveMaximum instanceof Boolean && (Boolean) exclusiveMaximum
+                  ? number.doubleValue() >= maximum.doubleValue()
+                  : number.doubleValue() > maximum.doubleValue())) {
+        errorConsumer.accept(error(document, uri, "Greater than maximum"));
       }
 
-      typeCheck(document, uri, okTypes, disallow, errorConsumer);
-
+      if (exclusiveMaximum instanceof Number
+          && number.doubleValue() >= ((Number) exclusiveMaximum).doubleValue()) {
+        errorConsumer.accept(error(document, uri, "Greater than or equal to exclusive maximum"));
+      }
       if (minimum != null
           && (exclusiveMinimum instanceof Boolean && (Boolean) exclusiveMinimum
                   ? number.doubleValue() <= minimum.doubleValue()
@@ -378,64 +390,37 @@ public class ObjectSchema extends Schema {
           && number.doubleValue() <= ((Number) exclusiveMinimum).doubleValue()) {
         errorConsumer.accept(error(document, uri, "Less than or equal to exclusive minimum"));
       }
-      if (maximum != null
-          && (exclusiveMaximum instanceof Boolean && (Boolean) exclusiveMaximum
-                  ? number.doubleValue() >= maximum.doubleValue()
-                  : number.doubleValue() > maximum.doubleValue())) {
-        errorConsumer.accept(error(document, uri, "Greater than maximum"));
+      Set<String> okTypes = new HashSet<>();
+      okTypes.add("number");
+      if (new BigDecimal(number.toString()).remainder(BigDecimal.ONE).compareTo(BigDecimal.ZERO)
+          == 0) {
+        okTypes.add("integer");
       }
-      if (exclusiveMaximum instanceof Number
-          && number.doubleValue() >= ((Number) exclusiveMaximum).doubleValue()) {
-        errorConsumer.accept(error(document, uri, "Greater than or equal to exclusive maximum"));
-      }
+
+      typeCheck(document, uri, okTypes, disallow, errorConsumer);
+
       if (divisibleBy != null && number.doubleValue() / divisibleBy.doubleValue() % 1 != 0) {
         errorConsumer.accept(error(document, uri, "divisibleBy failed"));
       }
-      if (multipleOf != null && number.doubleValue() / multipleOf.doubleValue() % 1 != 0) {
-        errorConsumer.accept(error(document, uri, "Not a multiple"));
-      }
-    } else if (object instanceof Boolean) {
-      typeCheck(document, uri, Set.of("boolean"), disallow, errorConsumer);
+
     } else if (object instanceof String) {
-      typeCheck(document, uri, Set.of("string"), disallow, errorConsumer);
       String string = (String) object;
       int unicodeCompliantLength = string.codePointCount(0, string.length());
-      if (minLength != null && unicodeCompliantLength < minLength.intValue()) {
-        errorConsumer.accept(error(document, uri, "Shorter than minLength"));
-      }
       if (maxLength != null && unicodeCompliantLength > maxLength.intValue()) {
         errorConsumer.accept(error(document, uri, "Longer than maxLength"));
       }
-      if (pattern != null && !pattern.matches(string)) {
-          errorConsumer.accept(error(document, uri, "Pattern did not match"));
+      if (minLength != null && unicodeCompliantLength < minLength.intValue()) {
+        errorConsumer.accept(error(document, uri, "Shorter than minLength"));
       }
+      if (pattern != null && !pattern.matches(string)) {
+        errorConsumer.accept(error(document, uri, "Pattern did not match"));
+      }
+      typeCheck(document, uri, Set.of("string"), disallow, errorConsumer);
+    } else if (object instanceof Boolean) {
+      typeCheck(document, uri, Set.of("boolean"), disallow, errorConsumer);
     } else if (object instanceof JSONArray) {
       typeCheck(document, uri, Set.of("array"), disallow, errorConsumer);
-
       JSONArray jsonArray = (JSONArray) object;
-      if (uniqueItems) {
-        Collection<Object> items = new HashSet<>();
-        for (int idx = 0; idx != jsonArray.length(); idx++) {
-          if (!items.add(makeComparable(jsonArray.get(idx)))) {
-            errorConsumer.accept(error(document, uri, "Non-unique item found"));
-          }
-        }
-      }
-
-      if (minItems != null && jsonArray.length() < minItems.intValue()) {
-        errorConsumer.accept(error(document, uri, "Below min items"));
-      }
-
-      if (maxItems != null && jsonArray.length() > maxItems.intValue()) {
-        errorConsumer.accept(error(document, uri, "Above max length"));
-      }
-
-      if (_items != null) {
-        for (int idx = 0; idx != jsonArray.length(); idx++) {
-          _items.validate(document, append(uri, String.valueOf(idx)), errorConsumer);
-        }
-      }
-
       if (itemsArray != null) {
         if (jsonArray.length() > itemsArray.size() && additionalItems != null) {
           for (int idx = itemsArray.size(); idx != jsonArray.length(); idx++) {
@@ -445,6 +430,29 @@ public class ObjectSchema extends Schema {
 
         for (int idx = 0; idx != Math.min(itemsArray.size(), jsonArray.length()); idx++) {
           itemsArray.get(idx).validate(document, append(uri, String.valueOf(idx)), errorConsumer);
+        }
+      }
+
+      if (_items != null) {
+        for (int idx = 0; idx != jsonArray.length(); idx++) {
+          _items.validate(document, append(uri, String.valueOf(idx)), errorConsumer);
+        }
+      }
+
+      if (maxItems != null && jsonArray.length() > maxItems.intValue()) {
+        errorConsumer.accept(error(document, uri, "Above max length"));
+      }
+
+      if (minItems != null && jsonArray.length() < minItems.intValue()) {
+        errorConsumer.accept(error(document, uri, "Below min items"));
+      }
+
+      if (uniqueItems) {
+        Collection<Object> items = new HashSet<>();
+        for (int idx = 0; idx != jsonArray.length(); idx++) {
+          if (!items.add(makeComparable(jsonArray.get(idx)))) {
+            errorConsumer.accept(error(document, uri, "Non-unique item found"));
+          }
         }
       }
 
@@ -465,14 +473,37 @@ public class ObjectSchema extends Schema {
     } else if (object instanceof JSONObject) {
       typeCheck(document, uri, Set.of("object"), disallow, errorConsumer);
       JSONObject jsonObject = (JSONObject) object;
-      if (minProperties != null && jsonObject.length() < minProperties.intValue()) {
-        errorConsumer.accept(error(document, uri, "Too few properties"));
-      }
       if (maxProperties != null && jsonObject.length() > maxProperties.intValue()) {
         errorConsumer.accept(error(document, uri, "Too mamy properties"));
       }
+      if (minProperties != null && jsonObject.length() < minProperties.intValue()) {
+        errorConsumer.accept(error(document, uri, "Too few properties"));
+      }
+
+      for (String property : required) {
+        if (!jsonObject.has(property)) {
+          errorConsumer.accept(error(document, uri, "Missing required property " + property));
+        }
+      }
+
       Set<String> remainingProperties = new HashSet<>(jsonObject.keySet());
       for (String property : jsonObject.keySet()) {
+        if (_properties.containsKey(property)) {
+          Schema schema = _properties.get(property);
+          schema.validate(document, append(uri, property), errorConsumer);
+          remainingProperties.remove(property);
+        }
+
+        Iterator<Ecma262Pattern> it0 = patternPropertiesPatterns.iterator();
+        Iterator<Schema> it1 = patternPropertiesSchemas.iterator();
+        while (it0.hasNext()) {
+          Ecma262Pattern pattern = it0.next();
+          Schema schema = it1.next();
+          if (pattern.matches(property)) {
+            schema.validate(document, append(uri, property), errorConsumer);
+            remainingProperties.remove(property);
+          }
+        }
         if (propertyNames != null) {
           try {
             // To provide developer-friendly validation error messages, the validator takes a URL to
@@ -490,34 +521,22 @@ public class ObjectSchema extends Schema {
             throw new IllegalStateException(e);
           }
         }
-        if (_properties.containsKey(property)) {
-          Schema schema = _properties.get(property);
-          schema.validate(document, append(uri, property), errorConsumer);
-          remainingProperties.remove(property);
-        }
-        Iterator<Ecma262Pattern> it0 = patternPropertiesPatterns.iterator();
-        Iterator<Schema> it1 = patternPropertiesSchemas.iterator();
-        while (it0.hasNext()) {
-          Ecma262Pattern pattern = it0.next();
-          Schema schema = it1.next();
-          if (pattern.matches(property)) {
-            schema.validate(document, append(uri, property), errorConsumer);
-            remainingProperties.remove(property);
-          }
-        }
       }
+      for (Map.Entry<String, Schema> entry : schemaDependencies.entrySet()) {
+        String property = entry.getKey();
+        if (!jsonObject.has(property)) {
+          continue;
+        }
+
+        Schema schema = entry.getValue();
+        schema.validate(document, uri, errorConsumer);
+      }
+
       if (additionalProperties != null) {
         for (String property : remainingProperties) {
           additionalProperties.validate(document, append(uri, property), errorConsumer);
         }
       }
-
-      for (String property : required) {
-        if (!jsonObject.has(property)) {
-          errorConsumer.accept(error(document, uri, "Missing required property " + property));
-        }
-      }
-
       for (Map.Entry<String, Collection<String>> entry : dependencies.entrySet()) {
         String property = entry.getKey();
         if (!jsonObject.has(property)) {
@@ -534,15 +553,6 @@ public class ObjectSchema extends Schema {
         }
       }
 
-      for (Map.Entry<String, Schema> entry : schemaDependencies.entrySet()) {
-        String property = entry.getKey();
-        if (!jsonObject.has(property)) {
-          continue;
-        }
-
-        Schema schema = entry.getValue();
-        schema.validate(document, uri, errorConsumer);
-      }
     } else if (object == JSONObject.NULL) {
       typeCheck(document, uri, Set.of("null"), disallow, errorConsumer);
     } else {
@@ -567,22 +577,6 @@ public class ObjectSchema extends Schema {
       }
       if (!matchedOne) {
         errorConsumer.accept(error(document, uri, "Object not in enum"));
-      }
-    }
-
-    if (not != null) {
-      List<ValidationError> errors = new ArrayList<>();
-      not.validate(document, uri, errors::add);
-      if (errors.isEmpty()) {
-        errorConsumer.accept(error(document, uri, "not condition passed"));
-      }
-    }
-
-    for (Schema disallowSchema : disallowSchemas) {
-      List<ValidationError> errors = new ArrayList<>();
-      disallowSchema.validate(document, uri, errors::add);
-      if (errors.isEmpty()) {
-        errorConsumer.accept(error(document, uri, "disallow condition passed"));
       }
     }
 
@@ -630,6 +624,22 @@ public class ObjectSchema extends Schema {
       }
       if (numberPassed != 1) {
         errorConsumer.accept(error(document, uri, numberPassed + " passed oneOf"));
+      }
+    }
+
+    if (not != null) {
+      List<ValidationError> errors = new ArrayList<>();
+      not.validate(document, uri, errors::add);
+      if (errors.isEmpty()) {
+        errorConsumer.accept(error(document, uri, "not condition passed"));
+      }
+    }
+
+    for (Schema disallowSchema : disallowSchemas) {
+      List<ValidationError> errors = new ArrayList<>();
+      disallowSchema.validate(document, uri, errors::add);
+      if (errors.isEmpty()) {
+        errorConsumer.accept(error(document, uri, "disallow condition passed"));
       }
     }
   }
