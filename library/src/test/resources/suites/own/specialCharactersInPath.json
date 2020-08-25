@@ -79,8 +79,248 @@
         "valid": false
       }
     ]
+  },
+  {
+    "description": "Quotes handled correctly in paths",
+    "schema": {
+      "hello\"world": {
+        "type": "string"
+      },
+      "properties": {
+        "someProperty": {
+          "$ref": "#/hello%22world"
+        }
+      }
+    },
+    "tests": [
+      {
+        "data": {
+          "someProperty": "hello"
+        },
+        "valid": true
+      },
+      {
+        "data": {
+          "someProperty": 5
+        },
+        "valid": false
+      }
+    ]
+  },
+  {
+    "description": "Tilde handled correctly in paths",
+    "schema": {
+      "hello~world": {
+        "type": "string"
+      },
+      "properties": {
+        "someProperty": {
+          "$ref": "#/hello~world"
+        }
+      }
+    },
+    "tests": [
+      {
+        "data": {
+          "someProperty": "hello"
+        },
+        "valid": true
+      },
+      {
+        "data": {
+          "someProperty": 5
+        },
+        "valid": false
+      }
+    ]
+  },
+  {
+    "description": "Percent handled correctly in paths",
+    "schema": {
+      "hello%world": {
+        "type": "string"
+      },
+      "properties": {
+        "someProperty": {
+          "$ref": "#/hello%25world"
+        }
+      }
+    },
+    "tests": [
+      {
+        "data": {
+          "someProperty": "hello"
+        },
+        "valid": true
+      },
+      {
+        "data": {
+          "someProperty": 5
+        },
+        "valid": false
+      }
+    ]
+  },
+  {
+    "description": "Plus handled correctly in paths",
+    "schema": {
+      "hello+world": {
+        "type": "string"
+      },
+      "properties": {
+        "someProperty": {
+          "$ref": "#/hello%2Bworld"
+        }
+      }
+    },
+    "tests": [
+      {
+        "data": {
+          "someProperty": "hello"
+        },
+        "valid": true
+      },
+      {
+        "data": {
+          "someProperty": 5
+        },
+        "valid": false
+      }
+    ]
+  },
+  {
+    "description": "Backslash handled correctly in paths",
+    "schema": {
+      "hello\\world": {
+        "type": "string"
+      },
+      "properties": {
+        "someProperty": {
+          "$ref": "#/hello%5Cworld"
+        }
+      }
+    },
+    "tests": [
+      {
+        "data": {
+          "someProperty": "hello"
+        },
+        "valid": true
+      },
+      {
+        "data": {
+          "someProperty": 5
+        },
+        "valid": false
+      }
+    ]
+  },
+  {
+    "description": "Double backslash handled correctly in paths",
+    "schema": {
+      "hello\\\\world": {
+        "type": "string"
+      },
+      "properties": {
+        "someProperty": {
+          "$ref": "#/hello%5C%5C%5C%5Cworld"
+        }
+      }
+    },
+    "tests": [
+      {
+        "data": {
+          "someProperty": "hello"
+        },
+        "valid": true
+      },
+      {
+        "data": {
+          "someProperty": 5
+        },
+        "valid": false
+      }
+    ]
+  },
+  {
+    "description": "Tilde",
+    "schema": {
+      "hello~world": {
+        "type": "string"
+      },
+      "properties": {
+        "someProperty": {
+          "$ref": "#/hello~0world"
+        }
+      }
+    },
+    "tests": [
+      {
+        "data": {
+          "someProperty": "hello"
+        },
+        "valid": true
+      },
+      {
+        "data": {
+          "someProperty": 5
+        },
+        "valid": false
+      }
+    ]
+  },
+  {
+    "description": "Double tilde",
+    "schema": {
+      "hello~~world": {
+        "type": "string"
+      },
+      "properties": {
+        "someProperty": {
+          "$ref": "#/hello~0~0world"
+        }
+      }
+    },
+    "tests": [
+      {
+        "data": {
+          "someProperty": "hello"
+        },
+        "valid": true
+      },
+      {
+        "data": {
+          "someProperty": 5
+        },
+        "valid": false
+      }
+    ]
+  },
+  {
+    "description": "Tilde zero",
+    "schema": {
+      "hello~0world": {
+        "type": "string"
+      },
+      "properties": {
+        "someProperty": {
+          "$ref": "#/hello~00world"
+        }
+      }
+    },
+    "tests": [
+      {
+        "data": {
+          "someProperty": "hello"
+        },
+        "valid": true
+      },
+      {
+        "data": {
+          "someProperty": 5
+        },
+        "valid": false
+      }
+    ]
   }
-
-
-
 ]
