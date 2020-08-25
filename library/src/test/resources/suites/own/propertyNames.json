@@ -301,6 +301,29 @@
     ]
   },
 
+  {
+    "description": "Tilde zero zero",
+    "schema": {
+      "properties": {
+        "~~0": {
+          "type": "integer"
+        }
+      }
+    },
+    "tests": [
+      {
+        "data": {
+          "~~0": 3
+        },
+        "valid": "true"
+      }, {
+        "data": {
+          "~~0": "b"
+        },
+        "valid": "false"
+      }
+    ]
+  },
 
   {
     "description": "All characters",

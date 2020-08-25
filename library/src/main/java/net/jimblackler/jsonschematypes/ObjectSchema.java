@@ -514,7 +514,7 @@ public class ObjectSchema extends Schema {
             // these pointers are not suitable for use in URIs. As a workaround we use the query
             // part of the URL to carry the property name into the child iteration of the validator.
             URI propertyPath = new URI(
-                uri.getScheme(), uri.getAuthority(), uri.getPath(), property, uri.getFragment());
+                uri.getScheme(), uri.getAuthority(), uri.getPath(), property, uri.getRawFragment());
             propertyNames.validate(document, propertyPath, errorConsumer);
           } catch (URISyntaxException e) {
             throw new IllegalStateException(e);

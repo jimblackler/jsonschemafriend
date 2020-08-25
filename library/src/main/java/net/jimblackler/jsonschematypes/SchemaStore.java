@@ -24,26 +24,22 @@ public class SchemaStore {
     this.documentSource = documentSource;
   }
 
-  Schema validateAndGet(URI uri) throws GenerationException {
+  Schema validateAndGet(URI uri, URI defaultMetaSchema) throws GenerationException {
     Object document = documentSource.fetchDocument(PathUtils.baseDocumentFromUri(uri));
     Object schemaObject = PathUtils.fetchFromPath(document, uri.getRawFragment());
-    URI defaultMetaSchema = URI.create("http://json-schema.org/draft-07/schema#");
     // If we can, we fetch and build the schema's meta-schema and validate the object against it,
     // before we attempt to build the Schema.
     // This can't be done inside the Schema builder because the schema's meta-schema might be in its
     // own graph, so the meta-schema won't be built in full when it's first available.
-    if (false) {
-      if (schemaObject instanceof JSONObject) {
-        JSONObject schemaJson = (JSONObject) schemaObject;
-        String metaSchemaName = schemaJson.getString("$schema");
-        if (!metaSchemaName.isEmpty()) {
-          Schema metaSchema = getSchema(URI.create(metaSchemaName), defaultMetaSchema);
-          List<ValidationError> errors = new ArrayList<>();
-          metaSchema.validate(schemaObject, ROOT, errors::add);
-          if (!errors.isEmpty()) {
-            throw new GenerationException(errors.toString());
-          }
-        }
+    if (schemaObject instanceof JSONObject) {
+      JSONObject schemaJson = (JSONObject) schemaObject;
+      URI metaSchemaUri =
+          defaultMetaSchema == null ? URI.create(schemaJson.getString("$schema")) : defaultMetaSchema;
+      Schema metaSchema = getSchema(metaSchemaUri, metaSchemaUri);
+      List<ValidationError> errors = new ArrayList<>();
+      metaSchema.validate(schemaObject, ROOT, errors::add);
+      if (!errors.isEmpty()) {
+        throw new GenerationException(errors.toString());
       }
     }
 
@@ -56,14 +52,15 @@ public class SchemaStore {
         if (Files.isDirectory(path)) {
           continue;
         }
-        validateAndGet(new URI("file", path.toString(), null));
+        validateAndGet(new URI("file", path.toString(), null),
+            URI.create("http://json-schema.org/draft-07/schema#"));
       }
     } catch (IOException | URISyntaxException ex) {
       throw new GenerationException(ex);
     }
   }
 
-  public Schema getSchema(URI uri, URI defaultMetaSchema) throws GenerationException {
+  Schema getSchema(URI uri, URI defaultMetaSchema) throws GenerationException {
     // The schema at an uri can be requested by a client that doesn't know that the uri is the
     // beginning of a chain of $refs. We must find the end of the chain, where the actual schema is
     // to be found.
@@ -77,7 +74,6 @@ public class SchemaStore {
     Object baseDocument = documentSource.fetchDocument(PathUtils.baseDocumentFromUri(uri));
     Object object = PathUtils.fetchFromPath(baseDocument, uri.getRawFragment());
 
-    // https://tools.ietf.org/html/draft-handrews-json-schema-02#section-4.3.2
     if (object instanceof Boolean) {
       return new BooleanSchema(this, uri, (boolean) object);
     }

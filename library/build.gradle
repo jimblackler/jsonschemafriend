@@ -27,7 +27,7 @@ afterEvaluate {
 
 dependencies {
     implementation 'com.github.everit-org.json-schema:org.everit.json.schema:1.12.1'
-    implementation 'org.json:json:20200518'
+    implementation 'com.github.jimblackler:JSON-java:v0.0-alpha'
     implementation 'com.sun.codemodel:codemodel:2.6'
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.6.2'
 }
