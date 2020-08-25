@@ -1,0 +1,328 @@
+[
+  {
+    "description": "Basic property names work",
+    "schema": {
+      "properties": {
+        "a": {
+          "type": "integer"
+        }
+      }
+    },
+    "tests": [
+      {
+        "data": {
+          "a": 3
+        },
+        "valid": "true"
+      }, {
+        "data": {
+          "a": "b"
+        },
+        "valid": "false"
+      }
+    ]
+  },
+  {
+    "description": "Plus",
+    "schema": {
+      "properties": {
+        "+": {
+          "type": "integer"
+        }
+      }
+    },
+    "tests": [
+      {
+        "data": {
+          "+": 3
+        },
+        "valid": "true"
+      }, {
+        "data": {
+          "+": "b"
+        },
+        "valid": "false"
+      }
+    ]
+  },
+  {
+    "description": "Tilde",
+    "schema": {
+      "properties": {
+        "~": {
+          "type": "integer"
+        }
+      }
+    },
+    "tests": [
+      {
+        "data": {
+          "~": 3
+        },
+        "valid": "true"
+      }, {
+        "data": {
+          "~": "b"
+        },
+        "valid": "false"
+      }
+    ]
+  },
+  {
+    "description": "Forward slash",
+    "schema": {
+      "properties": {
+        "/": {
+          "type": "integer"
+        }
+      }
+    },
+    "tests": [
+      {
+        "data": {
+          "/": 3
+        },
+        "valid": "true"
+      }, {
+        "data": {
+          "/": "b"
+        },
+        "valid": "false"
+      }
+    ]
+  },
+  {
+    "description": "Hash",
+    "schema": {
+      "properties": {
+        "#": {
+          "type": "integer"
+        }
+      }
+    },
+    "tests": [
+      {
+        "data": {
+          "#": 3
+        },
+        "valid": "true"
+      }, {
+        "data": {
+          "#": "b"
+        },
+        "valid": "false"
+      }
+    ]
+  },
+  {
+    "description": "Square brackets",
+    "schema": {
+      "properties": {
+        "[]": {
+          "type": "integer"
+        }
+      }
+    },
+    "tests": [
+      {
+        "data": {
+          "[]": 3
+        },
+        "valid": "true"
+      }, {
+        "data": {
+          "[]": "b"
+        },
+        "valid": "false"
+      }
+    ]
+  },
+  {
+    "description": "Question mark",
+    "schema": {
+      "properties": {
+        "?": {
+          "type": "integer"
+        }
+      }
+    },
+    "tests": [
+      {
+        "data": {
+          "?": 3
+        },
+        "valid": "true"
+      }, {
+        "data": {
+          "?": "b"
+        },
+        "valid": "false"
+      }
+    ]
+  },
+  {
+    "description": "Space",
+    "schema": {
+      "properties": {
+        " ": {
+          "type": "integer"
+        }
+      }
+    },
+    "tests": [
+      {
+        "data": {
+          " ": 3
+        },
+        "valid": "true"
+      }, {
+        "data": {
+          " ": "b"
+        },
+        "valid": "false"
+      }
+    ]
+  },
+  {
+    "description": "Percent",
+    "schema": {
+      "properties": {
+        "%": {
+          "type": "integer"
+        }
+      }
+    },
+    "tests": [
+      {
+        "data": {
+          "%": 3
+        },
+        "valid": "true"
+      }, {
+        "data": {
+          "%": "b"
+        },
+        "valid": "false"
+      }
+    ]
+  },
+  {
+    "description": "At",
+    "schema": {
+      "properties": {
+        "@": {
+          "type": "integer"
+        }
+      }
+    },
+    "tests": [
+      {
+        "data": {
+          "@": 3
+        },
+        "valid": "true"
+      }, {
+        "data": {
+          "@": "b"
+        },
+        "valid": "false"
+      }
+    ]
+  },
+
+  {
+    "description": "Double forward slash",
+    "schema": {
+      "properties": {
+        "//": {
+          "type": "integer"
+        }
+      }
+    },
+    "tests": [
+      {
+        "data": {
+          "//": 3
+        },
+        "valid": "true"
+      }, {
+        "data": {
+          "//": "b"
+        },
+        "valid": "false"
+      }
+    ]
+  },
+  {
+    "description": "Backslash",
+    "schema": {
+      "properties": {
+        "\\": {
+          "type": "integer"
+        }
+      }
+    },
+    "tests": [
+      {
+        "data": {
+          "\\": 3
+        },
+        "valid": "true"
+      }, {
+        "data": {
+          "\\": "b"
+        },
+        "valid": "false"
+      }
+    ]
+  },
+
+  {
+    "description": "Double backslash",
+    "schema": {
+      "properties": {
+        "\\\\": {
+          "type": "integer"
+        }
+      }
+    },
+    "tests": [
+      {
+        "data": {
+          "\\\\": 3
+        },
+        "valid": "true"
+      }, {
+        "data": {
+          "\\\\": "b"
+        },
+        "valid": "false"
+      }
+    ]
+  },
+
+
+  {
+    "description": "All characters",
+    "schema": {
+      "properties": {
+        " !\"#$%&\\'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\\\]^_`abcdefghijklmnopqrstuvwxyz{|}~": {
+          "type": "integer"
+        }
+      }
+    },
+    "tests": [
+      {
+        "data": {
+          " !\"#$%&\\'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\\\]^_`abcdefghijklmnopqrstuvwxyz{|}~": 3
+        },
+        "valid": "true"
+      }, {
+        "data": {
+          " !\"#$%&\\'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\\\]^_`abcdefghijklmnopqrstuvwxyz{|}~": "b"
+        },
+        "valid": "false"
+      }
+    ]
+  }
+]
