@@ -44,7 +44,11 @@ public class DocumentSource {
 
     boolean useDiskCache = "http".equals(url.getScheme()) || "https".equals(url.getScheme());
 
-    Path diskCacheName = Path.of("cache" + url.getSchemeSpecificPart() + ".json");
+    String path = url.getSchemeSpecificPart();
+    if (!path.endsWith(".json")) {
+      path += ".json";
+    }
+    Path diskCacheName = Path.of("cache" + path);
     if (useDiskCache && Files.exists(diskCacheName)) {
       url = diskCacheName.toUri();
       useDiskCache = false;
