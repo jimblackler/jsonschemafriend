@@ -216,6 +216,33 @@
     ]
   },
   {
+    "description": "Forward slash handled correctly in paths",
+    "schema": {
+      "hello/world": {
+        "type": "string"
+      },
+      "properties": {
+        "someProperty": {
+          "$ref": "#/hello~1world"
+        }
+      }
+    },
+    "tests": [
+      {
+        "data": {
+          "someProperty": "hello"
+        },
+        "valid": true
+      },
+      {
+        "data": {
+          "someProperty": 5
+        },
+        "valid": false
+      }
+    ]
+  },
+  {
     "description": "Double backslash handled correctly in paths",
     "schema": {
       "hello\\\\world": {
@@ -305,6 +332,173 @@
       "properties": {
         "someProperty": {
           "$ref": "#/hello~00world"
+        }
+      }
+    },
+    "tests": [
+      {
+        "data": {
+          "someProperty": "hello"
+        },
+        "valid": true
+      },
+      {
+        "data": {
+          "someProperty": 5
+        },
+        "valid": false
+      }
+    ]
+  },
+
+  {
+    "description": "Hash",
+    "schema": {
+      "hello#world": {
+        "type": "string"
+      },
+      "properties": {
+        "someProperty": {
+          "$ref": "#/hello%23world"
+        }
+      }
+    },
+    "tests": [
+      {
+        "data": {
+          "someProperty": "hello"
+        },
+        "valid": true
+      },
+      {
+        "data": {
+          "someProperty": 5
+        },
+        "valid": false
+      }
+    ]
+  },
+  {
+    "description": "Caret",
+    "schema": {
+      "hello^world": {
+        "type": "string"
+      },
+      "properties": {
+        "someProperty": {
+          "$ref": "#/hello%5Eworld"
+        }
+      }
+    },
+    "tests": [
+      {
+        "data": {
+          "someProperty": "hello"
+        },
+        "valid": true
+      },
+      {
+        "data": {
+          "someProperty": 5
+        },
+        "valid": false
+      }
+    ]
+  },
+
+  {
+    "description": "Grave",
+    "schema": {
+      "hello`world": {
+        "type": "string"
+      },
+      "properties": {
+        "someProperty": {
+          "$ref": "#/hello%60world"
+        }
+      }
+    },
+    "tests": [
+      {
+        "data": {
+          "someProperty": "hello"
+        },
+        "valid": true
+      },
+      {
+        "data": {
+          "someProperty": 5
+        },
+        "valid": false
+      }
+    ]
+  },
+
+
+
+  {
+    "description": "Curly brackets",
+    "schema": {
+      "hello{}world": {
+        "type": "string"
+      },
+      "properties": {
+        "someProperty": {
+          "$ref": "#/hello%7B%7Dworld"
+        }
+      }
+    },
+    "tests": [
+      {
+        "data": {
+          "someProperty": "hello"
+        },
+        "valid": true
+      },
+      {
+        "data": {
+          "someProperty": 5
+        },
+        "valid": false
+      }
+    ]
+  },
+  {
+    "description": "Pipe",
+    "schema": {
+      "hello|world": {
+        "type": "string"
+      },
+      "properties": {
+        "someProperty": {
+          "$ref": "#/hello%7Cworld"
+        }
+      }
+    },
+    "tests": [
+      {
+        "data": {
+          "someProperty": "hello"
+        },
+        "valid": true
+      },
+      {
+        "data": {
+          "someProperty": 5
+        },
+        "valid": false
+      }
+    ]
+  },
+  {
+    "description": "All characters",
+    "schema": {
+      " !\"#$%&\\'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[]^_`abcdefghijklmnopqrstuvwxyz{|}~": {
+        "type": "string"
+      },
+      "properties": {
+        "someProperty": {
+          "$ref": "#/%20%21%22%23%24%25%26%5C%27%28%29%2A%2B%2C-.~10123456789%3A%3B%3C%3D%3E%3F%40ABCDEFGHIJKLMNOPQRSTUVWXYZ%5B%5D%5E_%60abcdefghijklmnopqrstuvwxyz%7B%7C%7D~"
         }
       }
     },
