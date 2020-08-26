@@ -69,6 +69,121 @@
     ]
   },
   {
+    "description": "Tilde zero",
+    "schema": {
+      "properties": {
+        "~0": {
+          "type": "integer"
+        }
+      }
+    },
+    "tests": [
+      {
+        "data": {
+          "~0": 3
+        },
+        "valid": "true"
+      }, {
+        "data": {
+          "~0": "b"
+        },
+        "valid": "false"
+      }
+    ]
+  },
+  {
+    "description": "Tilde one",
+    "schema": {
+      "properties": {
+        "~1": {
+          "type": "integer"
+        }
+      }
+    },
+    "tests": [
+      {
+        "data": {
+          "~1": 3
+        },
+        "valid": "true"
+      }, {
+        "data": {
+          "~1": "b"
+        },
+        "valid": "false"
+      }
+    ]
+  },
+  {
+    "description": "Tilde two",
+    "schema": {
+      "properties": {
+        "~2": {
+          "type": "integer"
+        }
+      }
+    },
+    "tests": [
+      {
+        "data": {
+          "~2": 3
+        },
+        "valid": "true"
+      }, {
+        "data": {
+          "~2": "b"
+        },
+        "valid": "false"
+      }
+    ]
+  },
+  {
+    "description": "Tilde tilde one",
+    "schema": {
+      "properties": {
+        "~~1": {
+          "type": "integer"
+        }
+      }
+    },
+    "tests": [
+      {
+        "data": {
+          "~~1": 3
+        },
+        "valid": "true"
+      }, {
+        "data": {
+          "~~1": "b"
+        },
+        "valid": "false"
+      }
+    ]
+  },
+  {
+    "description": "Tilde tilde two",
+    "schema": {
+      "properties": {
+        "~~2": {
+          "type": "integer"
+        }
+      }
+    },
+    "tests": [
+      {
+        "data": {
+          "~~2": 3
+        },
+        "valid": "true"
+      }, {
+        "data": {
+          "~~2": "b"
+        },
+        "valid": "false"
+      }
+    ]
+  },
+  {
     "description": "Forward slash",
     "schema": {
       "properties": {
@@ -132,6 +247,29 @@
       }, {
         "data": {
           "[]": "b"
+        },
+        "valid": "false"
+      }
+    ]
+  },
+  {
+    "description": "Curly brackets",
+    "schema": {
+      "properties": {
+        "{}": {
+          "type": "integer"
+        }
+      }
+    },
+    "tests": [
+      {
+        "data": {
+          "{}": 3
+        },
+        "valid": "true"
+      }, {
+        "data": {
+          "{}": "b"
         },
         "valid": "false"
       }
@@ -254,6 +392,213 @@
     ]
   },
   {
+    "description": "Equals",
+    "schema": {
+      "properties": {
+        "=": {
+          "type": "integer"
+        }
+      }
+    },
+    "tests": [
+      {
+        "data": {
+          "=": 3
+        },
+        "valid": "true"
+      }, {
+        "data": {
+          "=": "b"
+        },
+        "valid": "false"
+      }
+    ]
+  },
+  {
+    "description": "Pipe",
+    "schema": {
+      "properties": {
+        "|": {
+          "type": "integer"
+        }
+      }
+    },
+    "tests": [
+      {
+        "data": {
+          "|": 3
+        },
+        "valid": "true"
+      }, {
+        "data": {
+          "|": "b"
+        },
+        "valid": "false"
+      }
+    ]
+  },
+  {
+    "description": "Caret",
+    "schema": {
+      "properties": {
+        "^": {
+          "type": "integer"
+        }
+      }
+    },
+    "tests": [
+      {
+        "data": {
+          "^": 3
+        },
+        "valid": "true"
+      }, {
+        "data": {
+          "^": "b"
+        },
+        "valid": "false"
+      }
+    ]
+  },
+  {
+    "description": "Grave",
+    "schema": {
+      "properties": {
+        "`": {
+          "type": "integer"
+        }
+      }
+    },
+    "tests": [
+      {
+        "data": {
+          "`": 3
+        },
+        "valid": "true"
+      }, {
+        "data": {
+          "`": "b"
+        },
+        "valid": "false"
+      }
+    ]
+  },
+  {
+    "description": "Colon",
+    "schema": {
+      "properties": {
+        ":": {
+          "type": "integer"
+        }
+      }
+    },
+    "tests": [
+      {
+        "data": {
+          ":": 3
+        },
+        "valid": "true"
+      }, {
+        "data": {
+          ":": "b"
+        },
+        "valid": "false"
+      }
+    ]
+  },
+  {
+    "description": "Semicolon",
+    "schema": {
+      "properties": {
+        ";": {
+          "type": "integer"
+        }
+      }
+    },
+    "tests": [
+      {
+        "data": {
+          ";": 3
+        },
+        "valid": "true"
+      }, {
+        "data": {
+          ";": "b"
+        },
+        "valid": "false"
+      }
+    ]
+  },
+  {
+    "description": "Less than",
+    "schema": {
+      "properties": {
+        "<": {
+          "type": "integer"
+        }
+      }
+    },
+    "tests": [
+      {
+        "data": {
+          "<": 3
+        },
+        "valid": "true"
+      }, {
+        "data": {
+          "<": "b"
+        },
+        "valid": "false"
+      }
+    ]
+  },
+  {
+    "description": "Greater than",
+    "schema": {
+      "properties": {
+        ">": {
+          "type": "integer"
+        }
+      }
+    },
+    "tests": [
+      {
+        "data": {
+          ">": 3
+        },
+        "valid": "true"
+      }, {
+        "data": {
+          ">": "b"
+        },
+        "valid": "false"
+      }
+    ]
+  },
+  {
+    "description": "Period",
+    "schema": {
+      "properties": {
+        ".": {
+          "type": "integer"
+        }
+      }
+    },
+    "tests": [
+      {
+        "data": {
+          ".": 3
+        },
+        "valid": "true"
+      }, {
+        "data": {
+          ".": "b"
+        },
+        "valid": "false"
+      }
+    ]
+  },
+  {
     "description": "Backslash",
     "schema": {
       "properties": {
@@ -319,6 +664,29 @@
       }, {
         "data": {
           "~~0": "b"
+        },
+        "valid": "false"
+      }
+    ]
+  },
+  {
+    "description": "Empty properties",
+    "schema": {
+      "properties": {
+        "": {
+          "type": "integer"
+        }
+      }
+    },
+    "tests": [
+      {
+        "data": {
+          "": 3
+        },
+        "valid": "true"
+      }, {
+        "data": {
+          "": "b"
         },
         "valid": "false"
       }
