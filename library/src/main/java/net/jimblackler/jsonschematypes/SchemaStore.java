@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.json.JSONObject;
@@ -16,6 +17,7 @@ import org.json.JSONObject;
 public class SchemaStore {
   private static final URI ROOT = URI.create("");
 
+  private static final Logger LOG = Logger.getLogger(SchemaStore.class.getName());
   private final Map<URI, Schema> builtSchemas = new HashMap<>();
   private final IdRefMap idRefMap = new IdRefMap();
   private final DocumentSource documentSource;
@@ -33,8 +35,8 @@ public class SchemaStore {
     // own graph, so the meta-schema won't be built in full when it's first available.
     if (schemaObject instanceof JSONObject) {
       JSONObject schemaJson = (JSONObject) schemaObject;
-      URI metaSchemaUri =
-          defaultMetaSchema == null ? URI.create(schemaJson.getString("$schema")) : defaultMetaSchema;
+      URI metaSchemaUri = defaultMetaSchema == null ? URI.create(schemaJson.getString("$schema"))
+                                                    : defaultMetaSchema;
       Schema metaSchema = getSchema(metaSchemaUri, metaSchemaUri);
       List<ValidationError> errors = new ArrayList<>();
       metaSchema.validate(schemaObject, ROOT, errors::add);
@@ -77,8 +79,11 @@ public class SchemaStore {
     if (object instanceof Boolean) {
       return new BooleanSchema(this, uri, (boolean) object);
     }
-
-    return new ObjectSchema(this, uri, defaultMetaSchema);
+    if (object instanceof JSONObject) {
+      return new ObjectSchema(this, uri, defaultMetaSchema);
+    }
+    LOG.warning("No schema at " + uri);
+    return null;
   }
 
   public void register(URI path, Schema schema) throws GenerationException {
