@@ -28,89 +28,6 @@ import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.TestFactory;
 
 public class SuiteTest {
-  @TestFactory
-  DynamicNode own() {
-    Path own = Path.of("/suites").resolve("own");
-    return scan(own, own.resolve("remotes"), URI.create("http://json-schema.org/draft-07/schema#"),
-        true, false);
-  }
-
-  @TestFactory
-  DynamicNode draft3Own() {
-    Path jsts = Path.of("/suites").resolve("jsts");
-    return scan(jsts.resolve("tests").resolve("draft3"), jsts.resolve("remotes"),
-        URI.create("http://json-schema.org/draft-03/schema#"), false, false);
-  }
-  @TestFactory
-  DynamicNode draft4() {
-    Path jsts = Path.of("/suites").resolve("jsts");
-    return scan(jsts.resolve("tests").resolve("draft4"), jsts.resolve("remotes"),
-        URI.create("http://json-schema.org/draft-04/schema#"), true, false);
-  }
-
-  @TestFactory
-  DynamicNode draft4Own() {
-    Path jsts = Path.of("/suites").resolve("jsts");
-    return scan(jsts.resolve("tests").resolve("draft4"), jsts.resolve("remotes"),
-        URI.create("http://json-schema.org/draft-04/schema#"), false, false);
-  }
-
-  @TestFactory
-  DynamicNode forwardsCompatibilitySpecialTest() {
-    Path jsts = Path.of("/suites").resolve("jsts");
-    return scan(jsts.resolve("tests").resolve("draft7"), jsts.resolve("remotes"),
-        URI.create("http://json-schema.org/draft-06/schema#"), false, false);
-  }
-
-  @TestFactory
-  DynamicNode draft6() {
-    Path jsts = Path.of("/suites").resolve("jsts");
-    return scan(jsts.resolve("tests").resolve("draft6"), jsts.resolve("remotes"),
-        URI.create("http://json-schema.org/draft-06/schema#"), true, false);
-  }
-
-  @TestFactory
-  DynamicNode draft6Own() {
-    Path jsts = Path.of("/suites").resolve("jsts");
-    return scan(jsts.resolve("tests").resolve("draft6"), jsts.resolve("remotes"),
-        URI.create("http://json-schema.org/draft-06/schema#"), false, false);
-  }
-
-  @TestFactory
-  DynamicNode draft7() {
-    Path jsts = Path.of("/suites").resolve("jsts");
-    return scan(jsts.resolve("tests").resolve("draft7"), jsts.resolve("remotes"),
-        URI.create("http://json-schema.org/draft-07/schema#"), true, false);
-  }
-
-  @TestFactory
-  DynamicNode draft7Own() {
-    Path jsts = Path.of("/suites").resolve("jsts");
-    return scan(jsts.resolve("tests").resolve("draft7"), jsts.resolve("remotes"),
-        URI.create("http://json-schema.org/draft-07/schema#"), false, false);
-  }
-
-  @TestFactory
-  DynamicNode draft2019_09() {
-    Path jsts = Path.of("/suites").resolve("jsts");
-    return scan(jsts.resolve("tests").resolve("draft2019-09"), jsts.resolve("remotes"),
-        URI.create("https://json-schema.org/draft/2019-09/schema"), true, false);
-  }
-
-  @TestFactory
-  DynamicNode draft2019_09own() {
-    Path jsts = Path.of("/suites").resolve("jsts");
-    return scan(jsts.resolve("tests").resolve("draft2019-09"), jsts.resolve("remotes"),
-        URI.create("https://json-schema.org/draft/2019-09/schema"), false, false);
-  }
-
-  @TestFactory
-  DynamicNode draft7SchemaOnly() {
-    Path jsts = Path.of("/suites").resolve("jsts");
-    return scan(jsts.resolve("tests").resolve("draft7"), jsts.resolve("remotes"),
-        URI.create("http://json-schema.org/draft-07/schema#"), true, true);
-  }
-
   private static DynamicNode scan(
       Path testDir, Path remotes, URI metaSchema, boolean everit, boolean schemaOnly) {
     Collection<DynamicNode> allFileTests = new ArrayList<>();
@@ -187,8 +104,8 @@ public class SuiteTest {
             URI local = new URI("memory", "local", null, null);
             documentSource.store(local, schema);
             SchemaStore schemaStore = new SchemaStore(documentSource);
-            net.jimblackler.jsonschematypes.Schema schema1 =
-                schemaStore.getSchema(local, URI.create("http://json-schema.org/draft-07/schema#"));
+            net.jimblackler.jsonschematypes.Schema schema1 = schemaStore.validateAndGet(
+                local, URI.create("http://json-schema.org/draft-07/schema#"));
 
             System.out.println("Test:");
             System.out.println(test.toString(2));
@@ -236,7 +153,7 @@ public class SuiteTest {
               try {
                 everitSchema.validate(data);
               } catch (ValidationException ex) {
-                System.out.println(ex.toJSON().toString());
+                System.out.println(ex.toJSON());
                 failures = ex.getAllMessages();
               } catch (Exception e) {
                 fail(e);
@@ -274,7 +191,7 @@ public class SuiteTest {
         SchemaStore schemaStore = new SchemaStore(documentSource);
         URI local = new URI("memory", "local", null, null);
         documentSource.store(local, schema);
-        schemaStore.validateAndGet(local);
+        schemaStore.validateAndGet(local, URI.create("http://json-schema.org/draft-07/schema#"));
       }));
     }
     if (everit) {
@@ -284,5 +201,89 @@ public class SuiteTest {
     } else {
       return dynamicContainer(testSet.getString("description"), ownTests);
     }
+  }
+
+  @TestFactory
+  DynamicNode own() {
+    Path own = Path.of("/suites").resolve("own");
+    return scan(own, own.resolve("remotes"), URI.create("http://json-schema.org/draft-07/schema#"),
+        true, false);
+  }
+
+  @TestFactory
+  DynamicNode draft3Own() {
+    Path jsts = Path.of("/suites").resolve("jsts");
+    return scan(jsts.resolve("tests").resolve("draft3"), jsts.resolve("remotes"),
+        URI.create("http://json-schema.org/draft-03/schema#"), false, false);
+  }
+
+  @TestFactory
+  DynamicNode draft4() {
+    Path jsts = Path.of("/suites").resolve("jsts");
+    return scan(jsts.resolve("tests").resolve("draft4"), jsts.resolve("remotes"),
+        URI.create("http://json-schema.org/draft-04/schema#"), true, false);
+  }
+
+  @TestFactory
+  DynamicNode draft4Own() {
+    Path jsts = Path.of("/suites").resolve("jsts");
+    return scan(jsts.resolve("tests").resolve("draft4"), jsts.resolve("remotes"),
+        URI.create("http://json-schema.org/draft-04/schema#"), false, false);
+  }
+
+  @TestFactory
+  DynamicNode forwardsCompatibilitySpecialTest() {
+    Path jsts = Path.of("/suites").resolve("jsts");
+    return scan(jsts.resolve("tests").resolve("draft7"), jsts.resolve("remotes"),
+        URI.create("http://json-schema.org/draft-06/schema#"), false, false);
+  }
+
+  @TestFactory
+  DynamicNode draft6() {
+    Path jsts = Path.of("/suites").resolve("jsts");
+    return scan(jsts.resolve("tests").resolve("draft6"), jsts.resolve("remotes"),
+        URI.create("http://json-schema.org/draft-06/schema#"), true, false);
+  }
+
+  @TestFactory
+  DynamicNode draft6Own() {
+    Path jsts = Path.of("/suites").resolve("jsts");
+    return scan(jsts.resolve("tests").resolve("draft6"), jsts.resolve("remotes"),
+        URI.create("http://json-schema.org/draft-06/schema#"), false, false);
+  }
+
+  @TestFactory
+  DynamicNode draft7() {
+    Path jsts = Path.of("/suites").resolve("jsts");
+    return scan(jsts.resolve("tests").resolve("draft7"), jsts.resolve("remotes"),
+        URI.create("http://json-schema.org/draft-07/schema#"), true, false);
+  }
+
+  @TestFactory
+  DynamicNode draft7Own() {
+    Path jsts = Path.of("/suites").resolve("jsts");
+    return scan(jsts.resolve("tests").resolve("draft7"), jsts.resolve("remotes"),
+        URI.create("http://json-schema.org/draft-07/schema#"), false, false);
+  }
+
+  @TestFactory
+  DynamicNode draft2019_09() {
+    Path jsts = Path.of("/suites").resolve("jsts");
+    return scan(jsts.resolve("tests").resolve("draft2019-09"), jsts.resolve("remotes"),
+        URI.create("https://json-schema.org/draft/2019-09/schema"), true, false);
+  }
+
+  @TestFactory
+  DynamicNode draft2019_09own() {
+    Path jsts = Path.of("/suites").resolve("jsts");
+    return scan(jsts.resolve("tests").resolve("draft2019-09"), jsts.resolve("remotes"),
+        URI.create("https://json-schema.org/draft/2019-09/schema"), false, false);
+  }
+
+  @TestFactory
+  DynamicNode draft7SchemaOnly() {
+    Path jsts = Path.of("/suites").resolve("jsts");
+    return scan(jsts.resolve("tests").resolve("draft7"), jsts.resolve("remotes"),
+        URI.create("http://json-schema.org/draft-07/schema#"), true, true);
   }
 }

@@ -14,7 +14,8 @@ class IdRefMap {
   private final Collection<URI> mapped = new HashSet<>();
 
   void map(JSONObject baseDocument, URI uri, URI activeId, JSONObject metaSchemaDocument) {
-    String idKey = metaSchemaDocument.getJSONObject("properties").has("$id") ? "$id" : "id";
+    JSONObject properties = metaSchemaDocument.optJSONObject("properties");
+    String idKey = properties == null || properties.has("$id") ? "$id" : "id";
 
     Object object = PathUtils.fetchFromPath(baseDocument, uri.getRawFragment());
     if (object instanceof JSONObject) {
@@ -33,7 +34,7 @@ class IdRefMap {
 
       Object refObject = jsonObject.opt("$ref");
       if (refObject instanceof String) {
-        String ref = (String) refObject;
+        String ref = PathUtils.refPathEscape((String) refObject);
         URI resolveWith = activeId == null || ref.startsWith("#") ? uri : activeId;
         refs.put(uri, resolveWith.resolve(URI.create(ref)));
       }

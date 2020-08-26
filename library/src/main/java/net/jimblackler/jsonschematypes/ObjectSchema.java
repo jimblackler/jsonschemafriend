@@ -104,10 +104,12 @@ public class ObjectSchema extends Schema {
     // they shouldn't.
     JSONObject jsonObject = new JSONObject();
     {
-      JSONObject props = metaSchemaDocument.getJSONObject("properties");
-      for (String property : props.keySet()) {
-        if (jsonObjectOriginal.has(property)) {
-          jsonObject.put(property, jsonObjectOriginal.get(property));
+      JSONObject properties = metaSchemaDocument.optJSONObject("properties");
+      if (properties != null) {
+        for (String property : properties.keySet()) {
+          if (jsonObjectOriginal.has(property)) {
+            jsonObject.put(property, jsonObjectOriginal.get(property));
+          }
         }
       }
     }
@@ -353,6 +355,7 @@ public class ObjectSchema extends Schema {
       object = PathUtils.fetchFromPath(document, uri.getRawFragment());
       if (object == null) {
         errorConsumer.accept(error(document, uri, "Could not locate " + uri));
+        return;
       }
     } else {
       // Query part can carry a string for validation while preserving the rest of the URI for error
