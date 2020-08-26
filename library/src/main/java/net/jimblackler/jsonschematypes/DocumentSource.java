@@ -1,6 +1,7 @@
 package net.jimblackler.jsonschematypes;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.PrintWriter;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
@@ -10,7 +11,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Scanner;
 import org.json.JSONArray;
-import org.json.JSONException;
 import org.json.JSONObject;
 
 public class DocumentSource {
@@ -21,15 +21,25 @@ public class DocumentSource {
     this.rewriters = rewriters;
   }
 
-  public Object fetchDocument(URI url) throws GenerationException {
-    if (url.getRawFragment() != null && !url.getRawFragment().isEmpty()) {
+  private static String streamToString(InputStream inputStream) {
+    String content;
+    try (Scanner scanner = new Scanner(inputStream, StandardCharsets.UTF_8)) {
+      content = scanner.useDelimiter("\\A").next();
+    }
+    return content;
+  }
+
+  public Object fetchDocument(URI originalUrl) throws GenerationException {
+    if (memoryCache.containsKey(originalUrl)) {
+      return memoryCache.get(originalUrl);
+    }
+    if (originalUrl.getRawFragment() != null && !originalUrl.getRawFragment().isEmpty()) {
       throw new GenerationException("Not a base document");
     }
+
+    URI url = originalUrl;
     for (UrlRewriter rewriter : rewriters) {
       url = rewriter.rewrite(url);
-    }
-    if (memoryCache.containsKey(url)) {
-      return memoryCache.get(url);
     }
 
     boolean useDiskCache = "http".equals(url.getScheme()) || "https".equals(url.getScheme());
@@ -42,8 +52,8 @@ public class DocumentSource {
 
     String content;
 
-    try (Scanner scanner = new Scanner(url.toURL().openStream(), StandardCharsets.UTF_8)) {
-      content = scanner.useDelimiter("\\A").next();
+    try {
+      content = streamToString(url.toURL().openStream());
     } catch (IllegalArgumentException | IOException e) {
       throw new GenerationException("Error fetching " + url, e);
     }
@@ -57,13 +67,18 @@ public class DocumentSource {
       }
     }
 
+    content = content.replaceAll("[\uFEFF-\uFFFF]", ""); // Strip the dreaded FEFF.
+    content = content.strip();
     Object object;
-    try {
+    char firstChar = content.charAt(0);
+    if (firstChar == '[') {
       object = new JSONArray(content);
-    } catch (JSONException e) {
+    } else if (firstChar == '{') {
       object = new JSONObject(content);
+    } else {
+      throw new GenerationException(originalUrl + " doesn't look like JSON.");
     }
-    memoryCache.put(url, object);
+    memoryCache.put(originalUrl, object);
     return object;
   }
 
