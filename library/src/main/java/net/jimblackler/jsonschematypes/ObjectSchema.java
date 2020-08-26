@@ -695,26 +695,14 @@ public class ObjectSchema extends Schema {
       return;
     }
 
-    Set<String> typesIn = new HashSet<>(types);
+    Collection<String> typesIn = new HashSet<>(types);
     typesIn.retainAll(this.types);
     if (!typesIn.isEmpty()) {
       return;
     }
 
-    String part1;
-    if (types.size() == 1) {
-      part1 = "type " + types.iterator().next() + " ";
-    } else {
-      part1 = "one of: " + String.join(", ", types) + " ";
-    }
-
-    String part2;
-    if (this.types.size() == 1) {
-      part2 = "not " + this.types.iterator().next();
-    } else {
-      part2 = "not one of: " + String.join(", ", this.types);
-    }
-
-    errorConsumer.accept(error(document, path, "Object is " + part1 + part2));
+    errorConsumer.accept(error(document, path,
+        "Expected: [" + String.join(", ", this.types) + "] "
+            + "Found: [" + String.join(", ", types) + "]"));
   }
 }

@@ -34,14 +34,15 @@ public class SchemaStore {
     // This can't be done inside the Schema builder because the schema's meta-schema might be in its
     // own graph, so the meta-schema won't be built in full when it's first available.
     if (schemaObject instanceof JSONObject) {
-      JSONObject schemaJson = (JSONObject) schemaObject;
-      URI metaSchemaUri = defaultMetaSchema == null ? URI.create(schemaJson.getString("$schema"))
-                                                    : defaultMetaSchema;
+      String schemaValue = ((JSONObject) schemaObject).optString("$schema");
+      URI metaSchemaUri = schemaValue.isEmpty() ? defaultMetaSchema : URI.create(schemaValue);
       Schema metaSchema = getSchema(metaSchemaUri, metaSchemaUri);
       List<ValidationError> errors = new ArrayList<>();
       metaSchema.validate(schemaObject, ROOT, errors::add);
       if (!errors.isEmpty()) {
-        throw new GenerationException(errors.toString());
+        throw new GenerationException(errors.stream()
+                                          .map(Object::toString)
+                                          .collect(Collectors.joining(System.lineSeparator())));
       }
     }
 
