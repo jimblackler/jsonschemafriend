@@ -3,7 +3,6 @@ package net.jimblackler.codegen;
 import com.sun.codemodel.JClassAlreadyExistsException;
 import com.sun.codemodel.JCodeModel;
 import com.sun.codemodel.JDefinedClass;
-import com.sun.codemodel.JExpr;
 import com.sun.codemodel.JFieldVar;
 import com.sun.codemodel.JMethod;
 import com.sun.codemodel.JMod;
@@ -50,8 +49,6 @@ public class CodeGenerator {
         throw new IllegalStateException(e);
       }
     }
-
-    // Generate the code
     jCodeModel.build(outPath.toFile());
   }
 
@@ -65,21 +62,14 @@ public class CodeGenerator {
     try {
       JDefinedClass _class = jPackage._class(name);
       builtClasses.put(schema.getUri(), _class);
-      _class.javadoc().add(schema.getUri().toString());
+      _class.javadoc().add("Created from " + schema.getUri());
 
-      _class.constructor(JMod.PUBLIC);
       _class.constructor(JMod.PUBLIC).param(JSONObject.class, "object");
 
-      _class.field(JMod.STATIC | JMod.FINAL, Long.class, "serialVersionUID", JExpr.lit(1L));
-      JFieldVar quantity = _class.field(JMod.PRIVATE, Integer.class, "quantity");
+      JFieldVar jsonObject = _class.field(JMod.FINAL, JSONObject.class, "jsonObject");
 
-      JMethod getter = _class.method(JMod.PUBLIC, quantity.type(), "getQuantity");
-      getter.body()._return(quantity);
-      getter.javadoc().addReturn().add(quantity.name());
-
-      JMethod setter = _class.method(JMod.PUBLIC, jCodeModel.VOID, "setQuantity");
-      setter.param(quantity.type(), quantity.name());
-      setter.body().assign(JExpr._this().ref(quantity.name()), JExpr.ref(quantity.name()));
+      JMethod getter = _class.method(JMod.PUBLIC, JSONObject.class, "getJsonObject");
+      getter.body()._return(jsonObject);
 
       return _class;
     } catch (JClassAlreadyExistsException e) {
