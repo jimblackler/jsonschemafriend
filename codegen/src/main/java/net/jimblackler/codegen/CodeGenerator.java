@@ -8,13 +8,11 @@ import com.sun.codemodel.JFieldVar;
 import com.sun.codemodel.JMethod;
 import com.sun.codemodel.JMod;
 import com.sun.codemodel.JPackage;
-
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.Serializable;
 import java.net.URI;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
@@ -22,55 +20,56 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Comparator;
 import java.util.stream.Stream;
-
 import net.jimblackler.jsonschematypes.GenerationException;
 import net.jimblackler.jsonschematypes.Schema;
 import net.jimblackler.jsonschematypes.SchemaStore;
+import org.json.JSONObject;
 
 public class CodeGenerator {
-  static void generate(Schema schema, Path outPath, String _package) {
+  static void generate(Schema schema, Path outPath, String _package) throws IOException {
+    JCodeModel codeModel = new JCodeModel();
+    JPackage jp = codeModel._package(_package);
+
+    String name = nameForSchema(schema);
+
     try {
-      JCodeModel codeModel = new JCodeModel();
-      JPackage jp = codeModel._package(_package);
+      JDefinedClass _class = jp._class(name);
+      _class.javadoc().add(schema.getUri().toString());
 
-      // Create a new class
-      String name = schema.getUri().toString();
-      name = "Test0";
-      JDefinedClass jc = jp._class(name);
+      _class.constructor(JMod.PUBLIC);
+      _class.constructor(JMod.PUBLIC).param(JSONObject.class, "object");
 
-      // Implement Serializable
-      jc._implements(Serializable.class);
+      _class.field(JMod.STATIC | JMod.FINAL, Long.class, "serialVersionUID", JExpr.lit(1L));
+      JFieldVar quantity = _class.field(JMod.PRIVATE, Integer.class, "quantity");
 
-      // Add Javadoc
-      jc.javadoc().add("A JCodeModel example.");
-
-      // Add default constructor
-      jc.constructor(JMod.PUBLIC).javadoc().add("Creates a new " + jc.name() + ".");
-
-      // Add constant serializable id
-      jc.field(JMod.STATIC | JMod.FINAL, Long.class, "serialVersionUID", JExpr.lit(1L));
-
-      // Add private variable
-      JFieldVar quantity = jc.field(JMod.PRIVATE, Integer.class, "quantity");
-
-      // Add get method
-      JMethod getter = jc.method(JMod.PUBLIC, quantity.type(), "getQuantity");
+      JMethod getter = _class.method(JMod.PUBLIC, quantity.type(), "getQuantity");
       getter.body()._return(quantity);
-      getter.javadoc().add("Returns the quantity.");
       getter.javadoc().addReturn().add(quantity.name());
 
-      // Add set method
-      JMethod setter = jc.method(JMod.PUBLIC, codeModel.VOID, "setQuantity");
+      JMethod setter = _class.method(JMod.PUBLIC, codeModel.VOID, "setQuantity");
       setter.param(quantity.type(), quantity.name());
       setter.body().assign(JExpr._this().ref(quantity.name()), JExpr.ref(quantity.name()));
-      setter.javadoc().add("Set the quantity.");
-      setter.javadoc().addParam(quantity.name()).add("the new quantity");
 
-      // Generate the code
-      codeModel.build(outPath.toFile());
-    } catch (IOException | JClassAlreadyExistsException e) {
+    } catch (JClassAlreadyExistsException e) {
       throw new IllegalStateException(e);
     }
+
+    // Generate the code
+    codeModel.build(outPath.toFile());
+  }
+
+  private static String nameForSchema(Schema schema) {
+    String[] split = schema.getUri().toString().split("/");
+    String lastPart = split[split.length - 1];
+    String namePart = lastPart.split("\\.", 2)[0];
+    return capitalizeFirst(namePart);
+  }
+
+  private static String capitalizeFirst(String in) {
+    StringBuilder out = new StringBuilder(in.length());
+    out.append(Character.toUpperCase(in.charAt(0)));
+    out.append(in.substring(1).toLowerCase());
+    return out.toString();
   }
 
   public static void outputTypes(Path outPath, String packageName, URL resource1)
