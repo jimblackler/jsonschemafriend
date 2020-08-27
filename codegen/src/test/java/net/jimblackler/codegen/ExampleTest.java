@@ -11,14 +11,14 @@ public class ExampleTest {
   public static void main(String[] args) throws IOException {
     Path base = FILE_SYSTEM.getPath("/examples");
     scan(base.resolve("fstab"));
-    scan(base.resolve("standard").resolve("7-7-1-1"));
-    scan(base.resolve("misc"));
-    scan(base.resolve("longread"));
-    scan(base.resolve("meta"));
+//    scan(base.resolve("standard").resolve("7-7-1-1"));
+//    scan(base.resolve("misc"));
+//    scan(base.resolve("longread"));
+//    scan(base.resolve("meta"));
   }
 
   private static void scan(Path testDir) throws IOException {
-    Main2.outputTypes(FILE_SYSTEM.getPath("out"), "org.example",
-        Main2.class.getResource(testDir.resolve("schemas").toString()));
+    CodeGenerator.outputTypes(FILE_SYSTEM.getPath("out"), "org.example",
+        ExampleTest.class.getResource(testDir.resolve("schemas").toString()));
   }
 }

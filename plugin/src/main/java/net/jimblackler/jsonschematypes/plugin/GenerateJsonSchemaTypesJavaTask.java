@@ -3,7 +3,8 @@ package net.jimblackler.jsonschematypes.plugin;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
-import net.jimblackler.codegen.Main2;
+
+import net.jimblackler.codegen.CodeGenerator;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.Project;
 import org.gradle.api.tasks.SourceSet;
@@ -21,6 +22,6 @@ public class GenerateJsonSchemaTypesJavaTask extends DefaultTask {
     File resourcesDir = mainSourceSet.getOutput().getResourcesDir();
     Path resources = resourcesDir.toPath().resolve(extension.getResourcesPath());
     Path codePath = Common.getCodePath(getProject());
-    Main2.outputTypes(codePath, extension.getPackageOut(), resources.toUri().toURL());
+    CodeGenerator.outputTypes(codePath, extension.getPackageOut(), resources.toUri().toURL());
   }
 }
