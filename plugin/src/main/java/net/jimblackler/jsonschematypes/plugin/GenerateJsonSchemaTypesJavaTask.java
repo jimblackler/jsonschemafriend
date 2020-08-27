@@ -3,7 +3,6 @@ package net.jimblackler.jsonschematypes.plugin;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
-
 import net.jimblackler.codegen.CodeGenerator;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.Project;
