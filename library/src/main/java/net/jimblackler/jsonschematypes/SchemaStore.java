@@ -1,17 +1,12 @@
 package net.jimblackler.jsonschematypes;
 
-import java.io.IOException;
 import java.net.URI;
-import java.net.URISyntaxException;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import org.json.JSONObject;
 
 public class SchemaStore {
@@ -22,11 +17,15 @@ public class SchemaStore {
   private final IdRefMap idRefMap = new IdRefMap();
   private final DocumentSource documentSource;
 
+  public SchemaStore() {
+    documentSource = new DocumentSource();
+  }
+
   public SchemaStore(DocumentSource documentSource) {
     this.documentSource = documentSource;
   }
 
-  Schema validateAndGet(URI uri, URI defaultMetaSchema) throws GenerationException {
+  public Schema validateAndGet(URI uri, URI defaultMetaSchema) throws GenerationException {
     Object document = documentSource.fetchDocument(PathUtils.baseDocumentFromUri(uri));
     Object schemaObject = PathUtils.fetchFromPath(document, uri.getRawFragment());
     // If we can, we fetch and build the schema's meta-schema and validate the object against it,
@@ -47,20 +46,6 @@ public class SchemaStore {
     }
 
     return getSchema(uri, defaultMetaSchema);
-  }
-
-  public void loadResources(Path resources) throws GenerationException {
-    try (Stream<Path> walk = Files.walk(resources)) {
-      for (Path path : walk.collect(Collectors.toList())) {
-        if (Files.isDirectory(path)) {
-          continue;
-        }
-        validateAndGet(new URI("file", path.toString(), null),
-            URI.create("http://json-schema.org/draft-07/schema#"));
-      }
-    } catch (IOException | URISyntaxException ex) {
-      throw new GenerationException(ex);
-    }
   }
 
   Schema getSchema(URI uri, URI defaultMetaSchema) throws GenerationException {

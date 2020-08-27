@@ -61,7 +61,7 @@ public class PathUtils {
     // For example: $ is a common character in schema paths, and it doesn't strictly require
     // escaping.
 
-    value = value.replace("%", "%25");  // % must go first
+    value = value.replace("%", "%25"); // % must go first
 
     value = value.replace("\t", "%09");
     value = value.replace("\n", "%0A");

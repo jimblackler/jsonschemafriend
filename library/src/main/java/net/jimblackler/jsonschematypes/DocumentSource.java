@@ -1,32 +1,29 @@
 package net.jimblackler.jsonschematypes;
 
+import static net.jimblackler.jsonschematypes.DocumentUtils.streamToString;
+
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.PrintWriter;
 import java.net.URI;
-import java.nio.charset.StandardCharsets;
+import java.nio.file.FileSystem;
+import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Scanner;
-import org.json.JSONArray;
-import org.json.JSONObject;
 
 public class DocumentSource {
+  public static final FileSystem FILE_SYSTEM = FileSystems.getDefault();
   private final Iterable<UrlRewriter> rewriters;
   private final Map<URI, Object> memoryCache = new HashMap<>();
 
-  public DocumentSource(Iterable<UrlRewriter> rewriters) {
-    this.rewriters = rewriters;
+  public DocumentSource() {
+    rewriters = new ArrayList<>();
   }
 
-  private static String streamToString(InputStream inputStream) {
-    String content;
-    try (Scanner scanner = new Scanner(inputStream, StandardCharsets.UTF_8)) {
-      content = scanner.useDelimiter("\\A").next();
-    }
-    return content;
+  public DocumentSource(Iterable<UrlRewriter> rewriters) {
+    this.rewriters = rewriters;
   }
 
   public Object fetchDocument(URI originalUrl) throws GenerationException {
@@ -48,7 +45,7 @@ public class DocumentSource {
     if (!path.endsWith(".json")) {
       path += ".json";
     }
-    Path diskCacheName = Path.of("cache" + path);
+    Path diskCacheName = FILE_SYSTEM.getPath("cache" + path);
     if (useDiskCache && Files.exists(diskCacheName)) {
       url = diskCacheName.toUri();
       useDiskCache = false;
@@ -62,6 +59,9 @@ public class DocumentSource {
       throw new GenerationException("Error fetching " + url, e);
     }
 
+    Object object = DocumentUtils.parseJson(content);
+    memoryCache.put(originalUrl, object);
+
     if (useDiskCache) {
       diskCacheName.getParent().toFile().mkdirs();
       try (PrintWriter out = new PrintWriter(diskCacheName.toFile())) {
@@ -71,18 +71,6 @@ public class DocumentSource {
       }
     }
 
-    content = content.replaceAll("[\uFEFF-\uFFFF]", ""); // Strip the dreaded FEFF.
-    content = content.strip();
-    Object object;
-    char firstChar = content.charAt(0);
-    if (firstChar == '[') {
-      object = new JSONArray(content);
-    } else if (firstChar == '{') {
-      object = new JSONObject(content);
-    } else {
-      throw new GenerationException(originalUrl + " doesn't look like JSON.");
-    }
-    memoryCache.put(originalUrl, object);
     return object;
   }
 

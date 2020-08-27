@@ -1,4 +1,4 @@
-package net.jimblackler.jsonschematypes;
+package net.jimblackler.codegen;
 
 import com.sun.codemodel.JClassAlreadyExistsException;
 import com.sun.codemodel.JCodeModel;
@@ -11,18 +11,18 @@ import com.sun.codemodel.JPackage;
 import java.io.IOException;
 import java.io.Serializable;
 import java.nio.file.Path;
+import net.jimblackler.jsonschematypes.Schema;
 
 public class CodeGenerator {
-  static void generate(Path outPath, Path path, String _package) {
+  static void generate(Schema schema, Path outPath, String _package) {
     try {
       JCodeModel codeModel = new JCodeModel();
       JPackage jp = codeModel._package(_package);
 
-      String s = path.getFileName().toString().split("\\.")[0];
-      String converted = s.substring(0, 1).toUpperCase() + s.substring(1);
-
       // Create a new class
-      JDefinedClass jc = jp._class(converted);
+      String name = schema.getUri().toString();
+      name = "Test0";
+      JDefinedClass jc = jp._class(name);
 
       // Implement Serializable
       jc._implements(Serializable.class);

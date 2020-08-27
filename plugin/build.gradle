@@ -7,7 +7,7 @@ group = 'net.jimblackler'
 version = '0.1'
 
 dependencies {
-    implementation project(path: ':library')
+    implementation project(path: ':codegen')
 }
 
 sourceCompatibility = JavaVersion.VERSION_1_8

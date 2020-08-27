@@ -13,6 +13,8 @@ import java.io.UncheckedIOException;
 import java.net.URI;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.FileSystem;
+import java.nio.file.FileSystems;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -28,6 +30,8 @@ import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.TestFactory;
 
 public class SuiteTest {
+  public static final FileSystem FILE_SYSTEM = FileSystems.getDefault();
+
   private static DynamicNode scan(
       Path testDir, Path remotes, URI metaSchema, boolean everit, boolean schemaOnly) {
     Collection<DynamicNode> allFileTests = new ArrayList<>();
@@ -36,7 +40,7 @@ public class SuiteTest {
 
   private static DynamicNode dirScan(Path testDir, Path remotes, URI metaSchema, boolean everit,
       boolean schemaOnly, Collection<DynamicNode> allFileTests) {
-    try (InputStream inputStream = ExampleTest.class.getResourceAsStream(testDir.toString());
+    try (InputStream inputStream = SuiteTest.class.getResourceAsStream(testDir.toString());
          BufferedReader bufferedReader =
              new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8))) {
       String resource;
@@ -50,22 +54,25 @@ public class SuiteTest {
                 testDir.resolve(resource), remotes, metaSchema, everit, schemaOnly, allFileTests);
         }
       }
-    } catch (IOException | GenerationException e) {
+    } catch (IOException e) {
       throw new IllegalStateException(e);
     }
     return dynamicContainer(testDir.toString(), allFileTests);
   }
 
   private static DynamicNode jsonTestFile(Path testDir, Path remotes, String resource,
-      URI metaSchema, boolean everit, boolean schemaOnly) throws GenerationException {
+      URI metaSchema, boolean everit, boolean schemaOnly) throws IOException {
     Collection<DynamicNode> nodes = new ArrayList<>();
-    JSONArray data = (JSONArray) Utils.getJsonObject(testDir.resolve(resource).toString());
-    for (int idx = 0; idx != data.length(); idx++) {
-      JSONObject testSet = data.getJSONObject(idx);
-      if (!testSet.has("schema")) {
-        continue; // ever happens?
+    try (InputStream inputStream =
+             SuiteTest.class.getResourceAsStream(testDir.resolve(resource).toString())) {
+      JSONArray data = (JSONArray) DocumentUtils.loadJson(inputStream);
+      for (int idx = 0; idx != data.length(); idx++) {
+        JSONObject testSet = data.getJSONObject(idx);
+        if (!testSet.has("schema")) {
+          continue; // ever happens?
+        }
+        nodes.add(singleSchemaTest(testSet, remotes, metaSchema, everit, schemaOnly));
       }
-      nodes.add(singleSchemaTest(testSet, remotes, metaSchema, everit, schemaOnly));
     }
     return dynamicContainer(resource, nodes);
   }
@@ -205,84 +212,84 @@ public class SuiteTest {
 
   @TestFactory
   DynamicNode own() {
-    Path own = Path.of("/suites").resolve("own");
+    Path own = FILE_SYSTEM.getPath("/suites").resolve("own");
     return scan(own, own.resolve("remotes"), URI.create("http://json-schema.org/draft-07/schema#"),
         true, false);
   }
 
   @TestFactory
   DynamicNode draft3Own() {
-    Path jsts = Path.of("/suites").resolve("jsts");
+    Path jsts = FILE_SYSTEM.getPath("/suites").resolve("jsts");
     return scan(jsts.resolve("tests").resolve("draft3"), jsts.resolve("remotes"),
         URI.create("http://json-schema.org/draft-03/schema#"), false, false);
   }
 
   @TestFactory
   DynamicNode draft4() {
-    Path jsts = Path.of("/suites").resolve("jsts");
+    Path jsts = FILE_SYSTEM.getPath("/suites").resolve("jsts");
     return scan(jsts.resolve("tests").resolve("draft4"), jsts.resolve("remotes"),
         URI.create("http://json-schema.org/draft-04/schema#"), true, false);
   }
 
   @TestFactory
   DynamicNode draft4Own() {
-    Path jsts = Path.of("/suites").resolve("jsts");
+    Path jsts = FILE_SYSTEM.getPath("/suites").resolve("jsts");
     return scan(jsts.resolve("tests").resolve("draft4"), jsts.resolve("remotes"),
         URI.create("http://json-schema.org/draft-04/schema#"), false, false);
   }
 
   @TestFactory
   DynamicNode forwardsCompatibilitySpecialTest() {
-    Path jsts = Path.of("/suites").resolve("jsts");
+    Path jsts = FILE_SYSTEM.getPath("/suites").resolve("jsts");
     return scan(jsts.resolve("tests").resolve("draft7"), jsts.resolve("remotes"),
         URI.create("http://json-schema.org/draft-06/schema#"), false, false);
   }
 
   @TestFactory
   DynamicNode draft6() {
-    Path jsts = Path.of("/suites").resolve("jsts");
+    Path jsts = FILE_SYSTEM.getPath("/suites").resolve("jsts");
     return scan(jsts.resolve("tests").resolve("draft6"), jsts.resolve("remotes"),
         URI.create("http://json-schema.org/draft-06/schema#"), true, false);
   }
 
   @TestFactory
   DynamicNode draft6Own() {
-    Path jsts = Path.of("/suites").resolve("jsts");
+    Path jsts = FILE_SYSTEM.getPath("/suites").resolve("jsts");
     return scan(jsts.resolve("tests").resolve("draft6"), jsts.resolve("remotes"),
         URI.create("http://json-schema.org/draft-06/schema#"), false, false);
   }
 
   @TestFactory
   DynamicNode draft7() {
-    Path jsts = Path.of("/suites").resolve("jsts");
+    Path jsts = FILE_SYSTEM.getPath("/suites").resolve("jsts");
     return scan(jsts.resolve("tests").resolve("draft7"), jsts.resolve("remotes"),
         URI.create("http://json-schema.org/draft-07/schema#"), true, false);
   }
 
   @TestFactory
   DynamicNode draft7Own() {
-    Path jsts = Path.of("/suites").resolve("jsts");
+    Path jsts = FILE_SYSTEM.getPath("/suites").resolve("jsts");
     return scan(jsts.resolve("tests").resolve("draft7"), jsts.resolve("remotes"),
         URI.create("http://json-schema.org/draft-07/schema#"), false, false);
   }
 
   @TestFactory
   DynamicNode draft2019_09() {
-    Path jsts = Path.of("/suites").resolve("jsts");
+    Path jsts = FILE_SYSTEM.getPath("/suites").resolve("jsts");
     return scan(jsts.resolve("tests").resolve("draft2019-09"), jsts.resolve("remotes"),
         URI.create("https://json-schema.org/draft/2019-09/schema"), true, false);
   }
 
   @TestFactory
   DynamicNode draft2019_09own() {
-    Path jsts = Path.of("/suites").resolve("jsts");
+    Path jsts = FILE_SYSTEM.getPath("/suites").resolve("jsts");
     return scan(jsts.resolve("tests").resolve("draft2019-09"), jsts.resolve("remotes"),
         URI.create("https://json-schema.org/draft/2019-09/schema"), false, false);
   }
 
   @TestFactory
   DynamicNode draft7SchemaOnly() {
-    Path jsts = Path.of("/suites").resolve("jsts");
+    Path jsts = FILE_SYSTEM.getPath("/suites").resolve("jsts");
     return scan(jsts.resolve("tests").resolve("draft7"), jsts.resolve("remotes"),
         URI.create("http://json-schema.org/draft-07/schema#"), true, true);
   }

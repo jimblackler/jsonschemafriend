@@ -1,4 +1,5 @@
 rootProject.name = 'jsonschematypes'
 
+include ':codegen'
 include ':library'
 include ':plugin'

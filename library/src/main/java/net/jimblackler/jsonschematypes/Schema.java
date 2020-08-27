@@ -12,7 +12,7 @@ public abstract class Schema {
     schemaStore.register(uri, this);
   }
 
-  URI getUri() {
+  public URI getUri() {
     return uri;
   }
 

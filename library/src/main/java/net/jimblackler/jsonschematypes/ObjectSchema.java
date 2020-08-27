@@ -225,7 +225,9 @@ public class ObjectSchema extends Schema {
           schemaDependencies.put(dependency,
               schemaStore.getSchema(append(dependenciesPpinter, dependency), defaultMetaSchema));
         } else {
-          dependencies.put(dependency, List.of((String) dependencyObject));
+          Collection<String> objects = new ArrayList<>();
+          objects.add((String) dependencyObject);
+          dependencies.put(dependency, objects);
         }
       }
     }
@@ -260,7 +262,7 @@ public class ObjectSchema extends Schema {
         }
       }
     } else if (typeObject instanceof String) {
-      types = Set.of(typeObject.toString());
+      types = setOf(typeObject.toString());
     } else {
       types = null;
     }
@@ -347,6 +349,13 @@ public class ObjectSchema extends Schema {
     return null;
   }
 
+  private static Set<String> setOf(String string) {
+    // Set.of() is only available in Java 9+. We try to keep the libary as compatible as possible.
+    Set<String> set = new HashSet<>();
+    set.add(string);
+    return set;
+  }
+
   @Override
   public void validate(Object document, URI uri, Consumer<ValidationError> errorConsumer) {
     Object object;
@@ -417,11 +426,11 @@ public class ObjectSchema extends Schema {
       if (pattern != null && !pattern.matches(string)) {
         errorConsumer.accept(error(document, uri, "Pattern did not match"));
       }
-      typeCheck(document, uri, Set.of("string"), disallow, errorConsumer);
+      typeCheck(document, uri, setOf("string"), disallow, errorConsumer);
     } else if (object instanceof Boolean) {
-      typeCheck(document, uri, Set.of("boolean"), disallow, errorConsumer);
+      typeCheck(document, uri, setOf("boolean"), disallow, errorConsumer);
     } else if (object instanceof JSONArray) {
-      typeCheck(document, uri, Set.of("array"), disallow, errorConsumer);
+      typeCheck(document, uri, setOf("array"), disallow, errorConsumer);
       JSONArray jsonArray = (JSONArray) object;
       if (itemsArray != null) {
         if (jsonArray.length() > itemsArray.size() && additionalItems != null) {
@@ -473,7 +482,7 @@ public class ObjectSchema extends Schema {
         }
       }
     } else if (object instanceof JSONObject) {
-      typeCheck(document, uri, Set.of("object"), disallow, errorConsumer);
+      typeCheck(document, uri, setOf("object"), disallow, errorConsumer);
       JSONObject jsonObject = (JSONObject) object;
       if (maxProperties != null && jsonObject.length() > maxProperties.intValue()) {
         errorConsumer.accept(error(document, uri, "Too mamy properties"));
@@ -556,7 +565,7 @@ public class ObjectSchema extends Schema {
       }
 
     } else if (object == JSONObject.NULL) {
-      typeCheck(document, uri, Set.of("null"), disallow, errorConsumer);
+      typeCheck(document, uri, setOf("null"), disallow, errorConsumer);
     } else {
       errorConsumer.accept(
           error(document, uri, "Cannot validate type " + object.getClass().getSimpleName()));
