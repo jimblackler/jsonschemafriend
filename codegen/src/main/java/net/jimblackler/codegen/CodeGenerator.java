@@ -9,31 +9,62 @@ import com.sun.codemodel.JMethod;
 import com.sun.codemodel.JMod;
 import com.sun.codemodel.JPackage;
 import java.io.BufferedReader;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URI;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Comparator;
-import java.util.stream.Stream;
+import java.util.HashMap;
+import java.util.Map;
 import net.jimblackler.jsonschematypes.GenerationException;
 import net.jimblackler.jsonschematypes.Schema;
 import net.jimblackler.jsonschematypes.SchemaStore;
 import org.json.JSONObject;
 
 public class CodeGenerator {
-  static void generate(Schema schema, Path outPath, String _package) throws IOException {
-    JCodeModel codeModel = new JCodeModel();
-    JPackage jp = codeModel._package(_package);
+  private final JPackage jPackage;
+  private final JCodeModel jCodeModel;
+  private final Map<URI, JDefinedClass> builtClasses = new HashMap<>();
+
+  public CodeGenerator(Path outPath, String packageName, URL resource1) throws IOException {
+    jCodeModel = new JCodeModel();
+    jPackage = jCodeModel._package(packageName);
+
+    SchemaStore schemaStore = new SchemaStore();
+    URI defaultMetaSchema = URI.create("http://json-schema.org/draft-07/schema#");
+
+    try (InputStream stream = resource1.openStream()) {
+      try (BufferedReader bufferedReader =
+               new BufferedReader(new InputStreamReader(stream, StandardCharsets.UTF_8))) {
+        String resource;
+        while ((resource = bufferedReader.readLine()) != null) {
+          if (resource.endsWith(".json")) {
+            URI uri = URI.create(resource1 + "/" + resource);
+            Schema schema = schemaStore.validateAndGet(uri, defaultMetaSchema);
+            getClass(schema);
+          }
+        }
+      } catch (IOException | GenerationException e) {
+        throw new IllegalStateException(e);
+      }
+    }
+
+    // Generate the code
+    jCodeModel.build(outPath.toFile());
+  }
+
+  private JDefinedClass getClass(Schema schema) {
+    if (builtClasses.containsKey(schema.getUri())) {
+      return builtClasses.get(schema.getUri());
+    }
 
     String name = nameForSchema(schema);
 
     try {
-      JDefinedClass _class = jp._class(name);
+      JDefinedClass _class = jPackage._class(name);
+      builtClasses.put(schema.getUri(), _class);
       _class.javadoc().add(schema.getUri().toString());
 
       _class.constructor(JMod.PUBLIC);
@@ -46,16 +77,14 @@ public class CodeGenerator {
       getter.body()._return(quantity);
       getter.javadoc().addReturn().add(quantity.name());
 
-      JMethod setter = _class.method(JMod.PUBLIC, codeModel.VOID, "setQuantity");
+      JMethod setter = _class.method(JMod.PUBLIC, jCodeModel.VOID, "setQuantity");
       setter.param(quantity.type(), quantity.name());
       setter.body().assign(JExpr._this().ref(quantity.name()), JExpr.ref(quantity.name()));
 
+      return _class;
     } catch (JClassAlreadyExistsException e) {
       throw new IllegalStateException(e);
     }
-
-    // Generate the code
-    codeModel.build(outPath.toFile());
   }
 
   private static String nameForSchema(Schema schema) {
@@ -70,35 +99,5 @@ public class CodeGenerator {
     out.append(Character.toUpperCase(in.charAt(0)));
     out.append(in.substring(1).toLowerCase());
     return out.toString();
-  }
-
-  public static void outputTypes(Path outPath, String packageName, URL resource1)
-      throws IOException {
-    if (Files.exists(outPath)) {
-      // Empty the directory if it already exists.
-      try (Stream<Path> files = Files.walk(outPath)) {
-        files.sorted(Comparator.reverseOrder()).map(Path::toFile).forEach(File::delete);
-      }
-    }
-    Files.createDirectories(outPath);
-
-    SchemaStore schemaStore = new SchemaStore();
-    URI defaultMetaSchema = URI.create("http://json-schema.org/draft-07/schema#");
-
-    try (InputStream stream = resource1.openStream()) {
-      try (BufferedReader bufferedReader =
-               new BufferedReader(new InputStreamReader(stream, StandardCharsets.UTF_8))) {
-        String resource;
-        while ((resource = bufferedReader.readLine()) != null) {
-          if (resource.endsWith(".json")) {
-            URI uri = URI.create(resource1 + "/" + resource);
-            Schema schema = schemaStore.validateAndGet(uri, defaultMetaSchema);
-            generate(schema, outPath, packageName);
-          }
-        }
-      } catch (IOException | GenerationException e) {
-        throw new IllegalStateException(e);
-      }
-    }
   }
 }
