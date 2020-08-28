@@ -27,9 +27,8 @@ public class GenerateJsonSchemaTypesJavaTask extends DefaultTask {
     Path resources = resourcesDir.toPath().resolve(extension.getResourcesPath());
     Path codePath = Common.getCodePath(getProject());
 
-    String packageOut = extension.getPackageOut();
-    FileUtils.createOrEmpty(FILE_SYSTEM.getPath(packageOut));
+    FileUtils.createOrEmpty(codePath);
     CodeGenerator codeGenerator =
-        new CodeGenerator(codePath, packageOut, resources.toUri().toURL());
+        new CodeGenerator(codePath, extension.getPackageOut(), resources.toUri().toURL());
   }
 }
