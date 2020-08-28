@@ -1,6 +1,7 @@
 package net.jimblackler.jsonschematypes;
 
 import java.net.URI;
+import java.util.Map;
 import java.util.function.Consumer;
 
 public class BooleanSchema extends Schema {
@@ -16,5 +17,10 @@ public class BooleanSchema extends Schema {
     if (!value) {
       errorConsumer.accept(error(document, path, "Boolean schema was false"));
     }
+  }
+
+  @Override
+  public Map<String, Schema> getProperties() {
+    return null;
   }
 }

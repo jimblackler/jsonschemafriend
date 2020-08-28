@@ -655,6 +655,11 @@ public class ObjectSchema extends Schema {
     }
   }
 
+  @Override
+  public Map<String, Schema> getProperties() {
+    return _properties;
+  }
+
   private Object rewriteObject(Object object) {
     if (!(object instanceof String)) {
       return object;

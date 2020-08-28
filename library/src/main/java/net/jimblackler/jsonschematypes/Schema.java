@@ -1,6 +1,7 @@
 package net.jimblackler.jsonschematypes;
 
 import java.net.URI;
+import java.util.Map;
 import java.util.function.Consumer;
 
 public abstract class Schema {
@@ -26,4 +27,6 @@ public abstract class Schema {
   }
 
   abstract void validate(Object document, URI path, Consumer<ValidationError> errorConsumer);
+
+  public abstract Map<String, Schema> getProperties();
 }
