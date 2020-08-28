@@ -22,8 +22,8 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.logging.Logger;
-
 import net.jimblackler.jsonschematypes.GenerationException;
+import net.jimblackler.jsonschematypes.ObjectSchema;
 import net.jimblackler.jsonschematypes.Schema;
 import net.jimblackler.jsonschematypes.SchemaStore;
 import org.json.JSONArray;
@@ -63,10 +63,16 @@ public class CodeGenerator {
     jCodeModel.build(outPath.toFile());
   }
 
-  private JDefinedClass getClass(Schema schema) {
-    if (builtClasses.containsKey(schema.getUri())) {
-      return builtClasses.get(schema.getUri());
+  private JDefinedClass getClass(Schema schema1) {
+    if (builtClasses.containsKey(schema1.getUri())) {
+      return builtClasses.get(schema1.getUri());
     }
+
+    if (!schema1.isObjectSchema()) {
+      throw new IllegalStateException("Not sure what to do with these yet");
+    }
+
+    ObjectSchema schema = schema1.asObjectSchema();
 
     String name = nameForSchema(schema);
     name = makeUnique(name);
@@ -110,7 +116,7 @@ public class CodeGenerator {
           propertyGetter.body()._return(
               JExpr._new(propertyJClass)
                   .arg(JExpr.invoke(JExpr.cast(jCodeModel.ref(JSONObject.class), object), "get")
-                      .arg(propertyName)));
+                           .arg(propertyName)));
         }
       }
 

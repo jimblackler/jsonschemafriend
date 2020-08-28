@@ -1,7 +1,6 @@
 package net.jimblackler.jsonschematypes;
 
 import java.net.URI;
-import java.util.Map;
 import java.util.function.Consumer;
 
 public class BooleanSchema extends Schema {
@@ -20,7 +19,12 @@ public class BooleanSchema extends Schema {
   }
 
   @Override
-  public Map<String, Schema> getProperties() {
+  public boolean isObjectSchema() {
+    return false;
+  }
+
+  @Override
+  public ObjectSchema asObjectSchema() {
     return null;
   }
 }

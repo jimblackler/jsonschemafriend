@@ -656,6 +656,15 @@ public class ObjectSchema extends Schema {
   }
 
   @Override
+  public boolean isObjectSchema() {
+    return true;
+  }
+
+  @Override
+  public ObjectSchema asObjectSchema() {
+    return this;
+  }
+
   public Map<String, Schema> getProperties() {
     return _properties;
   }
