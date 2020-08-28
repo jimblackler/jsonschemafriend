@@ -25,6 +25,10 @@ public abstract class Schema {
     return new ValidationError(path, document, message, this);
   }
 
+  void validate(Object document, Consumer<ValidationError> errorConsumer) {
+    validate(document, URI.create(""), errorConsumer);
+  }
+
   abstract void validate(Object document, URI path, Consumer<ValidationError> errorConsumer);
 
   public abstract boolean isObjectSchema();

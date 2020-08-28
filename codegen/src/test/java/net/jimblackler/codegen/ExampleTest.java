@@ -10,10 +10,10 @@ public class ExampleTest {
 
   public static void main(String[] args) throws IOException {
     Path base = FILE_SYSTEM.getPath("/examples");
-    scan(base.resolve("fstab"));
+    //    scan(base.resolve("fstab"));
     //    scan(base.resolve("standard").resolve("7-7-1-1"));
     //    scan(base.resolve("misc"));
-    //    scan(base.resolve("longread"));
+    scan(base.resolve("longread"));
     //    scan(base.resolve("meta"));
   }
 

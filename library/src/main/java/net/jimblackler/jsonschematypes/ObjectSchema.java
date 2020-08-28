@@ -21,6 +21,10 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.json.JSONPointer;
 
+/**
+ * A schema defined by an object. "Object" refers to the type in the definition, not the type of
+ * data it validates.
+ */
 public class ObjectSchema extends Schema {
   private final JSONObject schemaJson; // Kept for debugging only.
 

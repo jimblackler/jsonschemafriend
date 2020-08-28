@@ -24,7 +24,7 @@ public class FromInternet {
           URI uri = URI.create(str);
           System.out.println(uri);
           SchemaStore schemaStore = new SchemaStore();
-          schemaStore.validateAndGet(uri, URI.create("http://json-schema.org/draft-07/schema#"));
+          schemaStore.createSchema(uri);
         }));
       }
     }

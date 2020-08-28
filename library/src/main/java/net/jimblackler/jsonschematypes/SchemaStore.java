@@ -16,6 +16,7 @@ public class SchemaStore {
   private final Map<URI, Schema> builtSchemas = new HashMap<>();
   private final IdRefMap idRefMap = new IdRefMap();
   private final DocumentSource documentSource;
+  private int memorySchemaNumber;
 
   public SchemaStore() {
     documentSource = new DocumentSource();
@@ -25,7 +26,20 @@ public class SchemaStore {
     this.documentSource = documentSource;
   }
 
-  public Schema validateAndGet(URI uri, URI defaultMetaSchema) throws GenerationException {
+  public Schema createSchema(JSONObject jsonObject) throws GenerationException {
+    // Every document needs a URI. We generate a nice short one. If the client needs it, it can be
+    // obtained via schema.getUri();
+    URI uri = URI.create("ram://" +  memorySchemaNumber);
+    memorySchemaNumber++;
+    documentSource.store(uri, jsonObject);
+    return createSchema(uri);
+  }
+
+  public Schema createSchema(URI uri) throws GenerationException {
+    return createSchema(uri, URI.create("http://json-schema.org/draft-07/schema#"));
+  }
+
+  public Schema createSchema(URI uri, URI defaultMetaSchema) throws GenerationException {
     Object document = documentSource.fetchDocument(PathUtils.baseDocumentFromUri(uri));
     Object schemaObject = PathUtils.fetchFromPath(document, uri.getRawFragment());
     // If we can, we fetch and build the schema's meta-schema and validate the object against it,

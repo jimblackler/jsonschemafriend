@@ -3,6 +3,10 @@ package net.jimblackler.jsonschematypes;
 import java.net.URI;
 import java.util.function.Consumer;
 
+/**
+ * A schema defined by a boolean. "Boolean" refers to the type in the definition, not the type of
+ * data it validates.
+ */
 public class BooleanSchema extends Schema {
   private final boolean value;
 
@@ -25,6 +29,6 @@ public class BooleanSchema extends Schema {
 
   @Override
   public ObjectSchema asObjectSchema() {
-    return null;
+    throw new IllegalStateException("Not an object schema");
   }
 }

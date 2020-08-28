@@ -49,12 +49,13 @@ public class CodeGenerator {
                new BufferedReader(new InputStreamReader(stream, StandardCharsets.UTF_8))) {
         String resource;
         while ((resource = bufferedReader.readLine()) != null) {
-          if (resource.endsWith(".json")) {
-            URI uri =
-                URI.create(resource1 + (resource1.toString().endsWith("/") ? "" : "/") + resource);
-            Schema schema = schemaStore.validateAndGet(uri, defaultMetaSchema);
-            getClass(schema);
+          if (!resource.endsWith(".json")) {
+            continue;
           }
+          URI uri =
+              URI.create(resource1 + (resource1.toString().endsWith("/") ? "" : "/") + resource);
+          Schema schema = schemaStore.createSchema(uri, defaultMetaSchema);
+          getClass(schema);
         }
       } catch (IOException | GenerationException e) {
         throw new IllegalStateException(e);
