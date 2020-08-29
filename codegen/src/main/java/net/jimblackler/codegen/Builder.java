@@ -4,11 +4,13 @@ import com.sun.codemodel.JClassAlreadyExistsException;
 import com.sun.codemodel.JCodeModel;
 import com.sun.codemodel.JDefinedClass;
 import com.sun.codemodel.JExpr;
+import com.sun.codemodel.JExpression;
 import com.sun.codemodel.JFieldVar;
 import com.sun.codemodel.JMethod;
 import com.sun.codemodel.JMod;
 import com.sun.codemodel.JVar;
 import java.util.Map;
+import java.util.Set;
 import java.util.logging.Logger;
 import net.jimblackler.jsonschemafriend.ObjectSchema;
 import net.jimblackler.jsonschemafriend.Schema;
@@ -19,10 +21,17 @@ public class Builder {
   private static final Logger LOG = Logger.getLogger(Builder.class.getName());
   private final CodeGenerator codeGenerator;
   private final JDefinedClass jDefinedClass;
+  private final ObjectSchema schema;
 
   public Builder(CodeGenerator codeGenerator, Schema schema1) {
     this.codeGenerator = codeGenerator;
-    ObjectSchema schema = schema1.asObjectSchema();
+    schema = schema1.asObjectSchema();
+
+    Set<String> types = schema.getExplicitTypes();
+    if (types != null && types.contains("string") && types.size() == 1) {
+      jDefinedClass = null;
+      return;
+    }
 
     String name = nameForSchema(schema);
     name = codeGenerator.makeUnique(name);
@@ -31,7 +40,8 @@ public class Builder {
       JCodeModel jCodeModel = codeGenerator.getJCodeModel();
       jDefinedClass = jCodeModel._class(name);
       codeGenerator.register(schema.getUri(), this);
-      jDefinedClass.javadoc().add("Created from " + schema.getUri());
+      jDefinedClass.javadoc().add("Created from " + schema.getUri() + System.lineSeparator()
+          + schema.getJson().toString(2));
 
       JFieldVar object = jDefinedClass.field(JMod.PRIVATE | JMod.FINAL, Object.class, "object");
 
@@ -88,9 +98,17 @@ public class Builder {
 
     JMethod propertyGetter =
         holderClass.method(JMod.PUBLIC, jDefinedClass, "get" + capitalizeFirst(propertyName));
+    JExpression holderObjectAsJsonObject =
+        JExpr.cast(jCodeModel.ref(JSONObject.class), holderObject);
+    Set<String> types = schema.getExplicitTypes();
+    if (types != null && types.contains("string") && types.size() == 1) {
+      propertyGetter.body()._return(
+          JExpr.invoke(holderObjectAsJsonObject, "get").arg(propertyName));
+      return;
+    }
+
     propertyGetter.body()._return(
         JExpr._new(jDefinedClass)
-            .arg(JExpr.invoke(JExpr.cast(jCodeModel.ref(JSONObject.class), holderObject), "get")
-                     .arg(propertyName)));
+            .arg(JExpr.invoke(holderObjectAsJsonObject, "get").arg(propertyName)));
   }
 }
