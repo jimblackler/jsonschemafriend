@@ -85,4 +85,8 @@ public class CodeGenerator {
   public void register(URI uri, Builder builder) {
     builtClasses.put(uri, builder);
   }
+
+  public JPackage getJPackage() {
+    return jPackage;
+  }
 }

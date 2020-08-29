@@ -8,6 +8,7 @@ import com.sun.codemodel.JExpression;
 import com.sun.codemodel.JFieldVar;
 import com.sun.codemodel.JMethod;
 import com.sun.codemodel.JMod;
+import com.sun.codemodel.JPackage;
 import com.sun.codemodel.JVar;
 import java.util.Map;
 import java.util.Set;
@@ -28,17 +29,20 @@ public class Builder {
     schema = schema1.asObjectSchema();
 
     Set<String> types = schema.getExplicitTypes();
-    if (types != null && types.contains("string") && types.size() == 1) {
-      jDefinedClass = null;
-      return;
+    if (types != null && types.size() == 1) {
+      if (types.contains("string")) {
+        jDefinedClass = null;
+        return;
+      }
     }
 
     String name = nameForSchema(schema);
     name = codeGenerator.makeUnique(name);
 
     try {
+      JPackage jPackage = codeGenerator.getJPackage();
       JCodeModel jCodeModel = codeGenerator.getJCodeModel();
-      jDefinedClass = jCodeModel._class(name);
+      jDefinedClass = jPackage._class(name);
       codeGenerator.register(schema.getUri(), this);
       jDefinedClass.javadoc().add("Created from " + schema.getUri() + System.lineSeparator()
           + schema.getSchemaJson().toString(2));
@@ -96,19 +100,31 @@ public class Builder {
       String propertyName, JDefinedClass holderClass, JFieldVar holderObject) {
     JCodeModel jCodeModel = codeGenerator.getJCodeModel();
 
-    JMethod propertyGetter =
-        holderClass.method(JMod.PUBLIC, jDefinedClass, "get" + capitalizeFirst(propertyName));
     JExpression holderObjectAsJsonObject =
         JExpr.cast(jCodeModel.ref(JSONObject.class), holderObject);
     Set<String> types = schema.getExplicitTypes();
-    if (types != null && types.contains("string") && types.size() == 1) {
-      propertyGetter.body()._return(
-          JExpr.invoke(holderObjectAsJsonObject, "get").arg(propertyName));
-      return;
+    if (types != null && types.size() == 1) {
+      //      if (types.contains("array")) { } else
+      //      if (types.contains("boolean")) { } else
+      //      if (types.contains("integer")) { } else
+      //      if (types.contains("null")) { } else
+      //      if (types.contains("number")) { } else
+      //      if (types.contains("object")) { } else
+      if (types.contains("string")) {
+        JMethod propertyGetter =
+            holderClass.method(JMod.PUBLIC, String.class, "get" + capitalizeFirst(propertyName));
+        propertyGetter.body()._return(
+            JExpr.invoke(holderObjectAsJsonObject, "getString").arg(propertyName));
+        return;
+      }
     }
 
-    propertyGetter.body()._return(
-        JExpr._new(jDefinedClass)
-            .arg(JExpr.invoke(holderObjectAsJsonObject, "get").arg(propertyName)));
+    {
+      JMethod propertyGetter =
+          holderClass.method(JMod.PUBLIC, jDefinedClass, "get" + capitalizeFirst(propertyName));
+      propertyGetter.body()._return(
+          JExpr._new(jDefinedClass)
+              .arg(JExpr.invoke(holderObjectAsJsonObject, "get").arg(propertyName)));
+    }
   }
 }

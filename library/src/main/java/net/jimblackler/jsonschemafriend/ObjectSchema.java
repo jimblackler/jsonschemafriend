@@ -737,6 +737,9 @@ public class ObjectSchema extends Schema {
   }
 
   public Set<String> getExplicitTypes() {
+    if (types == null) {
+      return null;
+    }
     return Collections.unmodifiableSet(types);
   }
 
