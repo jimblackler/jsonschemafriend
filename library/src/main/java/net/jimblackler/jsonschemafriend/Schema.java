@@ -31,6 +31,7 @@ public abstract class Schema {
 
   public abstract void validate(Object document, URI path, Consumer<ValidationError> errorConsumer);
 
+  // TODO: get rid of this and set defaults on Schema for methods.
   public abstract boolean isObjectSchema();
 
   public abstract ObjectSchema asObjectSchema();
