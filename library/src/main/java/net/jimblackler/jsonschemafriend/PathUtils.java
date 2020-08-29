@@ -1,4 +1,4 @@
-package net.jimblackler.jsonschematypes;
+package net.jimblackler.jsonschemafriend;
 
 import java.net.URI;
 import java.net.URISyntaxException;

@@ -1,6 +1,9 @@
-package net.jimblackler.jsonschematypes;
+package net.jimblackler.jsonschemafriend;
 
+import java.io.File;
 import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -26,20 +29,32 @@ public class SchemaStore {
     this.documentSource = documentSource;
   }
 
-  public Schema createSchema(JSONObject jsonObject) throws GenerationException {
+  public Schema loadSchema(JSONObject jsonObject) throws GenerationException {
     // Every document needs a URI. We generate a nice short one. If the client needs it, it can be
     // obtained via schema.getUri();
-    URI uri = URI.create("ram://" +  memorySchemaNumber);
+    URI uri = URI.create("ram://" + memorySchemaNumber);
     memorySchemaNumber++;
     documentSource.store(uri, jsonObject);
-    return createSchema(uri);
+    return loadSchema(uri);
   }
 
-  public Schema createSchema(URI uri) throws GenerationException {
-    return createSchema(uri, URI.create("http://json-schema.org/draft-07/schema#"));
+  public Schema loadSchema(File file) throws GenerationException {
+    return loadSchema(file.toURI());
   }
 
-  public Schema createSchema(URI uri, URI defaultMetaSchema) throws GenerationException {
+  public Schema loadSchema(URL url) throws GenerationException {
+    try {
+      return loadSchema(url.toURI());
+    } catch (URISyntaxException e) {
+      throw new GenerationException(e);
+    }
+  }
+
+  public Schema loadSchema(URI uri) throws GenerationException {
+    return loadSchema(uri, URI.create("http://json-schema.org/draft-07/schema#"));
+  }
+
+  public Schema loadSchema(URI uri, URI defaultMetaSchema) throws GenerationException {
     Object document = documentSource.fetchDocument(PathUtils.baseDocumentFromUri(uri));
     Object schemaObject = PathUtils.fetchFromPath(document, uri.getRawFragment());
     // If we can, we fetch and build the schema's meta-schema and validate the object against it,

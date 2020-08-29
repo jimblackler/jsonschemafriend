@@ -1,4 +1,4 @@
-package net.jimblackler.jsonschematypes;
+package net.jimblackler.jsonschemafriend;
 
 import java.net.URI;
 import java.util.Collection;
@@ -13,6 +13,17 @@ class IdRefMap {
   private final Map<URI, URI> refs = new HashMap<>();
   private final Collection<URI> mapped = new HashSet<>();
 
+  private static <T> URI resolve(URI base, URI child) {
+    if ("jar".equals(base.getScheme())) {
+      // Path.resolve() doesn't like to handle jar: form URLs - a problem if apps directly load
+      // schemas from libraries that cross-reference each other - so we use a little hack.
+      URI converted = URI.create(base.toString().substring("jar:".length()));
+      URI resolved = resolve(converted, child);
+      return URI.create("jar:" + resolved);
+    }
+    return base.resolve(child);
+  }
+
   void map(JSONObject baseDocument, URI uri, URI activeId, JSONObject metaSchemaDocument) {
     JSONObject properties = metaSchemaDocument.optJSONObject("properties");
     String idKey = properties == null || properties.has("$id") ? "$id" : "id";
@@ -26,7 +37,7 @@ class IdRefMap {
         if (activeId != null) {
           // See "This URI also serves as the base URI.." in
           // https://tools.ietf.org/html/draft-handrews-json-schema-02#section-8.2.2
-          newId = activeId.resolve(newId);
+          newId = resolve(activeId, newId);
         }
         idToPath.put(newId, uri);
         activeId = newId;
@@ -36,7 +47,8 @@ class IdRefMap {
       if (refObject instanceof String) {
         String ref = PathUtils.refPathEscape((String) refObject);
         URI resolveWith = activeId == null || ref.startsWith("#") ? uri : activeId;
-        refs.put(uri, resolveWith.resolve(URI.create(ref)));
+        URI resolve = resolve(resolveWith, URI.create(ref));
+        refs.put(uri, resolve);
       }
 
       for (String key : jsonObject.keySet()) {

@@ -16,7 +16,7 @@ afterEvaluate {
         publications {
             release(MavenPublication) {
                 group = 'net.jimblackler'
-                artifactId = 'library'
+                artifactId = 'jsonschemafriend'
                 version = '0.1'
                 artifact(sourceJar)
                 from components.java

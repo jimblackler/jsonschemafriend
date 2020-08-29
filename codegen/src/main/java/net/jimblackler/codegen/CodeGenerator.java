@@ -22,10 +22,10 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.logging.Logger;
-import net.jimblackler.jsonschematypes.GenerationException;
-import net.jimblackler.jsonschematypes.ObjectSchema;
-import net.jimblackler.jsonschematypes.Schema;
-import net.jimblackler.jsonschematypes.SchemaStore;
+import net.jimblackler.jsonschemafriend.GenerationException;
+import net.jimblackler.jsonschemafriend.ObjectSchema;
+import net.jimblackler.jsonschemafriend.Schema;
+import net.jimblackler.jsonschemafriend.SchemaStore;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -54,7 +54,7 @@ public class CodeGenerator {
           }
           URI uri =
               URI.create(resource1 + (resource1.toString().endsWith("/") ? "" : "/") + resource);
-          Schema schema = schemaStore.createSchema(uri, defaultMetaSchema);
+          Schema schema = schemaStore.loadSchema(uri, defaultMetaSchema);
           getClass(schema);
         }
       } catch (IOException | GenerationException e) {

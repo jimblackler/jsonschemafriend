@@ -1,6 +1,4 @@
-package net.jimblackler.jsonschematypes;
-
-import static net.jimblackler.jsonschematypes.DocumentUtils.streamToString;
+package net.jimblackler.jsonschemafriend;
 
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -30,6 +28,11 @@ public class DocumentSource {
     if (memoryCache.containsKey(originalUrl)) {
       return memoryCache.get(originalUrl);
     }
+
+    if (!originalUrl.isAbsolute()) {
+      throw new GenerationException("Not an absolute URL");
+    }
+
     if (originalUrl.getRawFragment() != null && !originalUrl.getRawFragment().isEmpty()) {
       throw new GenerationException("Not a base document");
     }
@@ -54,7 +57,7 @@ public class DocumentSource {
     String content;
 
     try {
-      content = streamToString(url.toURL().openStream());
+      content = DocumentUtils.streamToString(url.toURL().openStream());
     } catch (IllegalArgumentException | IOException e) {
       throw new GenerationException("Error fetching " + url, e);
     }

@@ -1,4 +1,4 @@
-package net.jimblackler.jsonschematypes;
+package net.jimblackler.jsonschemafriend;
 
 public class GenerationException extends Exception {
   public GenerationException() {}

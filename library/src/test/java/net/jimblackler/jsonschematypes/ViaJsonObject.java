@@ -1,16 +1,18 @@
 package net.jimblackler.jsonschematypes;
 
-import org.json.JSONObject;
-import org.junit.jupiter.api.Test;
-
-import java.util.ArrayList;
-import java.util.List;
-
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-public class ViaJsonObject {
+import java.util.ArrayList;
+import java.util.List;
+import net.jimblackler.jsonschemafriend.GenerationException;
+import net.jimblackler.jsonschemafriend.Schema;
+import net.jimblackler.jsonschemafriend.SchemaStore;
+import net.jimblackler.jsonschemafriend.ValidationError;
+import org.json.JSONObject;
+import org.junit.jupiter.api.Test;
 
+public class ViaJsonObject {
   @Test
   public void viaJsonObject() throws GenerationException {
     JSONObject mySchema = new JSONObject();
@@ -21,7 +23,7 @@ public class ViaJsonObject {
     properties.put("myValue", myValue);
     mySchema.put("properties", properties);
 
-    Schema schema = new SchemaStore().createSchema(mySchema);
+    Schema schema = new SchemaStore().loadSchema(mySchema);
 
     {
       JSONObject myObject = new JSONObject();

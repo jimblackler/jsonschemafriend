@@ -1,12 +1,13 @@
 package net.jimblackler.jsonschematypes;
 
-import static net.jimblackler.jsonschematypes.DocumentUtils.streamToString;
+import static net.jimblackler.jsonschemafriend.DocumentUtils.streamToString;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collection;
+import net.jimblackler.jsonschemafriend.SchemaStore;
 import org.json.JSONArray;
 import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.TestFactory;
@@ -24,7 +25,7 @@ public class FromInternet {
           URI uri = URI.create(str);
           System.out.println(uri);
           SchemaStore schemaStore = new SchemaStore();
-          schemaStore.createSchema(uri);
+          schemaStore.loadSchema(uri);
         }));
       }
     }

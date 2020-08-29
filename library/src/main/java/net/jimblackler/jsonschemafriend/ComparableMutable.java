@@ -1,4 +1,4 @@
-package net.jimblackler.jsonschematypes;
+package net.jimblackler.jsonschemafriend;
 
 import java.util.Objects;
 import org.json.JSONArray;

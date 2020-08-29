@@ -19,6 +19,10 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import net.jimblackler.jsonschemafriend.DocumentSource;
+import net.jimblackler.jsonschemafriend.DocumentUtils;
+import net.jimblackler.jsonschemafriend.SchemaStore;
+import net.jimblackler.jsonschemafriend.ValidationError;
 import org.everit.json.schema.Schema;
 import org.everit.json.schema.ValidationException;
 import org.everit.json.schema.loader.SchemaLoader;
@@ -111,7 +115,7 @@ public class SuiteTest {
             URI local = new URI("memory", "local", null, null);
             documentSource.store(local, schema);
             SchemaStore schemaStore = new SchemaStore(documentSource);
-            net.jimblackler.jsonschematypes.Schema schema1 = schemaStore.createSchema(
+            net.jimblackler.jsonschemafriend.Schema schema1 = schemaStore.loadSchema(
                 local, URI.create("http://json-schema.org/draft-07/schema#"));
 
             System.out.println("Test:");
@@ -198,7 +202,7 @@ public class SuiteTest {
         SchemaStore schemaStore = new SchemaStore(documentSource);
         URI local = new URI("memory", "local", null, null);
         documentSource.store(local, schema);
-        schemaStore.createSchema(local);
+        schemaStore.loadSchema(local);
       }));
     }
     if (everit) {
