@@ -41,7 +41,7 @@ public class Builder {
       jDefinedClass = jCodeModel._class(name);
       codeGenerator.register(schema.getUri(), this);
       jDefinedClass.javadoc().add("Created from " + schema.getUri() + System.lineSeparator()
-          + schema.getJson().toString(2));
+          + schema.getSchemaJson().toString(2));
 
       JFieldVar object = jDefinedClass.field(JMod.PRIVATE | JMod.FINAL, Object.class, "object");
 

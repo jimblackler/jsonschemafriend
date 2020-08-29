@@ -735,4 +735,12 @@ public class ObjectSchema extends Schema {
         "Expected: [" + String.join(", ", this.types) + "] "
             + "Found: [" + String.join(", ", types) + "]"));
   }
+
+  public Set<String> getExplicitTypes() {
+    return Collections.unmodifiableSet(types);
+  }
+
+  public JSONObject getSchemaJson() {
+    return schemaJson;
+  }
 }
