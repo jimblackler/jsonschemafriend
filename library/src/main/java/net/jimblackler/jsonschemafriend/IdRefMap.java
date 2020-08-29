@@ -85,7 +85,8 @@ class IdRefMap {
         URI metaSchemaUri = baseDocument.has("$schema")
             ? URI.create(baseDocument.getString("$schema"))
             : defaultMetaSchema;
-        map(baseDocument, baseDocumentUri, baseDocumentUri, (JSONObject) documentSource.fetchDocument(metaSchemaUri));
+        map(baseDocument, baseDocumentUri, baseDocumentUri,
+            (JSONObject) documentSource.fetchDocument(metaSchemaUri));
       }
       if (!refs.containsKey(uri)) {
         return uri;
