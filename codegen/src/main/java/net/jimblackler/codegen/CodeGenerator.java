@@ -1,14 +1,7 @@
 package net.jimblackler.codegen;
 
-import com.sun.codemodel.JClassAlreadyExistsException;
 import com.sun.codemodel.JCodeModel;
-import com.sun.codemodel.JDefinedClass;
-import com.sun.codemodel.JExpr;
-import com.sun.codemodel.JFieldVar;
-import com.sun.codemodel.JMethod;
-import com.sun.codemodel.JMod;
 import com.sun.codemodel.JPackage;
-import com.sun.codemodel.JVar;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -21,24 +14,17 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
-import java.util.logging.Logger;
 import net.jimblackler.jsonschemafriend.GenerationException;
-import net.jimblackler.jsonschemafriend.ObjectSchema;
 import net.jimblackler.jsonschemafriend.Schema;
 import net.jimblackler.jsonschemafriend.SchemaStore;
-import org.json.JSONArray;
-import org.json.JSONObject;
 
 public class CodeGenerator {
-  private static final Logger LOG = Logger.getLogger(CodeGenerator.class.getName());
-
   private final JPackage jPackage;
-  private final JCodeModel jCodeModel;
-  private final Map<URI, JDefinedClass> builtClasses = new HashMap<>();
+  private final JCodeModel jCodeModel = new JCodeModel();
+  private final Map<URI, Builder> builtClasses = new HashMap<>();
   private final Collection<String> usedNames = new HashSet<>();
 
   public CodeGenerator(Path outPath, String packageName, URL resource1) throws IOException {
-    jCodeModel = new JCodeModel();
     jPackage = jCodeModel._package(packageName);
 
     SchemaStore schemaStore = new SchemaStore();
@@ -64,70 +50,7 @@ public class CodeGenerator {
     jCodeModel.build(outPath.toFile());
   }
 
-  private JDefinedClass getClass(Schema schema1) {
-    if (builtClasses.containsKey(schema1.getUri())) {
-      return builtClasses.get(schema1.getUri());
-    }
-
-    if (!schema1.isObjectSchema()) {
-      throw new IllegalStateException("Not sure what to do with these yet");
-    }
-
-    ObjectSchema schema = schema1.asObjectSchema();
-
-    String name = nameForSchema(schema);
-    name = makeUnique(name);
-
-    try {
-      JDefinedClass _class = jPackage._class(name);
-      builtClasses.put(schema.getUri(), _class);
-      _class.javadoc().add("Created from " + schema.getUri());
-
-      JFieldVar object = _class.field(JMod.PRIVATE | JMod.FINAL, Object.class, "object");
-
-      JMethod constructor = _class.constructor(JMod.PUBLIC);
-      JVar param = constructor.param(Object.class, "object");
-      constructor.body().assign(JExpr._this().ref(object), param);
-
-      {
-        JMethod getter = _class.method(JMod.PUBLIC, Object.class, "getObject");
-        getter.body()._return(object);
-      }
-
-      {
-        JMethod getter = _class.method(JMod.PUBLIC, JSONObject.class, "getJSONObject");
-        getter.body()._return(JExpr.cast(jCodeModel.ref(JSONObject.class), object));
-      }
-
-      {
-        JMethod getter = _class.method(JMod.PUBLIC, JSONArray.class, "getJSONArray");
-        getter.body()._return(JExpr.cast(jCodeModel.ref(JSONArray.class), object));
-      }
-
-      Map<String, Schema> properties = schema.getProperties();
-      for (Map.Entry<String, Schema> entry : properties.entrySet()) {
-        String propertyName = entry.getKey();
-        Schema propertySchema = entry.getValue();
-        if (propertySchema == null) {
-          LOG.warning(schema.getUri() + ": No valid property " + propertyName);
-        } else {
-          JDefinedClass propertyJClass = getClass(propertySchema);
-          JMethod propertyGetter =
-              _class.method(JMod.PUBLIC, propertyJClass, "get" + capitalizeFirst(propertyName));
-          propertyGetter.body()._return(
-              JExpr._new(propertyJClass)
-                  .arg(JExpr.invoke(JExpr.cast(jCodeModel.ref(JSONObject.class), object), "get")
-                           .arg(propertyName)));
-        }
-      }
-
-      return _class;
-    } catch (JClassAlreadyExistsException e) {
-      throw new IllegalStateException(e);
-    }
-  }
-
-  private String makeUnique(String name) {
+  String makeUnique(String name) {
     if (usedNames.add(name)) {
       return name;
     }
@@ -142,14 +65,24 @@ public class CodeGenerator {
     return makeUnique(name + "2");
   }
 
-  private static String nameForSchema(Schema schema) {
-    String[] split = schema.getUri().toString().split("/");
-    String lastPart = split[split.length - 1];
-    String namePart = lastPart.split("\\.", 2)[0];
-    return capitalizeFirst(namePart);
+  Builder getClass(Schema schema1) {
+    URI uri = schema1.getUri();
+    if (builtClasses.containsKey(uri)) {
+      return builtClasses.get(uri);
+    }
+
+    if (!schema1.isObjectSchema()) {
+      throw new IllegalStateException("Not sure what to do with these yet");
+    }
+
+    return new Builder(this, schema1);
   }
 
-  private static String capitalizeFirst(String in) {
-    return Character.toUpperCase(in.charAt(0)) + in.substring(1);
+  public JCodeModel getJCodeModel() {
+    return jCodeModel;
+  }
+
+  public void register(URI uri, Builder builder) {
+    builtClasses.put(uri, builder);
   }
 }
