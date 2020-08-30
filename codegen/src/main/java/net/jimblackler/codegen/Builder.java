@@ -50,17 +50,21 @@ public class Builder {
 
       jDefinedClass.javadoc().add(docs.toString());
 
+      /* Plain Object field */
       JFieldVar objectField =
           jDefinedClass.field(JMod.PUBLIC | JMod.FINAL, jCodeModel.ref(Object.class), "object");
 
+      /* Plain Object constructor */
       JMethod constructor = jDefinedClass.constructor(JMod.PUBLIC);
       JVar objectParam = constructor.param(jCodeModel.ref(Object.class), "object");
       constructor.body().assign(JExpr._this().ref(objectField), objectParam);
 
+      /* Getters that cast from Plain Object */
       JMethod getter = jDefinedClass.method(
           JMod.PUBLIC, jCodeModel.ref(Object.class), "get" + capitalizeFirst(name));
       getter.body()._return(objectField);
 
+      /* Write getters to holders - Plain Object cast */
       for (Map.Entry<String, Schema> entry : schema.getProperties().entrySet()) {
         Builder builder = codeGenerator.getClass(entry.getValue());
         builder.writeGetters(entry.getKey(), jDefinedClass, objectField);
@@ -83,9 +87,6 @@ public class Builder {
   }
 
   private void writeGetters(String propertyName, JDefinedClass holderClass, JFieldVar object) {
-    JCodeModel jCodeModel = codeGenerator.getJCodeModel();
-    Set<String> types = schema.getTypes();
-
     JMethod propertyGetter =
         holderClass.method(JMod.PUBLIC, jDefinedClass, "get" + capitalizeFirst(propertyName));
     propertyGetter.body()._return(JExpr._new(jDefinedClass).arg(object));
