@@ -65,7 +65,8 @@ public class ObjectSchema extends Schema {
   // all types checks
   private final Object _const;
   private final Set<Object> _enum;
-  private final Set<String> types;
+  private final Set<String> explicitTypes;
+  private final Set<String> inferredTypes = new HashSet<>();
   private final Collection<Schema> typesSchema = new HashSet<>();
   private final Schema _if;
   private final Schema _then;
@@ -124,16 +125,24 @@ public class ObjectSchema extends Schema {
     exclusiveMaximum = jsonObject.opt("exclusiveMaximum");
     minimum = (Number) jsonObject.opt("minimum");
     exclusiveMinimum = jsonObject.opt("exclusiveMinimum");
-    maxLength = (Number) jsonObject.opt("maxLength");
-    minLength = (Number) jsonObject.opt("minLength");
     divisibleBy = (Number) jsonObject.opt("divisibleBy");
+    if (jsonObject.has("multipleOf") || jsonObject.has("maximum")
+        || jsonObject.has("exclusiveMaximum") || jsonObject.has("minimum")
+        || jsonObject.has("exclusiveMinimum") || jsonObject.has("multdivisibleBy")) {
+      inferredTypes.add("number");
+    }
 
     // string checks
+    maxLength = (Number) jsonObject.opt("maxLength");
+    minLength = (Number) jsonObject.opt("minLength");
     Object patternObject = jsonObject.opt("pattern");
     if (patternObject == null) {
       pattern = null;
     } else {
       pattern = new Ecma262Pattern((String) patternObject);
+    }
+    if (jsonObject.has("maxLength") || jsonObject.has("minLength") || jsonObject.has("pattern")) {
+      inferredTypes.add("string");
     }
 
     // array checks
@@ -157,6 +166,12 @@ public class ObjectSchema extends Schema {
     minItems = (Number) jsonObject.opt("minItems");
     uniqueItems = jsonObject.optBoolean("uniqueItems", false);
     contains = getSchema(jsonObject, "contains", schemaStore, defaultMetaSchema, uri);
+
+    if (jsonObject.has("additionalItems") || jsonObject.has("items") || jsonObject.has("maxItems")
+        || jsonObject.has("minItems") || jsonObject.has("uniqueItems")
+        || jsonObject.has("contains")) {
+      inferredTypes.add("array");
+    }
 
     // object checks
     maxProperties = (Number) jsonObject.opt("maxProperties");
@@ -239,6 +254,13 @@ public class ObjectSchema extends Schema {
 
     propertyNames = getSchema(jsonObject, "propertyNames", schemaStore, defaultMetaSchema, uri);
 
+    if (jsonObject.has("maxProperties") || jsonObject.has("minProperties")
+        || jsonObject.has("required") || jsonObject.has("additionalProperties")
+        || jsonObject.has("properties") || jsonObject.has("patternProperties")
+        || jsonObject.has("dependencies") || jsonObject.has("propertyNames")) {
+      inferredTypes.add("object");
+    }
+
     // all types checks
     _const = jsonObject.opt("const");
 
@@ -255,7 +277,7 @@ public class ObjectSchema extends Schema {
     Object typeObject = jsonObject.opt("type");
     if (typeObject instanceof JSONArray) {
       URI typePointer = PathUtils.append(uri, "type");
-      types = new HashSet<>();
+      explicitTypes = new HashSet<>();
       JSONArray array = (JSONArray) typeObject;
       for (int idx = 0; idx != array.length(); idx++) {
         Object arrayEntryObject = array.get(idx);
@@ -263,13 +285,13 @@ public class ObjectSchema extends Schema {
           typesSchema.add(schemaStore.getSchema(
               PathUtils.append(typePointer, String.valueOf(idx)), defaultMetaSchema));
         } else {
-          types.add((String) arrayEntryObject);
+          explicitTypes.add((String) arrayEntryObject);
         }
       }
     } else if (typeObject instanceof String) {
-      types = setOf(typeObject.toString());
+      explicitTypes = setOf(typeObject.toString());
     } else {
-      types = null;
+      explicitTypes = null;
     }
 
     _if = getSchema(jsonObject, "if", schemaStore, defaultMetaSchema, uri);
@@ -709,7 +731,7 @@ public class ObjectSchema extends Schema {
       errorConsumer.accept(error(document, path, "Type disallowed"));
     }
 
-    if (this.types == null) {
+    if (this.explicitTypes == null) {
       return;
     }
 
@@ -721,26 +743,37 @@ public class ObjectSchema extends Schema {
       }
     }
 
-    if (this.types.contains("any")) {
+    if (this.explicitTypes.contains("any")) {
       return;
     }
 
     Collection<String> typesIn = new HashSet<>(types);
-    typesIn.retainAll(this.types);
+    typesIn.retainAll(this.explicitTypes);
     if (!typesIn.isEmpty()) {
       return;
     }
 
     errorConsumer.accept(error(document, path,
-        "Expected: [" + String.join(", ", this.types) + "] "
+        "Expected: [" + String.join(", ", this.explicitTypes) + "] "
             + "Found: [" + String.join(", ", types) + "]"));
   }
 
   public Set<String> getExplicitTypes() {
-    if (types == null) {
+    if (explicitTypes == null) {
       return null;
     }
-    return Collections.unmodifiableSet(types);
+    return Collections.unmodifiableSet(explicitTypes);
+  }
+
+  public Set<String> getInferredTypes() {
+    return Collections.unmodifiableSet(inferredTypes);
+  }
+
+  public Set<String> getTypes() {
+    if (explicitTypes == null) {
+      return Collections.unmodifiableSet(inferredTypes);
+    }
+    return Collections.unmodifiableSet(explicitTypes);
   }
 
   public JSONObject getSchemaJson() {

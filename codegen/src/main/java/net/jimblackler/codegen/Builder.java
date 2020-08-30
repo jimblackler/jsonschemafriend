@@ -1,5 +1,6 @@
 package net.jimblackler.codegen;
 
+import com.sun.codemodel.JClass;
 import com.sun.codemodel.JClassAlreadyExistsException;
 import com.sun.codemodel.JCodeModel;
 import com.sun.codemodel.JDefinedClass;
@@ -9,17 +10,17 @@ import com.sun.codemodel.JFieldVar;
 import com.sun.codemodel.JMethod;
 import com.sun.codemodel.JMod;
 import com.sun.codemodel.JPackage;
+import com.sun.codemodel.JType;
 import com.sun.codemodel.JVar;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-import java.util.logging.Logger;
 import net.jimblackler.jsonschemafriend.ObjectSchema;
 import net.jimblackler.jsonschemafriend.Schema;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
 public class Builder {
-  private static final Logger LOG = Logger.getLogger(Builder.class.getName());
   private final CodeGenerator codeGenerator;
   private final JDefinedClass jDefinedClass;
   private final ObjectSchema schema;
@@ -27,14 +28,7 @@ public class Builder {
   public Builder(CodeGenerator codeGenerator, Schema schema1) {
     this.codeGenerator = codeGenerator;
     schema = schema1.asObjectSchema();
-
-    Set<String> types = schema.getExplicitTypes();
-    if (types != null && types.size() == 1) {
-      if (types.contains("string")) {
-        jDefinedClass = null;
-        return;
-      }
-    }
+    codeGenerator.register(schema.getUri(), this);
 
     String name = nameForSchema(schema);
     name = codeGenerator.makeUnique(name);
@@ -43,41 +37,33 @@ public class Builder {
       JPackage jPackage = codeGenerator.getJPackage();
       JCodeModel jCodeModel = codeGenerator.getJCodeModel();
       jDefinedClass = jPackage._class(name);
-      codeGenerator.register(schema.getUri(), this);
-      jDefinedClass.javadoc().add("Created from " + schema.getUri() + System.lineSeparator()
-          + schema.getSchemaJson().toString(2));
 
-      JFieldVar object = jDefinedClass.field(JMod.PRIVATE | JMod.FINAL, Object.class, "object");
+      StringBuilder docs = new StringBuilder();
+      docs.append("Created from ").append(schema.getUri()).append(System.lineSeparator());
+      docs.append("Explicit types ")
+          .append(schema.getExplicitTypes())
+          .append(System.lineSeparator());
+      docs.append("Inferred types ")
+          .append(schema.getInferredTypes())
+          .append(System.lineSeparator());
+      docs.append(schema.getSchemaJson().toString(2));
+
+      jDefinedClass.javadoc().add(docs.toString());
+
+      JFieldVar objectField =
+          jDefinedClass.field(JMod.PUBLIC | JMod.FINAL, jCodeModel.ref(Object.class), "object");
 
       JMethod constructor = jDefinedClass.constructor(JMod.PUBLIC);
-      JVar param = constructor.param(Object.class, "object");
-      constructor.body().assign(JExpr._this().ref(object), param);
+      JVar objectParam = constructor.param(jCodeModel.ref(Object.class), "object");
+      constructor.body().assign(JExpr._this().ref(objectField), objectParam);
 
-      {
-        JMethod getter = jDefinedClass.method(JMod.PUBLIC, Object.class, "getObject");
-        getter.body()._return(object);
-      }
+      JMethod getter = jDefinedClass.method(
+          JMod.PUBLIC, jCodeModel.ref(Object.class), "get" + capitalizeFirst(name));
+      getter.body()._return(objectField);
 
-      {
-        JMethod getter = jDefinedClass.method(JMod.PUBLIC, JSONObject.class, "getJSONObject");
-        getter.body()._return(JExpr.cast(jCodeModel.ref(JSONObject.class), object));
-      }
-
-      {
-        JMethod getter = jDefinedClass.method(JMod.PUBLIC, JSONArray.class, "getJSONArray");
-        getter.body()._return(JExpr.cast(jCodeModel.ref(JSONArray.class), object));
-      }
-
-      Map<String, Schema> properties = schema.getProperties();
-      for (Map.Entry<String, Schema> entry : properties.entrySet()) {
-        String propertyName = entry.getKey();
-        Schema propertySchema = entry.getValue();
-        if (propertySchema == null) {
-          LOG.warning(schema.getUri() + ": No valid property " + propertyName);
-        } else {
-          Builder builder = codeGenerator.getClass(propertySchema);
-          builder.writeGetters(propertyName, jDefinedClass, object);
-        }
+      for (Map.Entry<String, Schema> entry : schema.getProperties().entrySet()) {
+        Builder builder = codeGenerator.getClass(entry.getValue());
+        builder.writeGetters(entry.getKey(), jDefinedClass, objectField);
       }
 
     } catch (JClassAlreadyExistsException e) {
@@ -96,35 +82,28 @@ public class Builder {
     return Character.toUpperCase(in.charAt(0)) + in.substring(1);
   }
 
-  private void writeGetters(
-      String propertyName, JDefinedClass holderClass, JFieldVar holderObject) {
+  private void writeGetters(String propertyName, JDefinedClass holderClass, JFieldVar object) {
     JCodeModel jCodeModel = codeGenerator.getJCodeModel();
+    Set<String> types = schema.getTypes();
 
-    JExpression holderObjectAsJsonObject =
-        JExpr.cast(jCodeModel.ref(JSONObject.class), holderObject);
-    Set<String> types = schema.getExplicitTypes();
-    if (types != null && types.size() == 1) {
-      //      if (types.contains("array")) { } else
-      //      if (types.contains("boolean")) { } else
-      //      if (types.contains("integer")) { } else
-      //      if (types.contains("null")) { } else
-      //      if (types.contains("number")) { } else
-      //      if (types.contains("object")) { } else
-      if (types.contains("string")) {
-        JMethod propertyGetter =
-            holderClass.method(JMod.PUBLIC, String.class, "get" + capitalizeFirst(propertyName));
-        propertyGetter.body()._return(
-            JExpr.invoke(holderObjectAsJsonObject, "getString").arg(propertyName));
-        return;
-      }
-    }
+    JMethod propertyGetter =
+        holderClass.method(JMod.PUBLIC, jDefinedClass, "get" + capitalizeFirst(propertyName));
+    propertyGetter.body()._return(JExpr._new(jDefinedClass).arg(object));
+  }
 
-    {
+  private void makeGetters(JClass type, String name, JDefinedClass holderClass, String propertyName,
+      JExpression jsonArray, JExpression jsonObject) {
+    JCodeModel jCodeModel = codeGenerator.getJCodeModel();
+    if (jsonObject != null) {
       JMethod propertyGetter =
-          holderClass.method(JMod.PUBLIC, jDefinedClass, "get" + capitalizeFirst(propertyName));
-      propertyGetter.body()._return(
-          JExpr._new(jDefinedClass)
-              .arg(JExpr.invoke(holderObjectAsJsonObject, "get").arg(propertyName)));
+          holderClass.method(JMod.PUBLIC, type, "get" + capitalizeFirst(propertyName));
+      propertyGetter.body()._return(JExpr.invoke(jsonObject, "get" + name).arg(propertyName));
+    }
+    if (jsonArray != null) {
+      JMethod propertyGetter =
+          holderClass.method(JMod.PUBLIC, type, "get" + capitalizeFirst(propertyName));
+      propertyGetter.varParam(jCodeModel.INT, "index");
+      propertyGetter.body()._return(JExpr.invoke(jsonArray, "get" + name).arg(propertyName));
     }
   }
 }
