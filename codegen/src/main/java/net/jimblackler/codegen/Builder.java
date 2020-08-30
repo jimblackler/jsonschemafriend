@@ -2,6 +2,7 @@ package net.jimblackler.codegen;
 
 import com.sun.codemodel.JClass;
 import com.sun.codemodel.JClassAlreadyExistsException;
+import com.sun.codemodel.JClassContainer;
 import com.sun.codemodel.JCodeModel;
 import com.sun.codemodel.JDefinedClass;
 import com.sun.codemodel.JExpr;
@@ -75,7 +76,14 @@ public class Builder {
         return;
       }
       _name = codeGenerator.makeUnique(nameForSchema(schema));
-      jDefinedClass = jPackage._class(_name);
+      Builder parent = codeGenerator.parent(schema.getUri());
+      JClassContainer classParent;
+      if (parent == null) {
+        classParent = jPackage;
+      } else {
+        classParent = parent.getDefinedClass();
+      }
+      jDefinedClass = classParent._class(_name);
 
       StringBuilder docs = new StringBuilder();
       docs.append("Created from ").append(schema.getUri()).append(System.lineSeparator());
@@ -117,6 +125,10 @@ public class Builder {
     } catch (JClassAlreadyExistsException e) {
       throw new IllegalStateException(e);
     }
+  }
+
+  private JDefinedClass getDefinedClass() {
+    return jDefinedClass;
   }
 
   private static String nameForSchema(Schema schema) {
