@@ -24,6 +24,18 @@ class IdRefMap {
     return base.resolve(child);
   }
 
+  private static URI normalize(URI uri) {
+    String uriString = uri.toString();
+    int length = uriString.length();
+    if (uriString.endsWith("#")) {
+      return URI.create(uriString.substring(0, length - "#".length()));
+    }
+    if (uriString.endsWith("#/")) {
+      return URI.create(uriString.substring(0, length - "#/".length()));
+    }
+    return uri;
+  }
+
   void map(JSONObject baseDocument, URI uri, URI activeId, JSONObject metaSchemaDocument) {
     JSONObject properties = metaSchemaDocument.optJSONObject("properties");
     String idKey = properties == null || properties.has("$id") ? "$id" : "id";
@@ -73,6 +85,7 @@ class IdRefMap {
   public URI finalLocation(URI uri, DocumentSource documentSource, URI defaultMetaSchema)
       throws GenerationException {
     while (true) {
+      uri = normalize(uri);
       URI baseDocumentUri = PathUtils.baseDocumentFromUri(uri);
       if (mapped.add(baseDocumentUri)) {
         Object baseDocumentObject = documentSource.fetchDocument(baseDocumentUri);
