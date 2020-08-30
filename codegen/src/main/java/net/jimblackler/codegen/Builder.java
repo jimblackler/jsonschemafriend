@@ -13,7 +13,6 @@ import com.sun.codemodel.JMod;
 import com.sun.codemodel.JPackage;
 import com.sun.codemodel.JType;
 import com.sun.codemodel.JVar;
-import java.lang.reflect.Array;
 import java.util.Map;
 import java.util.Set;
 import net.jimblackler.jsonschemafriend.ObjectSchema;
@@ -24,13 +23,12 @@ import org.json.JSONObject;
 public class Builder {
   private final CodeGenerator codeGenerator;
   private final JDefinedClass jDefinedClass;
-  private final ObjectSchema schema;
   private final String _name;
   private final JType dataType;
 
   public Builder(CodeGenerator codeGenerator, Schema schema1) {
     this.codeGenerator = codeGenerator;
-    schema = schema1.asObjectSchema();
+    ObjectSchema schema = schema1.asObjectSchema();
     codeGenerator.register(schema.getUri(), this);
 
     try {
@@ -45,10 +43,10 @@ public class Builder {
             dataType = jCodeModel.ref(JSONArray.class);
             break;
           case "boolean":
-            dataType = jCodeModel.ref(Boolean.class);
+            dataType = jCodeModel.BOOLEAN;
             break;
           case "integer":
-            dataType = jCodeModel.ref(Integer.class);
+            dataType = jCodeModel.INT;
             break;
           case "null":
             dataType = jCodeModel.NULL;
@@ -91,15 +89,17 @@ public class Builder {
 
       jDefinedClass.javadoc().add(docs.toString());
 
-      JFieldVar dataField = jDefinedClass.field(JMod.PUBLIC | JMod.FINAL, dataType, "object");
+      String dataObjectName = lowerCaseFirst(dataType.name());
+      JFieldVar dataField = jDefinedClass.field(JMod.PUBLIC | JMod.FINAL, dataType, dataObjectName);
 
       /* Constructor */
       JMethod constructor = jDefinedClass.constructor(JMod.PUBLIC);
-      JVar objectParam = constructor.param(dataType, "object");
+
+      JVar objectParam = constructor.param(dataType, dataObjectName);
       constructor.body().assign(JExpr._this().ref(dataField), objectParam);
 
       /* Getter */
-      JMethod getter = jDefinedClass.method(JMod.PUBLIC, dataType, "getObject");
+      JMethod getter = jDefinedClass.method(JMod.PUBLIC, dataType, "get" + dataType.name());
       getter.body()._return(dataField);
 
       for (Map.Entry<String, Schema> entry : schema.getProperties().entrySet()) {
@@ -130,6 +130,11 @@ public class Builder {
     return Character.toUpperCase(in.charAt(0)) + in.substring(1);
   }
 
+  private static String lowerCaseFirst(String in) {
+    in = in.replace("JSON", "Json");
+    return Character.toLowerCase(in.charAt(0)) + in.substring(1);
+  }
+
   private static JExpression castIfNeeded(JCodeModel jCodeModel, JClass _class, JFieldVar field) {
     if (field.type().equals(_class)) {
       return field;
@@ -144,13 +149,13 @@ public class Builder {
     if (dataType.equals(jCodeModel.ref(JSONArray.class))) {
       return "getJSONArray";
     }
-    if (dataType.equals(jCodeModel.ref(Boolean.class))) {
+    if (dataType.equals(jCodeModel.BOOLEAN)) {
       return "getBoolean";
     }
     if (dataType.equals(jCodeModel.ref(String.class))) {
       return "getString";
     }
-    if (dataType.equals(jCodeModel.ref(Integer.class))) {
+    if (dataType.equals(jCodeModel.INT)) {
       return "getInt";
     }
     if (dataType.equals(jCodeModel.ref(Number.class))) {
