@@ -41,7 +41,7 @@ public class CodeGenerator {
           URI uri =
               URI.create(resource1 + (resource1.toString().endsWith("/") ? "" : "/") + resource);
           Schema schema = schemaStore.loadSchema(uri, defaultMetaSchema);
-          getClass(schema);
+          getBuilder(schema);
         }
       } catch (IOException | GenerationException e) {
         throw new IllegalStateException(e);
@@ -65,7 +65,7 @@ public class CodeGenerator {
     return makeUnique(name + "2");
   }
 
-  Builder getClass(Schema schema1) {
+  Builder getBuilder(Schema schema1) {
     URI uri = schema1.getUri();
     if (builtClasses.containsKey(uri)) {
       return builtClasses.get(uri);

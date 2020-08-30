@@ -731,7 +731,7 @@ public class ObjectSchema extends Schema {
       errorConsumer.accept(error(document, path, "Type disallowed"));
     }
 
-    if (this.explicitTypes == null) {
+    if (explicitTypes == null) {
       return;
     }
 
@@ -743,18 +743,18 @@ public class ObjectSchema extends Schema {
       }
     }
 
-    if (this.explicitTypes.contains("any")) {
+    if (explicitTypes.contains("any")) {
       return;
     }
 
     Collection<String> typesIn = new HashSet<>(types);
-    typesIn.retainAll(this.explicitTypes);
+    typesIn.retainAll(explicitTypes);
     if (!typesIn.isEmpty()) {
       return;
     }
 
     errorConsumer.accept(error(document, path,
-        "Expected: [" + String.join(", ", this.explicitTypes) + "] "
+        "Expected: [" + String.join(", ", explicitTypes) + "] "
             + "Found: [" + String.join(", ", types) + "]"));
   }
 
@@ -774,6 +774,21 @@ public class ObjectSchema extends Schema {
       return Collections.unmodifiableSet(inferredTypes);
     }
     return Collections.unmodifiableSet(explicitTypes);
+  }
+
+  public Collection<Schema> getItems() {
+    Collection<Schema> allItems = new ArrayList<>();
+    if (itemsArray != null) {
+      allItems.addAll(itemsArray);
+    }
+    if (_items != null) {
+      allItems.add(_items);
+    }
+    return allItems;
+  }
+
+  public Collection<String> getRequiredProperties() {
+    return required;
   }
 
   public JSONObject getSchemaJson() {
