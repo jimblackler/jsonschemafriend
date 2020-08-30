@@ -7,11 +7,13 @@ import com.sun.codemodel.JDefinedClass;
 import com.sun.codemodel.JExpr;
 import com.sun.codemodel.JExpression;
 import com.sun.codemodel.JFieldVar;
+import com.sun.codemodel.JInvocation;
 import com.sun.codemodel.JMethod;
 import com.sun.codemodel.JMod;
 import com.sun.codemodel.JPackage;
 import com.sun.codemodel.JType;
 import com.sun.codemodel.JVar;
+import java.lang.reflect.Array;
 import java.util.Map;
 import java.util.Set;
 import net.jimblackler.jsonschemafriend.ObjectSchema;
@@ -31,11 +33,50 @@ public class Builder {
     schema = schema1.asObjectSchema();
     codeGenerator.register(schema.getUri(), this);
 
-    _name = codeGenerator.makeUnique(nameForSchema(schema));
-
     try {
       JPackage jPackage = codeGenerator.getJPackage();
       JCodeModel jCodeModel = codeGenerator.getJCodeModel();
+
+      Set<String> types = schema.getTypes();
+
+      if (types.size() == 1) {
+        switch (types.iterator().next()) {
+          case "array":
+            dataType = jCodeModel.ref(JSONArray.class);
+            break;
+          case "boolean":
+            dataType = jCodeModel.ref(Boolean.class);
+            break;
+          case "integer":
+            dataType = jCodeModel.ref(Integer.class);
+            break;
+          case "null":
+            dataType = jCodeModel.NULL;
+            break;
+          case "number":
+            dataType = jCodeModel.ref(Number.class);
+            break;
+          case "object":
+            dataType = jCodeModel.ref(JSONObject.class);
+            break;
+          case "string":
+            dataType = jCodeModel.ref(String.class);
+            break;
+          default:
+            throw new IllegalStateException();
+        }
+      } else {
+        dataType = jCodeModel.ref(Object.class);
+      }
+
+      if (!(dataType.equals(jCodeModel.ref(Object.class))
+              || dataType.equals(jCodeModel.ref(JSONArray.class))
+              || dataType.equals(jCodeModel.ref(JSONObject.class)))) {
+        jDefinedClass = null;
+        _name = null;
+        return;
+      }
+      _name = codeGenerator.makeUnique(nameForSchema(schema));
       jDefinedClass = jPackage._class(_name);
 
       StringBuilder docs = new StringBuilder();
@@ -49,18 +90,6 @@ public class Builder {
       docs.append(schema.getSchemaJson().toString(2));
 
       jDefinedClass.javadoc().add(docs.toString());
-
-      Set<String> types = schema.getTypes();
-
-      /* Plain Object field */
-
-      if (types.size() == 1 && types.contains("object")) {
-        dataType = jCodeModel.ref(JSONObject.class);
-      } else if (types.size() == 1 && types.contains("array")) {
-        dataType = jCodeModel.ref(JSONArray.class);
-      } else {
-        dataType = jCodeModel.ref(Object.class);
-      }
 
       JFieldVar dataField = jDefinedClass.field(JMod.PUBLIC | JMod.FINAL, dataType, "object");
 
@@ -109,31 +138,49 @@ public class Builder {
   }
 
   private static String getGet(JCodeModel jCodeModel, JType dataType) {
-    String get;
     if (dataType.equals(jCodeModel.ref(JSONObject.class))) {
-      get = "getJSONObject";
-    } else if (dataType.equals(jCodeModel.ref(JSONArray.class))) {
-      get = "getJSONArray";
-    } else if (dataType.equals(jCodeModel.ref(Object.class))) {
-      get = "get";
-    } else {
-      throw new IllegalStateException();
+      return "getJSONObject";
     }
-    return get;
+    if (dataType.equals(jCodeModel.ref(JSONArray.class))) {
+      return "getJSONArray";
+    }
+    if (dataType.equals(jCodeModel.ref(Boolean.class))) {
+      return "getBoolean";
+    }
+    if (dataType.equals(jCodeModel.ref(String.class))) {
+      return "getString";
+    }
+    if (dataType.equals(jCodeModel.ref(Integer.class))) {
+      return "getInt";
+    }
+    if (dataType.equals(jCodeModel.ref(Number.class))) {
+      return "getNumber";
+    }
+
+    return "get";
   }
 
   private void writePropertyGetters(boolean requiredProperty, String propertyName,
       JDefinedClass holderClass, JFieldVar dataField) {
     JCodeModel jCodeModel = codeGenerator.getJCodeModel();
-    JMethod getter =
-        holderClass.method(JMod.PUBLIC, jDefinedClass, "get" + capitalizeFirst(propertyName));
     JExpression asJsonObject =
         castIfNeeded(jCodeModel, jCodeModel.ref(JSONObject.class), dataField);
-
     String get = getGet(jCodeModel, dataType);
+    JType returnType;
+    if (jDefinedClass == null) {
+      returnType = dataType;
+    } else {
+      returnType = jDefinedClass;
+    }
+    JMethod getter =
+        holderClass.method(JMod.PUBLIC, returnType, "get" + capitalizeFirst(propertyName));
+    JInvocation getObject = JExpr.invoke(asJsonObject, get).arg(propertyName);
+    if (jDefinedClass == null) {
+      getter.body()._return(getObject);
+    } else {
+      getter.body()._return(JExpr._new(jDefinedClass).arg(getObject));
+    }
 
-    getter.body()._return(
-        JExpr._new(jDefinedClass).arg(JExpr.invoke(asJsonObject, get).arg(propertyName)));
     if (!requiredProperty) {
       JMethod has = holderClass.method(
           JMod.PUBLIC, jCodeModel.BOOLEAN, "has" + capitalizeFirst(propertyName));
@@ -142,16 +189,17 @@ public class Builder {
   }
 
   private void writeItemGetters(JDefinedClass holderClass, JFieldVar dataField) {
-    JCodeModel jCodeModel = codeGenerator.getJCodeModel();
-
-    JMethod getter = holderClass.method(JMod.PUBLIC, jDefinedClass, "get" + capitalizeFirst(_name));
-    JVar indexParam = getter.param(jCodeModel.INT, "index");
-    String get = getGet(jCodeModel, dataType);
-    getter.body()._return(
-        JExpr._new(jDefinedClass)
-            .arg(JExpr
-                     .invoke(
-                         castIfNeeded(jCodeModel, jCodeModel.ref(JSONArray.class), dataField), get)
-                     .arg(indexParam)));
+    if (jDefinedClass == null) {
+    } else {
+      JCodeModel jCodeModel = codeGenerator.getJCodeModel();
+      JMethod getter =
+          holderClass.method(JMod.PUBLIC, jDefinedClass, "get" + capitalizeFirst(_name));
+      JVar indexParam = getter.param(jCodeModel.INT, "index");
+      String get = getGet(jCodeModel, dataType);
+      JExpression asJsonArray =
+          castIfNeeded(jCodeModel, jCodeModel.ref(JSONArray.class), dataField);
+      getter.body()._return(
+          JExpr._new(jDefinedClass).arg(JExpr.invoke(asJsonArray, get).arg(indexParam)));
+    }
   }
 }
