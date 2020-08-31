@@ -51,21 +51,6 @@ public class CodeGenerator {
     jCodeModel.build(outPath.toFile());
   }
 
-  String makeUnique(String name) {
-    if (usedNames.add(name)) {
-      return name;
-    }
-
-    for (int idx = 0; idx < name.length(); idx++) {
-      try {
-        int i = Integer.parseInt(name.substring(idx));
-        return makeUnique(name.substring(0, idx) + (i + 1));
-      } catch (NumberFormatException e) {
-      }
-    }
-    return makeUnique(name + "2");
-  }
-
   Builder getBuilder(Schema schema1) {
     URI uri = schema1.getUri();
     if (builtClasses.containsKey(uri)) {
