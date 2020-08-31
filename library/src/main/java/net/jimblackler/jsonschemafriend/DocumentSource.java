@@ -48,7 +48,10 @@ public class DocumentSource {
     if (!path.endsWith(".json")) {
       path += ".json";
     }
-    Path diskCacheName = FILE_SYSTEM.getPath("cache" + path);
+
+    Path diskCacheName = FILE_SYSTEM.getPath(System.getProperty("java.io.tmpdir"))
+                             .resolve("net.jimblackler.jsonschemafriend")
+                             .resolve("cache" + path);
     if (useDiskCache && Files.exists(diskCacheName)) {
       url = diskCacheName.toUri();
       useDiskCache = false;
