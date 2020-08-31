@@ -1,4 +1,4 @@
-package net.jimblackler.codegen;
+package net.jimblackler.jsonschematypes.codegen;
 
 import com.google.googlejavaformat.java.Formatter;
 import com.google.googlejavaformat.java.FormatterException;

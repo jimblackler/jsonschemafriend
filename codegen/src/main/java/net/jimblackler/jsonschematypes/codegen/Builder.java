@@ -1,4 +1,4 @@
-package net.jimblackler.codegen;
+package net.jimblackler.jsonschematypes.codegen;
 
 import com.sun.codemodel.JClass;
 import com.sun.codemodel.JClassAlreadyExistsException;
@@ -125,7 +125,7 @@ public class Builder {
 
     String name1 = dataType.name().replace("JSON", "Json");
     String dataObjectName = NameUtils.lowerCaseFirst(NameUtils.snakeToCamel(name1));
-    JFieldVar dataField = jDefinedClass.field(JMod.PUBLIC | JMod.FINAL, dataType, dataObjectName);
+    JFieldVar dataField = jDefinedClass.field(JMod.PRIVATE | JMod.FINAL, dataType, dataObjectName);
 
     /* Constructor */
     JMethod constructor = jDefinedClass.constructor(JMod.PUBLIC);
@@ -148,6 +148,12 @@ public class Builder {
       Builder builder = codeGenerator.getBuilder(itemsSchema);
       builder.writeItemGetters(jDefinedClass, dataField);
     }
+
+    if (types.contains("array")) {
+      JMethod sizeMethod = jDefinedClass.method(JMod.PUBLIC, jCodeModel.INT, "size");
+      JExpression asJsonArray = castIfNeeded(jCodeModel.ref(JSONArray.class), dataField);
+      sizeMethod.body()._return(JExpr.invoke(asJsonArray, "length"));
+    }
   }
 
   private static String nameForSchema(Schema schema) {
@@ -157,11 +163,8 @@ public class Builder {
     return NameUtils.snakeToCamel(namePart);
   }
 
-  private static JExpression castIfNeeded(JCodeModel jCodeModel, JClass _class, JFieldVar field) {
-    if (field.type().equals(_class)) {
-      return field;
-    }
-    return JExpr.cast(_class, field);
+  private static JExpression castIfNeeded(JClass _class, JFieldVar field) {
+    return field.type().equals(_class) ? field : JExpr.cast(_class, field);
   }
 
   private static String getGet(JCodeModel jCodeModel, JType dataType) {
@@ -205,8 +208,7 @@ public class Builder {
   private void writePropertyGetters(boolean requiredProperty, String propertyName,
       JDefinedClass holderClass, JFieldVar dataField) {
     JCodeModel jCodeModel = codeGenerator.getJCodeModel();
-    JExpression asJsonObject =
-        castIfNeeded(jCodeModel, jCodeModel.ref(JSONObject.class), dataField);
+    JExpression asJsonObject = castIfNeeded(jCodeModel.ref(JSONObject.class), dataField);
     String get = getGet(jCodeModel, dataType);
     JType returnType;
     if (jDefinedClass == null) {
@@ -233,12 +235,10 @@ public class Builder {
     if (jDefinedClass == null) {
     } else {
       JCodeModel jCodeModel = codeGenerator.getJCodeModel();
-      JMethod getter =
-          holderClass.method(JMod.PUBLIC, jDefinedClass, "get" + _name);
+      JMethod getter = holderClass.method(JMod.PUBLIC, jDefinedClass, "get" + _name);
       JVar indexParam = getter.param(jCodeModel.INT, "index");
       String get = getGet(jCodeModel, dataType);
-      JExpression asJsonArray =
-          castIfNeeded(jCodeModel, jCodeModel.ref(JSONArray.class), dataField);
+      JExpression asJsonArray = castIfNeeded(jCodeModel.ref(JSONArray.class), dataField);
       getter.body()._return(
           JExpr._new(jDefinedClass).arg(JExpr.invoke(asJsonArray, get).arg(indexParam)));
     }

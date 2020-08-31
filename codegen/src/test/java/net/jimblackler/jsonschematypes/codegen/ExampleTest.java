@@ -1,4 +1,4 @@
-package net.jimblackler.codegen;
+package net.jimblackler.jsonschematypes.codegen;
 
 import java.io.IOException;
 import java.nio.file.FileSystem;
@@ -13,8 +13,9 @@ public class ExampleTest {
     //    scan(base.resolve("fstab"));
     //    scan(base.resolve("standard").resolve("7-7-1-1"));
     //    scan(base.resolve("misc"));
-    scan(base.resolve("longread"));
+    //    scan(base.resolve("longread"));
     //    scan(base.resolve("meta"));
+    scan(base.resolve("docs"));
   }
 
   private static void scan(Path testDir) throws IOException {

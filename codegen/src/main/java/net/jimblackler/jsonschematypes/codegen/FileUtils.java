@@ -1,4 +1,4 @@
-package net.jimblackler.codegen;
+package net.jimblackler.jsonschematypes.codegen;
 
 import java.io.File;
 import java.io.IOException;

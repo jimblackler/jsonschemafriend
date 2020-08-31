@@ -1,4 +1,4 @@
-package net.jimblackler.codegen;
+package net.jimblackler.jsonschematypes.codegen;
 
 public class NameUtils {
   static String capitalizeFirst(String in) {
