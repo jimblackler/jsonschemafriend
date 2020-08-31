@@ -4,14 +4,11 @@ plugins {
 }
 
 group = 'net.jimblackler'
-version = '0.1'
+version = '0.2'
 
 dependencies {
     implementation project(path: ':codegen')
 }
-
-sourceCompatibility = JavaVersion.VERSION_1_8
-targetCompatibility = JavaVersion.VERSION_1_8
 
 gradlePlugin {
     plugins {
