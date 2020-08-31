@@ -3,7 +3,7 @@ plugins {
     id 'maven-publish'
 }
 
-group = 'net.jimblackler'
+group = 'com.github.jimblackler'
 version = '0.2'
 
 dependencies {
@@ -13,7 +13,7 @@ dependencies {
 gradlePlugin {
     plugins {
         jsonSchemaTypes {
-            id = 'net.jimblackler.jsonschematypes'
+            id = 'jsonschematypes'
             implementationClass = 'net.jimblackler.jsonschematypes.plugin.JsonSchemaTypesPlugin'
         }
     }
