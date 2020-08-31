@@ -405,7 +405,7 @@ public class ObjectSchema extends Schema {
 
   private Schema getSubSchema(URI uri) throws GenerationException {
     Schema subSchema = schemaStore.getSchema(uri, metaSchemaUri);
-    if (subSchema.getUri().equals(uri)) {
+    if (subSchema != null && subSchema.getUri().equals(uri)) {
       subSchema.setParent(this);
     }
     return subSchema;
