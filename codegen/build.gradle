@@ -28,6 +28,7 @@ afterEvaluate {
 dependencies {
     implementation project(':library')
     implementation 'org.json:json:20200518'
+    implementation 'com.google.googlejavaformat:google-java-format:1.9'
     implementation 'com.sun.codemodel:codemodel:2.6'
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.6.2'
 }

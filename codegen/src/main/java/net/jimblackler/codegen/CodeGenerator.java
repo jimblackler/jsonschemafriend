@@ -1,17 +1,22 @@
 package net.jimblackler.codegen;
 
+import com.google.googlejavaformat.java.Formatter;
+import com.google.googlejavaformat.java.FormatterException;
 import com.sun.codemodel.JCodeModel;
 import com.sun.codemodel.JPackage;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.PrintWriter;
 import java.net.URI;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
+import net.jimblackler.jsonschemafriend.DocumentUtils;
 import net.jimblackler.jsonschemafriend.GenerationException;
 import net.jimblackler.jsonschemafriend.Schema;
 import net.jimblackler.jsonschemafriend.SchemaStore;
@@ -45,6 +50,21 @@ public class CodeGenerator {
       }
     }
     jCodeModel.build(outPath.toFile());
+
+    Files.walk(outPath).filter(Files::isRegularFile).forEach(path -> {
+      try {
+        String code;
+        try (InputStream inputStream = path.toUri().toURL().openStream()) {
+          code = DocumentUtils.streamToString(inputStream);
+        }
+        String formattedSource = new Formatter().formatSource(code);
+        try (PrintWriter out = new PrintWriter(path.toFile(), "UTF-8")) {
+          out.println(formattedSource);
+        }
+      } catch (FormatterException | IOException e) {
+        // Ignored by design.
+      }
+    });
   }
 
   Builder getBuilder(Schema schema1) {

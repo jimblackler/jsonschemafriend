@@ -119,11 +119,12 @@ public class Builder {
     docs.append("Created from ").append(schema.getUri()).append(System.lineSeparator());
     docs.append("Explicit types ").append(schema.getExplicitTypes()).append(System.lineSeparator());
     docs.append("Inferred types ").append(schema.getInferredTypes()).append(System.lineSeparator());
-    docs.append(schema.getSchemaJson().toString(2));
+    docs.append("<pre>").append(schema.getSchemaJson().toString(2)).append("</pre>");
 
     jDefinedClass.javadoc().add(docs.toString());
 
-    String dataObjectName = NameUtils.lowerCaseFirst(dataType.name());
+    String name1 = dataType.name().replace("JSON", "Json");
+    String dataObjectName = NameUtils.lowerCaseFirst(NameUtils.snakeToCamel(name1));
     JFieldVar dataField = jDefinedClass.field(JMod.PUBLIC | JMod.FINAL, dataType, dataObjectName);
 
     /* Constructor */
@@ -153,7 +154,7 @@ public class Builder {
     String[] split = schema.getUri().toString().split("/");
     String lastPart = split[split.length - 1];
     String namePart = lastPart.split("\\.", 2)[0];
-    return NameUtils.capitalizeFirst(namePart);
+    return NameUtils.snakeToCamel(namePart);
   }
 
   private static JExpression castIfNeeded(JCodeModel jCodeModel, JClass _class, JFieldVar field) {
@@ -213,8 +214,8 @@ public class Builder {
     } else {
       returnType = jDefinedClass;
     }
-    JMethod getter = holderClass.method(
-        JMod.PUBLIC, returnType, "get" + NameUtils.capitalizeFirst(propertyName));
+    String nameForGetters = NameUtils.snakeToCamel(propertyName);
+    JMethod getter = holderClass.method(JMod.PUBLIC, returnType, "get" + nameForGetters);
     JInvocation getObject = JExpr.invoke(asJsonObject, get).arg(propertyName);
     if (jDefinedClass == null) {
       getter.body()._return(getObject);
@@ -223,8 +224,7 @@ public class Builder {
     }
 
     if (!requiredProperty) {
-      JMethod has = holderClass.method(
-          JMod.PUBLIC, jCodeModel.BOOLEAN, "has" + NameUtils.capitalizeFirst(propertyName));
+      JMethod has = holderClass.method(JMod.PUBLIC, jCodeModel.BOOLEAN, "has" + nameForGetters);
       has.body()._return(JExpr.invoke(asJsonObject, "has").arg(propertyName));
     }
   }
@@ -234,7 +234,7 @@ public class Builder {
     } else {
       JCodeModel jCodeModel = codeGenerator.getJCodeModel();
       JMethod getter =
-          holderClass.method(JMod.PUBLIC, jDefinedClass, "get" + NameUtils.capitalizeFirst(_name));
+          holderClass.method(JMod.PUBLIC, jDefinedClass, "get" + _name);
       JVar indexParam = getter.param(jCodeModel.INT, "index");
       String get = getGet(jCodeModel, dataType);
       JExpression asJsonArray =
