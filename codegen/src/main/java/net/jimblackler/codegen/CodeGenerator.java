@@ -7,13 +7,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
-import java.util.Collection;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
 import net.jimblackler.jsonschemafriend.GenerationException;
 import net.jimblackler.jsonschemafriend.Schema;
@@ -23,7 +20,6 @@ public class CodeGenerator {
   private final JPackage jPackage;
   private final JCodeModel jCodeModel = new JCodeModel();
   private final Map<URI, Builder> builtClasses = new HashMap<>();
-  private final Collection<String> usedNames = new HashSet<>();
 
   public CodeGenerator(Path outPath, String packageName, URL resource1) throws IOException {
     jPackage = jCodeModel._package(packageName);
@@ -70,27 +66,6 @@ public class CodeGenerator {
 
   public void register(URI uri, Builder builder) {
     builtClasses.put(uri, builder);
-  }
-
-  public Builder parent(URI uri) {
-    while (true) {
-      String path = uri.getRawFragment();
-      if (path == null) {
-        return null;
-      }
-      int i = path.lastIndexOf("/");
-      if (i <= 0) {
-        return null;
-      }
-      try {
-        uri = new URI(uri.getScheme(), uri.getSchemeSpecificPart(), path.substring(0, i));
-      } catch (URISyntaxException e) {
-        throw new IllegalStateException(e);
-      }
-      if (builtClasses.containsKey(uri)) {
-        return builtClasses.get(uri);
-      }
-    }
   }
 
   public JPackage getJPackage() {

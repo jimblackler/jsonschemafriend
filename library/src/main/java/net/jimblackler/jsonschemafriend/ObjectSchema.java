@@ -28,6 +28,8 @@ import org.json.JSONPointer;
 public class ObjectSchema extends Schema {
   private final JSONObject schemaJson; // Kept for debugging only.
 
+  private final URI metaSchemaUri;
+
   // number checks
   private final Number multipleOf;
   private final Number maximum;
@@ -89,7 +91,6 @@ public class ObjectSchema extends Schema {
     JSONObject jsonObjectOriginal =
         (JSONObject) PathUtils.fetchFromPath(baseDocument, uri.getRawFragment());
 
-    URI metaSchemaUri;
     if (baseDocument == jsonObjectOriginal && baseDocument.has("$schema")) {
       metaSchemaUri = URI.create(baseDocument.getString("$schema"));
     } else {
@@ -146,8 +147,8 @@ public class ObjectSchema extends Schema {
     }
 
     // array checks
-    additionalItems = getSchema(jsonObject, "additionalItems", schemaStore, defaultMetaSchema, uri);
-    _items = getSchema(jsonObject, "items", schemaStore, defaultMetaSchema, uri);
+    additionalItems = getSubSchema(jsonObject, "additionalItems", uri);
+    _items = getSubSchema(jsonObject, "items", uri);
 
     Object itemsObject = jsonObject.opt("items");
     URI itemsPath = PathUtils.append(uri, "items");
@@ -155,8 +156,7 @@ public class ObjectSchema extends Schema {
       itemsArray = new ArrayList<>();
       JSONArray jsonArray = (JSONArray) itemsObject;
       for (int idx = 0; idx != jsonArray.length(); idx++) {
-        itemsArray.add(schemaStore.getSchema(
-            PathUtils.append(itemsPath, String.valueOf(idx)), defaultMetaSchema));
+        itemsArray.add(getSubSchema(PathUtils.append(itemsPath, String.valueOf(idx))));
       }
     } else {
       itemsArray = null;
@@ -165,7 +165,7 @@ public class ObjectSchema extends Schema {
     maxItems = (Number) jsonObject.opt("maxItems");
     minItems = (Number) jsonObject.opt("minItems");
     uniqueItems = jsonObject.optBoolean("uniqueItems", false);
-    contains = getSchema(jsonObject, "contains", schemaStore, defaultMetaSchema, uri);
+    contains = getSubSchema(jsonObject, "contains", uri);
 
     if (jsonObject.has("additionalItems") || jsonObject.has("items") || jsonObject.has("maxItems")
         || jsonObject.has("minItems") || jsonObject.has("uniqueItems")
@@ -185,8 +185,7 @@ public class ObjectSchema extends Schema {
       }
     }
 
-    additionalProperties =
-        getSchema(jsonObject, "additionalProperties", schemaStore, defaultMetaSchema, uri);
+    additionalProperties = getSubSchema(jsonObject, "additionalProperties", uri);
 
     Object propertiesObject = jsonObject.opt("properties");
     if (propertiesObject instanceof JSONObject) {
@@ -210,8 +209,7 @@ public class ObjectSchema extends Schema {
             required.add(propertyName);
           }
         }
-
-        _properties.put(propertyName, schemaStore.getSchema(propertyUri, defaultMetaSchema));
+        _properties.put(propertyName, getSubSchema(propertyUri));
       }
     }
 
@@ -223,8 +221,8 @@ public class ObjectSchema extends Schema {
       while (it.hasNext()) {
         String propertyPattern = it.next();
         patternPropertiesPatterns.add(new Ecma262Pattern(propertyPattern));
-        patternPropertiesSchemas.add(schemaStore.getSchema(
-            PathUtils.append(propertiesPointer, propertyPattern), defaultMetaSchema));
+        URI patternPointer = PathUtils.append(propertiesPointer, propertyPattern);
+        patternPropertiesSchemas.add(getSubSchema(patternPointer));
       }
     }
 
@@ -241,9 +239,8 @@ public class ObjectSchema extends Schema {
           dependencies.put(dependency, spec);
         } else if (dependencyObject instanceof JSONObject || dependencyObject instanceof Boolean) {
           URI dependenciesPpinter = PathUtils.append(uri, "dependencies");
-          schemaDependencies.put(dependency,
-              schemaStore.getSchema(
-                  PathUtils.append(dependenciesPpinter, dependency), defaultMetaSchema));
+          schemaDependencies.put(
+              dependency, getSubSchema(PathUtils.append(dependenciesPpinter, dependency)));
         } else {
           Collection<String> objects = new ArrayList<>();
           objects.add((String) dependencyObject);
@@ -252,7 +249,7 @@ public class ObjectSchema extends Schema {
       }
     }
 
-    propertyNames = getSchema(jsonObject, "propertyNames", schemaStore, defaultMetaSchema, uri);
+    propertyNames = getSubSchema(jsonObject, "propertyNames", uri);
 
     if (jsonObject.has("maxProperties") || jsonObject.has("minProperties")
         || jsonObject.has("required") || jsonObject.has("additionalProperties")
@@ -282,8 +279,7 @@ public class ObjectSchema extends Schema {
       for (int idx = 0; idx != array.length(); idx++) {
         Object arrayEntryObject = array.get(idx);
         if (arrayEntryObject instanceof Boolean || arrayEntryObject instanceof JSONObject) {
-          typesSchema.add(schemaStore.getSchema(
-              PathUtils.append(typePointer, String.valueOf(idx)), defaultMetaSchema));
+          typesSchema.add(getSubSchema(PathUtils.append(typePointer, String.valueOf(idx))));
         } else {
           explicitTypes.add((String) arrayEntryObject);
         }
@@ -294,9 +290,9 @@ public class ObjectSchema extends Schema {
       explicitTypes = null;
     }
 
-    _if = getSchema(jsonObject, "if", schemaStore, defaultMetaSchema, uri);
-    _then = getSchema(jsonObject, "then", schemaStore, defaultMetaSchema, uri);
-    _else = getSchema(jsonObject, "else", schemaStore, defaultMetaSchema, uri);
+    _if = getSubSchema(jsonObject, "if", uri);
+    _then = getSubSchema(jsonObject, "then", uri);
+    _else = getSubSchema(jsonObject, "else", uri);
 
     Object allOfObject = jsonObject.opt("allOf");
     if (allOfObject instanceof JSONArray) {
@@ -304,7 +300,7 @@ public class ObjectSchema extends Schema {
       URI arrayPath = PathUtils.append(uri, "allOf");
       for (int idx = 0; idx != array.length(); idx++) {
         URI indexPointer = PathUtils.append(arrayPath, String.valueOf(idx));
-        allOf.add(schemaStore.getSchema(indexPointer, defaultMetaSchema));
+        allOf.add(getSubSchema(indexPointer));
       }
     }
 
@@ -314,11 +310,11 @@ public class ObjectSchema extends Schema {
       JSONArray array = (JSONArray) extendsObject;
       for (int idx = 0; idx != array.length(); idx++) {
         URI indexPointer = PathUtils.append(arrayPath, String.valueOf(idx));
-        allOf.add(schemaStore.getSchema(indexPointer, defaultMetaSchema));
+        allOf.add(getSubSchema(indexPointer));
       }
     } else if (extendsObject instanceof JSONObject || extendsObject instanceof Boolean) {
       URI arrayPath = PathUtils.append(uri, "extends");
-      allOf.add(schemaStore.getSchema(arrayPath, defaultMetaSchema));
+      allOf.add(getSubSchema(arrayPath));
     }
 
     Object anyOfObject = jsonObject.opt("anyOf");
@@ -328,7 +324,7 @@ public class ObjectSchema extends Schema {
       URI arrayPath = PathUtils.append(uri, "anyOf");
       for (int idx = 0; idx != array.length(); idx++) {
         URI indexPointer = PathUtils.append(arrayPath, String.valueOf(idx));
-        anyOf.add(schemaStore.getSchema(indexPointer, defaultMetaSchema));
+        anyOf.add(getSubSchema(indexPointer));
       }
     } else {
       anyOf = null;
@@ -341,13 +337,13 @@ public class ObjectSchema extends Schema {
       URI arrayPath = PathUtils.append(uri, "oneOf");
       for (int idx = 0; idx != array.length(); idx++) {
         URI indexPointer = PathUtils.append(arrayPath, String.valueOf(idx));
-        oneOf.add(schemaStore.getSchema(indexPointer, defaultMetaSchema));
+        oneOf.add(getSubSchema(indexPointer));
       }
     } else {
       oneOf = null;
     }
 
-    not = getSchema(jsonObject, "not", schemaStore, defaultMetaSchema, uri);
+    not = getSubSchema(jsonObject, "not", uri);
 
     Object disallowObject = jsonObject.opt("disallow");
     if (disallowObject instanceof String) {
@@ -360,20 +356,10 @@ public class ObjectSchema extends Schema {
         if (disallowEntryObject instanceof String) {
           disallow.add(array.getString(idx));
         } else {
-          disallowSchemas.add(schemaStore.getSchema(
-              PathUtils.append(disallowPointer, String.valueOf(idx)), defaultMetaSchema));
+          disallowSchemas.add(getSubSchema(PathUtils.append(disallowPointer, String.valueOf(idx))));
         }
       }
     }
-  }
-
-  private static Schema getSchema(JSONObject jsonObject, String name, SchemaStore schemaStore,
-      URI defaultMetaSchema, URI uri) throws GenerationException {
-    Object object = jsonObject.opt(name);
-    if (object instanceof JSONObject || object instanceof Boolean) {
-      return schemaStore.getSchema(PathUtils.append(uri, name), defaultMetaSchema);
-    }
-    return null;
   }
 
   private static Set<String> setOf(String string) {
@@ -408,6 +394,23 @@ public class ObjectSchema extends Schema {
     }
   }
 
+  private Schema getSubSchema(JSONObject jsonObject, String name, URI uri)
+      throws GenerationException {
+    Object object = jsonObject.opt(name);
+    if (object instanceof JSONObject || object instanceof Boolean) {
+      return getSubSchema(PathUtils.append(uri, name));
+    }
+    return null;
+  }
+
+  private Schema getSubSchema(URI uri) throws GenerationException {
+    Schema subSchema = schemaStore.getSchema(uri, metaSchemaUri);
+    if (subSchema.getUri().equals(uri)) {
+      subSchema.setParent(this);
+    }
+    return subSchema;
+  }
+
   @Override
   public void validate(Object document, URI uri, Consumer<ValidationError> errorConsumer) {
     Object object;
@@ -425,7 +428,7 @@ public class ObjectSchema extends Schema {
       object = query;
     }
 
-    // object = rewriteObject(object);
+    object = rewriteObject(object);
 
     if (object instanceof Number) {
       Number number = (Number) object;

@@ -4,11 +4,14 @@ import java.net.URI;
 import java.util.function.Consumer;
 
 public abstract class Schema {
+  protected final SchemaStore schemaStore;
   private final URI uri;
+  private Schema parent;
 
   Schema(SchemaStore schemaStore, URI uri) throws GenerationException {
     // The schema is registered here to allow for circular graphs to be built in the constructors.
     this.uri = uri;
+    this.schemaStore = schemaStore;
     schemaStore.register(uri, this);
   }
 
@@ -35,4 +38,15 @@ public abstract class Schema {
   public abstract boolean isObjectSchema();
 
   public abstract ObjectSchema asObjectSchema();
+
+  public Schema getParent() {
+    return parent;
+  }
+
+  protected void setParent(Schema parent) {
+    if (this.parent != null) {
+      throw new IllegalStateException("Schemas may only have one parent");
+    }
+    this.parent = parent;
+  }
 }

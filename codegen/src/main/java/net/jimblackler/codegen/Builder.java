@@ -75,18 +75,39 @@ public class Builder {
       return;
     }
 
-    Builder parent = codeGenerator.parent(schema.getUri());
+    Schema parentSchema = schema.getParent();
+
     JClassContainer classParent;
-    if (parent == null) {
+    if (parentSchema == null) {
       classParent = jPackage;
     } else {
+      Builder parent = codeGenerator.getBuilder(parentSchema);
       classParent = parent.getDefinedClass();
     }
     String name = nameForSchema(schema);
+
+    /* Ensure no direct ancestor has the same name */
+    while (true) {
+      boolean changed = false;
+      for (JClassContainer container = classParent; container instanceof JDefinedClass;
+           container = container.parentContainer()) {
+        JDefinedClass classContainer = (JDefinedClass) container;
+        if (classContainer.name().equals(name)) {
+          name = varyName(name);
+          changed = true;
+          break;
+        }
+      }
+      if (!changed) {
+        break;
+      }
+    }
+
     JDefinedClass _class;
     while (true) {
       try {
-        _class = classParent._class(parent == null ? JMod.PUBLIC : JMod.STATIC | JMod.PUBLIC, name);
+        _class = classParent._class(
+            parentSchema == null ? JMod.PUBLIC : JMod.STATIC | JMod.PUBLIC, name);
         break;
       } catch (JClassAlreadyExistsException e) {
         name = varyName(name);
@@ -102,7 +123,7 @@ public class Builder {
 
     jDefinedClass.javadoc().add(docs.toString());
 
-    String dataObjectName = lowerCaseFirst(dataType.name());
+    String dataObjectName = NameUtils.lowerCaseFirst(dataType.name());
     JFieldVar dataField = jDefinedClass.field(JMod.PUBLIC | JMod.FINAL, dataType, dataObjectName);
 
     /* Constructor */
@@ -132,16 +153,7 @@ public class Builder {
     String[] split = schema.getUri().toString().split("/");
     String lastPart = split[split.length - 1];
     String namePart = lastPart.split("\\.", 2)[0];
-    return capitalizeFirst(namePart);
-  }
-
-  private static String capitalizeFirst(String in) {
-    return Character.toUpperCase(in.charAt(0)) + in.substring(1);
-  }
-
-  private static String lowerCaseFirst(String in) {
-    in = in.replace("JSON", "Json");
-    return Character.toLowerCase(in.charAt(0)) + in.substring(1);
+    return NameUtils.capitalizeFirst(namePart);
   }
 
   private static JExpression castIfNeeded(JCodeModel jCodeModel, JClass _class, JFieldVar field) {
@@ -201,8 +213,8 @@ public class Builder {
     } else {
       returnType = jDefinedClass;
     }
-    JMethod getter =
-        holderClass.method(JMod.PUBLIC, returnType, "get" + capitalizeFirst(propertyName));
+    JMethod getter = holderClass.method(
+        JMod.PUBLIC, returnType, "get" + NameUtils.capitalizeFirst(propertyName));
     JInvocation getObject = JExpr.invoke(asJsonObject, get).arg(propertyName);
     if (jDefinedClass == null) {
       getter.body()._return(getObject);
@@ -212,7 +224,7 @@ public class Builder {
 
     if (!requiredProperty) {
       JMethod has = holderClass.method(
-          JMod.PUBLIC, jCodeModel.BOOLEAN, "has" + capitalizeFirst(propertyName));
+          JMod.PUBLIC, jCodeModel.BOOLEAN, "has" + NameUtils.capitalizeFirst(propertyName));
       has.body()._return(JExpr.invoke(asJsonObject, "has").arg(propertyName));
     }
   }
@@ -222,7 +234,7 @@ public class Builder {
     } else {
       JCodeModel jCodeModel = codeGenerator.getJCodeModel();
       JMethod getter =
-          holderClass.method(JMod.PUBLIC, jDefinedClass, "get" + capitalizeFirst(_name));
+          holderClass.method(JMod.PUBLIC, jDefinedClass, "get" + NameUtils.capitalizeFirst(_name));
       JVar indexParam = getter.param(jCodeModel.INT, "index");
       String get = getGet(jCodeModel, dataType);
       JExpression asJsonArray =
