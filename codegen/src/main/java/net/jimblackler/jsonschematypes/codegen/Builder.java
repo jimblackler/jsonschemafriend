@@ -67,9 +67,10 @@ public class Builder {
       dataType = jCodeModel.ref(Object.class);
     }
 
-    if (!(dataType.equals(jCodeModel.ref(Object.class))
-            || dataType.equals(jCodeModel.ref(JSONArray.class))
-            || dataType.equals(jCodeModel.ref(JSONObject.class)))) {
+    boolean isComplexObject =
+        dataType.equals(jCodeModel.ref(JSONObject.class)) && !schema.getProperties().isEmpty();
+    if (!(isComplexObject || dataType.equals(jCodeModel.ref(Object.class))
+            || dataType.equals(jCodeModel.ref(JSONArray.class)))) {
       jDefinedClass = null;
       _name = null;
       return;
