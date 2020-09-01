@@ -14,8 +14,6 @@ import org.gradle.api.tasks.SourceSetContainer;
 import org.gradle.api.tasks.TaskAction;
 
 public class GenerateJsonSchemaTypesJavaTask extends DefaultTask {
-  public static final FileSystem FILE_SYSTEM = FileSystems.getDefault();
-
   @TaskAction
   public void generate() throws IOException {
     Project project = getProject();
@@ -28,7 +26,6 @@ public class GenerateJsonSchemaTypesJavaTask extends DefaultTask {
     Path codePath = Common.getCodePath(getProject());
 
     FileUtils.createOrEmpty(codePath);
-    CodeGenerator codeGenerator =
-        new CodeGenerator(codePath, extension.getPackageOut(), resources.toUri().toURL());
+    new CodeGenerator(codePath, extension.getPackageOut(), resources.toUri().toURL());
   }
 }
