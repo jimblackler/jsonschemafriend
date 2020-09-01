@@ -7,7 +7,7 @@ sourceCompatibility = JavaVersion.VERSION_11
 targetCompatibility = JavaVersion.VERSION_11
 
 group = 'net.jimblackler'
-version = '0.4'
+version = '0.5'
 
 dependencies {
     implementation project(path: ':codegen')
@@ -16,7 +16,7 @@ dependencies {
 gradlePlugin {
     plugins {
         jsonSchemaTypes {
-            id = 'jsonschematypes'
+            id = 'net.jimblackler.jsonschematypes'
             implementationClass = 'net.jimblackler.jsonschematypes.plugin.JsonSchemaTypesPlugin'
         }
     }
