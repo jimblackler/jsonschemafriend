@@ -7,7 +7,7 @@ sourceCompatibility = JavaVersion.VERSION_11
 targetCompatibility = JavaVersion.VERSION_11
 
 group = 'com.github.jimblackler'
-version = '0.2'
+version = '0.3'
 
 dependencies {
     implementation project(path: ':codegen')
