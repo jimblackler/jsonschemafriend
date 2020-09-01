@@ -1,6 +1,8 @@
 package net.jimblackler.jsonschemafriend;
 
 import java.net.URI;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.function.Consumer;
 
 public abstract class Schema {
@@ -26,6 +28,14 @@ public abstract class Schema {
 
   ValidationError error(Object document, URI path, String message) {
     return new ValidationError(path, document, message, this);
+  }
+
+  public void validate(Object document) throws ValidationException {
+    Collection<ValidationError> errors = new ArrayList<>();
+    validate(document, errors::add);
+    if (!errors.isEmpty()) {
+      throw new ValidationException(errors.toString());
+    }
   }
 
   public void validate(Object document, Consumer<ValidationError> errorConsumer) {
