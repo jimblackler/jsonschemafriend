@@ -13,6 +13,9 @@ public class NameUtils {
     String[] parts = in.split("_");
     StringBuilder stringBuilder = new StringBuilder();
     for (String part : parts) {
+      if (part.isEmpty()) {
+        continue;
+      }
       stringBuilder.append(capitalizeFirst(part));
     }
     return stringBuilder.toString();
