@@ -80,6 +80,7 @@ public class ObjectSchema extends Schema {
 
   private final Set<String> disallow = new HashSet<>();
   private final Collection<Schema> disallowSchemas = new HashSet<>();
+  private final Object defaultValue;
 
   public ObjectSchema(SchemaStore schemaStore, URI uri, URI defaultMetaSchema)
       throws GenerationException {
@@ -360,6 +361,8 @@ public class ObjectSchema extends Schema {
         }
       }
     }
+
+    defaultValue = jsonObject.opt("default");
   }
 
   private static Set<String> setOf(String string) {
@@ -796,5 +799,9 @@ public class ObjectSchema extends Schema {
 
   public JSONObject getSchemaJson() {
     return schemaJson;
+  }
+
+  public Object getDefault() {
+    return defaultValue;
   }
 }
