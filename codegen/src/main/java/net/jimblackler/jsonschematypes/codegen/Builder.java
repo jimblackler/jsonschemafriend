@@ -4,6 +4,7 @@ import com.sun.codemodel.JClass;
 import com.sun.codemodel.JClassContainer;
 import com.sun.codemodel.JCodeModel;
 import com.sun.codemodel.JDefinedClass;
+import com.sun.codemodel.JEnumConstant;
 import com.sun.codemodel.JExpr;
 import com.sun.codemodel.JExpression;
 import com.sun.codemodel.JFieldVar;
@@ -11,8 +12,10 @@ import com.sun.codemodel.JInvocation;
 import com.sun.codemodel.JMethod;
 import com.sun.codemodel.JMod;
 import com.sun.codemodel.JPackage;
+import com.sun.codemodel.JSwitch;
 import com.sun.codemodel.JType;
 import com.sun.codemodel.JVar;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -26,10 +29,12 @@ public class Builder {
   private final JDefinedClass jDefinedClass;
   private final String _name;
   private final JType dataType;
+  private final List<JEnumConstant> enumConstants = new ArrayList<>();
+  private final ObjectSchema schema;
 
   public Builder(CodeGenerator codeGenerator, Schema schema1) {
     this.codeGenerator = codeGenerator;
-    ObjectSchema schema = schema1.asObjectSchema();
+    this.schema = schema1.asObjectSchema();
     codeGenerator.register(schema.getUri(), this);
 
     JPackage jPackage = codeGenerator.getJPackage();
@@ -155,7 +160,9 @@ public class Builder {
       _name = _enum.name();
 
       for (Object value : enums) {
-        _enum.enumConstant(NameUtils.camelToSnake((String) value).toUpperCase());
+        JEnumConstant enumConstant =
+            _enum.enumConstant(NameUtils.camelToSnake((String) value).toUpperCase());
+        enumConstants.add(enumConstant);
       }
 
       jDefinedClass = _enum;
@@ -274,8 +281,19 @@ public class Builder {
     }
     if (jDefinedClass == null) {
       getter.body()._return(getObject);
-    } else {
+    } else if (enumConstants.isEmpty()) {
       getter.body()._return(JExpr._new(jDefinedClass).arg(getObject));
+    } else {
+      JVar value = getter.body().decl(jCodeModel.ref(String.class), "value").init(getObject);
+      List<Object> enums = schema.getEnums();
+      JSwitch jSwitch = getter.body()._switch(value);
+      for (int idx = 0; idx != enums.size(); idx++) {
+        String enumString = (String) enums.get(idx);
+        jSwitch._case(JExpr.lit(enumString)).body()._return(enumConstants.get(idx));
+      }
+
+      getter.body()._throw(JExpr._new(jCodeModel.ref(IllegalStateException.class))
+                               .arg(JExpr.lit("Unexpected enum ").plus(value)));
     }
 
     if (!requiredProperty && isGet) {
