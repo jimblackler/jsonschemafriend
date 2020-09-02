@@ -21,7 +21,7 @@ public class ExampleTest {
   private static void scan(Path testDir) throws IOException {
     Path out = FILE_SYSTEM.getPath("out");
     FileUtils.createOrEmpty(out);
-    CodeGenerator codeGenerator = new CodeGenerator(
+    new CodeGenerator(
         out, "org.example", ExampleTest.class.getResource(testDir.resolve("schemas").toString()));
   }
 }
