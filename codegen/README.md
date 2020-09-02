@@ -1,3 +1,5 @@
+# jsconschematypes
+
 jsconschematypes is a Java library to generate Java classes from standard JSON
 Schemas.
 
@@ -93,7 +95,31 @@ By constructing a new `Person` object and passing in an existing `JSONObject`, a
 program can access the data, pass and store it, and maintain greater type safety
 and code clarify than handling a raw `JSONObject`.
 
-# Implementation
+## Design
+
+Classes are created according to the design of the JSON Schema from which they
+are derived. The library takes some license in creating Java classes that match
+the inferred intent of the schema, to make them relatively lightweight and not
+overwhelming humans to read. This means tactcialy omitting some varations of
+accessors that could potentially be supplied. For example, if a schema specifies
+a default value for a property, no `has` method will be generated to test for
+the presence of that property on an object, since a value can always be
+returned. The effect of this is that changes to the schema could result in
+methods being removecd from generated Java classes.
+
+Where the generator cannot any useful accessors, no class is generated and the
+containing class will supply `JSONObject`s directly.
+
+The generated classes are designed to be as close as possible to idiomatic Java
+as possible. For example, using `is` getters such as `isEnabled` when exposing
+booleans.
+
+They are *not* designed to hide or completely abstract the fact that the objects
+they interface are backed by `JSONObject`s and `JSONArray`s. It is a goal of the
+library that programmers can switched to unstructured access (via the usual JSON
+accessors) of data where required.
+
+## Implementation
 
 The library uses the `net.jimblackler.jsonschemafriend` Schema loader/validator
 to help interpret the schemas and their structure.
