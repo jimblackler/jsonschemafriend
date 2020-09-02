@@ -46,7 +46,9 @@ public class Builder {
           dataType = jCodeModel.BOOLEAN;
           break;
         case "integer":
-          dataType = jCodeModel.INT;
+          // JSON Schema's definition of an integer is not the same as Java's.
+          // Specifically, values over 2^32 are supported. We use a Java Long.
+          dataType = jCodeModel.LONG;
           break;
         case "null":
           dataType = jCodeModel.NULL;
@@ -155,10 +157,11 @@ public class Builder {
     }
 
     for (Schema itemsSchema : schema.getItems()) {
-      Builder builder = codeGenerator.getBuilder(itemsSchema);
       if (!itemsSchema.isObjectSchema()) {
         continue;
       }
+      Builder builder = codeGenerator.getBuilder(itemsSchema);
+
       ObjectSchema itemObjectSchema = itemsSchema.asObjectSchema();
       builder.writeItemGetters(
           jDefinedClass, expressionFromObject(itemObjectSchema.getDefault()), dataField);
@@ -207,7 +210,21 @@ public class Builder {
     String[] split = schema.getUri().toString().split("/");
     String lastPart = split[split.length - 1];
     String namePart = lastPart.split("\\.", 2)[0];
-    return NameUtils.snakeToCamel(namePart);
+
+    String converted = NameUtils.snakeToCamel(namePart);
+    if (!Character.isJavaIdentifierStart(converted.charAt(0))) {
+      converted = "_" + converted;
+    }
+
+    StringBuilder builder = new StringBuilder();
+    for (int idx = 0; idx != converted.length(); idx++) {
+      char chr = converted.charAt(idx);
+      if (Character.isJavaIdentifierPart(chr)) {
+        builder.append(chr);
+      }
+    }
+
+    return builder.toString();
   }
 
   private static JExpression castIfNeeded(JClass _class, JFieldVar field) {
@@ -227,6 +244,9 @@ public class Builder {
     }
     if (dataType.equals(jCodeModel.ref(String.class))) {
       return kind + "String";
+    }
+    if (dataType.equals(jCodeModel.LONG)) {
+      return kind + "Long";
     }
     if (dataType.equals(jCodeModel.INT)) {
       return kind + "Int";
