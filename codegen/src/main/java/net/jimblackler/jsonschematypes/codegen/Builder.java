@@ -67,12 +67,13 @@ public class Builder {
       dataType = jCodeModel.ref(Object.class);
     }
 
+    String name = nameForSchema(schema);
     boolean isComplexObject =
         dataType.equals(jCodeModel.ref(JSONObject.class)) && !schema.getProperties().isEmpty();
     if (!(isComplexObject || dataType.equals(jCodeModel.ref(Object.class))
             || dataType.equals(jCodeModel.ref(JSONArray.class)))) {
       jDefinedClass = null;
-      _name = null;
+      _name = name;
       return;
     }
 
@@ -85,7 +86,6 @@ public class Builder {
       Builder parent = codeGenerator.getBuilder(parentSchema);
       classParent = parent.getDefinedClass();
     }
-    String name = nameForSchema(schema);
 
     /* Ensure no direct ancestor has the same name */
     while (true) {
@@ -114,8 +114,10 @@ public class Builder {
         name = varyName(name);
       }
     }
-    jDefinedClass = _class;
     _name = name;
+
+    jDefinedClass = _class;
+
     StringBuilder docs = new StringBuilder();
     docs.append("Created from ").append(schema.getUri()).append(System.lineSeparator());
     docs.append("Explicit types ").append(schema.getExplicitTypes()).append(System.lineSeparator());
@@ -255,13 +257,13 @@ public class Builder {
       JDefinedClass holderClass, JFieldVar dataField, String propertyName) {
     JCodeModel jCodeModel = codeGenerator.getJCodeModel();
     JExpression asJsonObject = castIfNeeded(jCodeModel.ref(JSONObject.class), dataField);
+    String nameForGetters = NameUtils.snakeToCamel(propertyName);
     JType returnType;
     if (jDefinedClass == null) {
       returnType = dataType;
     } else {
       returnType = jDefinedClass;
     }
-    String nameForGetters = NameUtils.snakeToCamel(propertyName);
     JMethod getter = holderClass.method(JMod.PUBLIC, returnType,
         (returnType.equals(jCodeModel.BOOLEAN) ? "is" : "get") + nameForGetters);
     boolean isGet = defaultValue == null;
@@ -286,13 +288,13 @@ public class Builder {
       JDefinedClass holderClass, JExpression defaultValue, JFieldVar dataField) {
     JCodeModel jCodeModel = codeGenerator.getJCodeModel();
     JExpression asJsonArray = castIfNeeded(jCodeModel.ref(JSONArray.class), dataField);
+    String nameForGetters = _name;
     JType returnType;
     if (jDefinedClass == null) {
       returnType = dataType;
     } else {
       returnType = jDefinedClass;
     }
-    String nameForGetters = _name;
     JMethod getter = holderClass.method(JMod.PUBLIC, returnType,
         (returnType.equals(jCodeModel.BOOLEAN) ? "is" : "get") + nameForGetters);
     JVar indexParam = getter.param(jCodeModel.INT, "index");
