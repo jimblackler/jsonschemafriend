@@ -1,7 +1,6 @@
 package net.jimblackler.jsonschematypes.codegen;
 
 import com.sun.codemodel.JClass;
-import com.sun.codemodel.JClassAlreadyExistsException;
 import com.sun.codemodel.JClassContainer;
 import com.sun.codemodel.JCodeModel;
 import com.sun.codemodel.JDefinedClass;
@@ -14,6 +13,7 @@ import com.sun.codemodel.JMod;
 import com.sun.codemodel.JPackage;
 import com.sun.codemodel.JType;
 import com.sun.codemodel.JVar;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import net.jimblackler.jsonschemafriend.ObjectSchema;
@@ -69,108 +69,99 @@ public class Builder {
       dataType = jCodeModel.ref(Object.class);
     }
 
+    Schema parentSchema = schema.getParent();
+    JClassContainer classParent =
+        parentSchema == null ? jPackage : codeGenerator.getBuilder(parentSchema).getDefinedClass();
+
     String name = nameForSchema(schema);
     boolean isComplexObject =
         dataType.equals(jCodeModel.ref(JSONObject.class)) && !schema.getProperties().isEmpty();
-    if (!(isComplexObject || dataType.equals(jCodeModel.ref(Object.class))
-            || dataType.equals(jCodeModel.ref(JSONArray.class)))) {
+    if (isComplexObject || dataType.equals(jCodeModel.ref(Object.class))
+        || dataType.equals(jCodeModel.ref(JSONArray.class))) {
+      JDefinedClass _class = DefinedClassMaker.makeClassForSchema(classParent, name,
+          (name12)
+              -> classParent._class(
+                  parentSchema == null ? JMod.PUBLIC : JMod.STATIC | JMod.PUBLIC, name12));
+
+      jDefinedClass = _class;
+      _name = _class.name();
+
+      StringBuilder docs = new StringBuilder();
+      docs.append("Created from ").append(schema.getUri()).append(System.lineSeparator());
+      docs.append("Explicit types ")
+          .append(schema.getExplicitTypes())
+          .append(System.lineSeparator());
+      docs.append("Inferred types ")
+          .append(schema.getInferredTypes())
+          .append(System.lineSeparator());
+      docs.append("<pre>").append(schema.getSchemaJson().toString(2)).append("</pre>");
+
+      jDefinedClass.javadoc().add(docs.toString());
+
+      String name1 = dataType.name().replace("JSON", "Json");
+      String dataObjectName = NameUtils.lowerCaseFirst(NameUtils.snakeToCamel(name1));
+      JFieldVar dataField =
+          jDefinedClass.field(JMod.PRIVATE | JMod.FINAL, dataType, dataObjectName);
+
+      /* Constructor */
+      JMethod constructor = jDefinedClass.constructor(JMod.PUBLIC);
+
+      JVar objectParam = constructor.param(dataType, dataObjectName);
+      constructor.body().assign(JExpr._this().ref(dataField), objectParam);
+
+      /* Getter */
+      JMethod getter = jDefinedClass.method(JMod.PUBLIC, dataType,
+          (dataType.equals(jCodeModel.BOOLEAN) ? "is" : "get") + dataType.name());
+      getter.body()._return(dataField);
+
+      for (Map.Entry<String, Schema> entry : schema.getProperties().entrySet()) {
+        Schema propertySchema = entry.getValue();
+        if (!propertySchema.isObjectSchema()) {
+          continue;
+        }
+        ObjectSchema propertyObjectSchema = propertySchema.asObjectSchema();
+        Builder builder = codeGenerator.getBuilder(propertySchema);
+        String propertyName = entry.getKey();
+        builder.writePropertyGetters(schema.getRequiredProperties().contains(propertyName),
+            expressionFromObject(propertyObjectSchema.getDefault()), jDefinedClass, dataField,
+            propertyName);
+      }
+
+      for (Schema itemsSchema : schema.getItems()) {
+        if (!itemsSchema.isObjectSchema()) {
+          continue;
+        }
+        Builder builder = codeGenerator.getBuilder(itemsSchema);
+
+        ObjectSchema itemObjectSchema = itemsSchema.asObjectSchema();
+        builder.writeItemGetters(
+            jDefinedClass, expressionFromObject(itemObjectSchema.getDefault()), dataField);
+      }
+
+      if (types.contains("array")) {
+        JMethod sizeMethod = jDefinedClass.method(JMod.PUBLIC, jCodeModel.INT, "size");
+        JExpression asJsonArray = castIfNeeded(jCodeModel.ref(JSONArray.class), dataField);
+        sizeMethod.body()._return(JExpr.invoke(asJsonArray, "length"));
+      }
+    } else if (schema.getEnums() != null && dataType.equals(jCodeModel.ref(String.class))) {
+      List<Object> enums = schema.getEnums();
+      JDefinedClass _enum =
+          DefinedClassMaker.makeClassForSchema(classParent, name, classParent::_enum);
+
+      StringBuilder docs = new StringBuilder();
+      docs.append("Created from ").append(schema.getUri()).append(System.lineSeparator());
+      _enum.javadoc().add(docs.toString());
+
+      _name = _enum.name();
+
+      for (Object value : enums) {
+        _enum.enumConstant(NameUtils.camelToSnake((String) value).toUpperCase());
+      }
+
+      jDefinedClass = _enum;
+    } else {
       jDefinedClass = null;
       _name = name;
-      return;
-    }
-
-    Schema parentSchema = schema.getParent();
-
-    JClassContainer classParent;
-    if (parentSchema == null) {
-      classParent = jPackage;
-    } else {
-      Builder parent = codeGenerator.getBuilder(parentSchema);
-      classParent = parent.getDefinedClass();
-    }
-
-    /* Ensure no direct ancestor has the same name */
-    while (true) {
-      boolean changed = false;
-      for (JClassContainer container = classParent; container instanceof JDefinedClass;
-           container = container.parentContainer()) {
-        JDefinedClass classContainer = (JDefinedClass) container;
-        if (classContainer.name().equals(name)) {
-          name = varyName(name);
-          changed = true;
-          break;
-        }
-      }
-      if (!changed) {
-        break;
-      }
-    }
-
-    JDefinedClass _class;
-    while (true) {
-      try {
-        _class = classParent._class(
-            parentSchema == null ? JMod.PUBLIC : JMod.STATIC | JMod.PUBLIC, name);
-        break;
-      } catch (JClassAlreadyExistsException e) {
-        name = varyName(name);
-      }
-    }
-    _name = name;
-
-    jDefinedClass = _class;
-
-    StringBuilder docs = new StringBuilder();
-    docs.append("Created from ").append(schema.getUri()).append(System.lineSeparator());
-    docs.append("Explicit types ").append(schema.getExplicitTypes()).append(System.lineSeparator());
-    docs.append("Inferred types ").append(schema.getInferredTypes()).append(System.lineSeparator());
-    docs.append("<pre>").append(schema.getSchemaJson().toString(2)).append("</pre>");
-
-    jDefinedClass.javadoc().add(docs.toString());
-
-    String name1 = dataType.name().replace("JSON", "Json");
-    String dataObjectName = NameUtils.lowerCaseFirst(NameUtils.snakeToCamel(name1));
-    JFieldVar dataField = jDefinedClass.field(JMod.PRIVATE | JMod.FINAL, dataType, dataObjectName);
-
-    /* Constructor */
-    JMethod constructor = jDefinedClass.constructor(JMod.PUBLIC);
-
-    JVar objectParam = constructor.param(dataType, dataObjectName);
-    constructor.body().assign(JExpr._this().ref(dataField), objectParam);
-
-    /* Getter */
-    JMethod getter = jDefinedClass.method(JMod.PUBLIC, dataType,
-        (dataType.equals(jCodeModel.BOOLEAN) ? "is" : "get") + dataType.name());
-    getter.body()._return(dataField);
-
-    for (Map.Entry<String, Schema> entry : schema.getProperties().entrySet()) {
-      Schema propertySchema = entry.getValue();
-      if (!propertySchema.isObjectSchema()) {
-        continue;
-      }
-      ObjectSchema propertyObjectSchema = propertySchema.asObjectSchema();
-      Builder builder = codeGenerator.getBuilder(propertySchema);
-      String propertyName = entry.getKey();
-      builder.writePropertyGetters(schema.getRequiredProperties().contains(propertyName),
-          expressionFromObject(propertyObjectSchema.getDefault()), jDefinedClass, dataField,
-          propertyName);
-    }
-
-    for (Schema itemsSchema : schema.getItems()) {
-      if (!itemsSchema.isObjectSchema()) {
-        continue;
-      }
-      Builder builder = codeGenerator.getBuilder(itemsSchema);
-
-      ObjectSchema itemObjectSchema = itemsSchema.asObjectSchema();
-      builder.writeItemGetters(
-          jDefinedClass, expressionFromObject(itemObjectSchema.getDefault()), dataField);
-    }
-
-    if (types.contains("array")) {
-      JMethod sizeMethod = jDefinedClass.method(JMod.PUBLIC, jCodeModel.INT, "size");
-      JExpression asJsonArray = castIfNeeded(jCodeModel.ref(JSONArray.class), dataField);
-      sizeMethod.body()._return(JExpr.invoke(asJsonArray, "length"));
     }
   }
 
@@ -258,18 +249,7 @@ public class Builder {
     return "get";
   }
 
-  private static String varyName(String name) {
-    for (int idx = 0; idx < name.length(); idx++) {
-      try {
-        int i = Integer.parseInt(name.substring(idx));
-        return name.substring(0, idx) + (i + 1);
-      } catch (NumberFormatException e) {
-      }
-    }
-    return name + "2";
-  }
-
-  private JDefinedClass getDefinedClass() {
+  JDefinedClass getDefinedClass() {
     return jDefinedClass;
   }
 

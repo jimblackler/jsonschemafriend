@@ -66,7 +66,7 @@ public class ObjectSchema extends Schema {
 
   // all types checks
   private final Object _const;
-  private final Set<Object> _enum;
+  private final List<Object> enums;
   private final Set<String> explicitTypes;
   private final Set<String> inferredTypes = new HashSet<>();
   private final Collection<Schema> typesSchema = new HashSet<>();
@@ -264,12 +264,12 @@ public class ObjectSchema extends Schema {
 
     JSONArray enumArray = jsonObject.optJSONArray("enum");
     if (enumArray == null) {
-      _enum = null;
+      enums = null;
     } else {
-      _enum = new HashSet<>();
+      enums = new ArrayList<>();
       for (int idx = 0; idx != enumArray.length(); idx++) {
         Object enumObject = enumArray.get(idx);
-        _enum.add(enumObject);
+        enums.add(enumObject);
         inferredTypes.add(javaToSchemaType(enumObject));
       }
     }
@@ -677,10 +677,10 @@ public class ObjectSchema extends Schema {
       }
     }
 
-    if (_enum != null) {
+    if (enums != null) {
       boolean matchedOne = false;
       Object o = makeComparable(object);
-      for (Object value : _enum) {
+      for (Object value : enums) {
         if (o.equals(makeComparable(value))) {
           matchedOne = true;
           break;
@@ -861,5 +861,9 @@ public class ObjectSchema extends Schema {
 
   public Object getDefault() {
     return defaultValue;
+  }
+
+  public List<Object> getEnums() {
+    return enums;
   }
 }

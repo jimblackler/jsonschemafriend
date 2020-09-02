@@ -63,6 +63,7 @@ public class CodeGenerator {
         }
       } catch (FormatterException | IOException e) {
         // Ignored by design.
+        e.printStackTrace();
       }
     });
   }

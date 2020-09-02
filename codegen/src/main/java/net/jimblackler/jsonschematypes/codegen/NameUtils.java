@@ -20,4 +20,8 @@ public class NameUtils {
     }
     return stringBuilder.toString();
   }
+
+  public static String camelToSnake(String in) {
+    return in.replaceAll("([^_A-Z])([A-Z])", "$1_$2");
+  }
 }
