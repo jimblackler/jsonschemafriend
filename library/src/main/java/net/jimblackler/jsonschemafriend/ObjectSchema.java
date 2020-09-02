@@ -268,7 +268,9 @@ public class ObjectSchema extends Schema {
     } else {
       _enum = new HashSet<>();
       for (int idx = 0; idx != enumArray.length(); idx++) {
-        _enum.add(enumArray.get(idx));
+        Object enumObject = enumArray.get(idx);
+        _enum.add(enumObject);
+        inferredTypes.add(javaToSchemaType(enumObject));
       }
     }
 
@@ -363,6 +365,44 @@ public class ObjectSchema extends Schema {
     }
 
     defaultValue = jsonObject.opt("default");
+    if (defaultValue != null) {
+      inferredTypes.add(javaToSchemaType(defaultValue));
+    }
+  }
+
+  private static String javaToSchemaType(Object object) {
+    if (object.getClass().isArray()) {
+      return "array";
+    }
+    if (object instanceof Integer) {
+      return "integer";
+    }
+
+    if (object instanceof Long) {
+      return "integer";
+    }
+
+    if (object instanceof Short) {
+      return "integer";
+    }
+
+    if (object instanceof Byte) {
+      return "integer";
+    }
+
+    if (object instanceof Number) {
+      return "number";
+    }
+
+    if (object instanceof String) {
+      return "string";
+    }
+
+    if (object instanceof Boolean) {
+      return "boolean";
+    }
+
+    return "object";
   }
 
   private static Set<String> setOf(String string) {
@@ -776,10 +816,28 @@ public class ObjectSchema extends Schema {
   }
 
   public Set<String> getTypes() {
-    if (explicitTypes == null) {
-      return Collections.unmodifiableSet(inferredTypes);
+    if (explicitTypes != null) {
+      return Collections.unmodifiableSet(explicitTypes);
     }
-    return Collections.unmodifiableSet(explicitTypes);
+    if (!allOf.isEmpty()) {
+      // For the allOf operator we return the union of the types (implied or explicit) of each
+      // subschema.
+      Set<String> union = null;
+      for (Schema subSchema : allOf) {
+        if (!subSchema.isObjectSchema()) {
+          continue;
+        }
+        ObjectSchema objectSubSchema = (ObjectSchema) subSchema;
+        Set<String> types = objectSubSchema.getTypes();
+        if (union == null) {
+          union = new HashSet<>(types);
+        } else {
+          union.retainAll(types);
+        }
+      }
+      return union;
+    }
+    return Collections.unmodifiableSet(inferredTypes);
   }
 
   public Collection<Schema> getItems() {
