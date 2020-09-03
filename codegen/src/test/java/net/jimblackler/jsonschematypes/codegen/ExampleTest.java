@@ -22,7 +22,7 @@ public class ExampleTest {
   }
 
   private static void scan(Path out, String namespace, Path testDir) throws IOException {
-    new CodeGenerator(
-        out, namespace, ExampleTest.class.getResource(testDir.resolve("schemas").toString()));
+    new CodeGenerator(namespace).build(
+        out, ExampleTest.class.getResource(testDir.resolve("schemas").toString()));
   }
 }
