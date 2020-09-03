@@ -1,7 +1,5 @@
 package net.jimblackler.jsonschematypes.codegen;
 
-import com.google.googlejavaformat.java.Formatter;
-import com.google.googlejavaformat.java.FormatterException;
 import com.sun.codemodel.JCodeModel;
 import com.sun.codemodel.JPackage;
 import java.io.BufferedReader;
@@ -50,22 +48,6 @@ public class CodeGenerator {
       }
     }
     jCodeModel.build(outPath.toFile());
-
-    Files.walk(outPath).filter(Files::isRegularFile).forEach(path -> {
-      try {
-        String code;
-        try (InputStream inputStream = path.toUri().toURL().openStream()) {
-          code = DocumentUtils.streamToString(inputStream);
-        }
-        String formattedSource = new Formatter().formatSource(code);
-        try (PrintWriter out = new PrintWriter(path.toFile(), "UTF-8")) {
-          out.println(formattedSource);
-        }
-      } catch (FormatterException | IOException e) {
-        // Ignored by design.
-        e.printStackTrace();
-      }
-    });
   }
 
   Builder getBuilder(Schema schema1) {
@@ -75,7 +57,7 @@ public class CodeGenerator {
     }
 
     if (!schema1.isObjectSchema()) {
-      throw new IllegalStateException("Not sure what to do with these yet");
+      throw new IllegalStateException("Unexpected boolean schema");
     }
 
     return new Builder(this, schema1);
