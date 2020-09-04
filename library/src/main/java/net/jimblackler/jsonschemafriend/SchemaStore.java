@@ -30,11 +30,19 @@ public class SchemaStore {
   }
 
   public Schema loadSchema(JSONObject jsonObject) throws GenerationException {
+    return _getSchema(jsonObject);
+  }
+
+  public Schema loadSchema(Boolean _boolean) throws GenerationException {
+    return _getSchema(_boolean);
+  }
+
+  private Schema _getSchema(Object object) throws GenerationException {
     // Every document needs a URI. We generate a nice short one. If the client needs it, it can be
     // obtained via schema.getUri();
     URI uri = URI.create("ram://" + memorySchemaNumber);
     memorySchemaNumber++;
-    documentSource.store(uri, jsonObject);
+    documentSource.store(uri, object);
     return loadSchema(uri);
   }
 

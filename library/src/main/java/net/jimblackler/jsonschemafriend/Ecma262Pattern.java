@@ -21,4 +21,9 @@ public class Ecma262Pattern {
       throw new IllegalStateException(e);
     }
   }
+
+  @Override
+  public String toString() {
+    return pattern;
+  }
 }

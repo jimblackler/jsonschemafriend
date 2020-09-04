@@ -504,11 +504,18 @@ public class ObjectSchema extends Schema {
           && number.doubleValue() >= ((Number) exclusiveMaximum).doubleValue()) {
         errorConsumer.accept(error(document, uri, "Greater than or equal to exclusive maximum"));
       }
-      if (minimum != null
-          && (exclusiveMinimum instanceof Boolean && (Boolean) exclusiveMinimum
-                  ? number.doubleValue() <= minimum.doubleValue()
-                  : number.doubleValue() < minimum.doubleValue())) {
-        errorConsumer.accept(error(document, uri, "Less than minimum"));
+      if (minimum != null) {
+        boolean isExclusiveMinimum =
+            exclusiveMinimum instanceof Boolean && (Boolean) exclusiveMinimum;
+        if (isExclusiveMinimum) {
+          if (number.doubleValue() <= minimum.doubleValue()) {
+            errorConsumer.accept(error(document, uri, "Less than exclusive minimum: " + minimum));
+          }
+        } else {
+          if (number.doubleValue() < minimum.doubleValue()) {
+            errorConsumer.accept(error(document, uri, "Less than minimum: " + minimum));
+          }
+        }
       }
       if (exclusiveMinimum instanceof Number
           && number.doubleValue() <= ((Number) exclusiveMinimum).doubleValue()) {
@@ -537,7 +544,7 @@ public class ObjectSchema extends Schema {
         errorConsumer.accept(error(document, uri, "Shorter than minLength"));
       }
       if (pattern != null && !pattern.matches(string)) {
-        errorConsumer.accept(error(document, uri, "Pattern did not match"));
+        errorConsumer.accept(error(document, uri, "Did not match pattern: " + pattern));
       }
       typeCheck(document, uri, setOf("string"), disallow, errorConsumer);
     } else if (object instanceof Boolean) {
@@ -784,6 +791,18 @@ public class ObjectSchema extends Schema {
     return Collections.unmodifiableMap(_properties);
   }
 
+  public Collection<Ecma262Pattern> getPatternPropertiesPatterns() {
+    return patternPropertiesPatterns;
+  }
+
+  public Collection<Schema> getPatternPropertiesSchema() {
+    return patternPropertiesSchemas;
+  }
+
+  public Schema getAdditionalProperties() {
+    return additionalProperties;
+  }
+
   private void typeCheck(Object document, URI path, Set<String> types, Collection<String> disallow,
       Consumer<ValidationError> errorConsumer) {
     Collection<String> typesIn0 = new HashSet<>(types);
@@ -871,7 +890,7 @@ public class ObjectSchema extends Schema {
   }
 
   public Collection<String> getRequiredProperties() {
-    return requiredProperties;
+    return Collections.unmodifiableCollection(requiredProperties);
   }
 
   public Object getDefault() {
@@ -879,7 +898,7 @@ public class ObjectSchema extends Schema {
   }
 
   public List<Object> getEnums() {
-    return enums;
+    return enums == null ? null : Collections.unmodifiableList(enums);
   }
 
   public Number getMinLength() {
@@ -900,5 +919,21 @@ public class ObjectSchema extends Schema {
 
   public boolean isFullyBuilt() {
     return fullyBuilt;
+  }
+
+  public Collection<Schema> getAllOf() {
+    return allOf;
+  }
+
+  public Collection<Schema> getAnyOf() {
+    return anyOf;
+  }
+
+  public Collection<Schema> getOneOf() {
+    return oneOf;
+  }
+
+  public Ecma262Pattern getPattern() {
+    return pattern;
   }
 }
