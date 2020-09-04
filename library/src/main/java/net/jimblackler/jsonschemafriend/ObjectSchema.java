@@ -55,7 +55,7 @@ public class ObjectSchema extends Schema {
   // object checks
   private final Number maxProperties;
   private final Number minProperties;
-  private final Collection<String> required = new HashSet<>();
+  private final Collection<String> requiredProperties = new HashSet<>();
   private final Schema additionalProperties;
   private final Map<String, Schema> _properties = new HashMap<>();
   private final Collection<Ecma262Pattern> patternPropertiesPatterns = new ArrayList<>();
@@ -81,6 +81,8 @@ public class ObjectSchema extends Schema {
   private final Set<String> disallow = new HashSet<>();
   private final Collection<Schema> disallowSchemas = new HashSet<>();
   private final Object defaultValue;
+
+  private boolean fullyBuilt = false;
 
   public ObjectSchema(SchemaStore schemaStore, URI uri, URI defaultMetaSchema)
       throws GenerationException {
@@ -182,7 +184,7 @@ public class ObjectSchema extends Schema {
     if (requiredObject instanceof JSONArray) {
       JSONArray array = (JSONArray) requiredObject;
       for (int idx = 0; idx != array.length(); idx++) {
-        required.add(array.getString(idx));
+        requiredProperties.add(array.getString(idx));
       }
     }
 
@@ -207,7 +209,7 @@ public class ObjectSchema extends Schema {
         if (propertyObject instanceof JSONObject) {
           JSONObject propertyJsonObject = (JSONObject) propertyObject;
           if (propertyJsonObject.optBoolean("required")) {
-            required.add(propertyName);
+            requiredProperties.add(propertyName);
           }
         }
         _properties.put(propertyName, getSubSchema(propertyUri));
@@ -368,6 +370,7 @@ public class ObjectSchema extends Schema {
     if (defaultValue != null) {
       inferredTypes.add(javaToSchemaType(defaultValue));
     }
+    fullyBuilt = true;
   }
 
   private static String javaToSchemaType(Object object) {
@@ -435,6 +438,18 @@ public class ObjectSchema extends Schema {
       // Doesn't look like a number after all.
       return object;
     }
+  }
+
+  public Number getMultipleOf() {
+    return multipleOf;
+  }
+
+  public Number getMaximum() {
+    return maximum;
+  }
+
+  public Number getMinimum() {
+    return minimum;
   }
 
   private Schema getSubSchema(JSONObject jsonObject, String name, URI uri)
@@ -591,7 +606,7 @@ public class ObjectSchema extends Schema {
         errorConsumer.accept(error(document, uri, "Too few properties"));
       }
 
-      for (String property : required) {
+      for (String property : requiredProperties) {
         if (!jsonObject.has(property)) {
           errorConsumer.accept(error(document, uri, "Missing required property " + property));
         }
@@ -769,7 +784,7 @@ public class ObjectSchema extends Schema {
     return Collections.unmodifiableMap(_properties);
   }
 
-  private void typeCheck(Object document, URI path, Set<String> types, Set<String> disallow,
+  private void typeCheck(Object document, URI path, Set<String> types, Collection<String> disallow,
       Consumer<ValidationError> errorConsumer) {
     Collection<String> typesIn0 = new HashSet<>(types);
     typesIn0.retainAll(disallow);
@@ -802,6 +817,10 @@ public class ObjectSchema extends Schema {
     errorConsumer.accept(error(document, path,
         "Expected: [" + String.join(", ", explicitTypes) + "] "
             + "Found: [" + String.join(", ", types) + "]"));
+  }
+
+  public JSONObject getSchemaJson() {
+    return schemaJson;
   }
 
   public Set<String> getExplicitTypes() {
@@ -852,11 +871,7 @@ public class ObjectSchema extends Schema {
   }
 
   public Collection<String> getRequiredProperties() {
-    return required;
-  }
-
-  public JSONObject getSchemaJson() {
-    return schemaJson;
+    return requiredProperties;
   }
 
   public Object getDefault() {
@@ -865,5 +880,25 @@ public class ObjectSchema extends Schema {
 
   public List<Object> getEnums() {
     return enums;
+  }
+
+  public Number getMinLength() {
+    return minLength;
+  }
+
+  public Number getMaxLength() {
+    return maxLength;
+  }
+
+  public Number getMinItems() {
+    return minItems;
+  }
+
+  public Number getMaxItems() {
+    return maxItems;
+  }
+
+  public boolean isFullyBuilt() {
+    return fullyBuilt;
   }
 }
