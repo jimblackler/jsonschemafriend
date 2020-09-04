@@ -49,10 +49,8 @@ public class CodeGenerator {
     }
   }
 
-  public void build(Path outPath, URI uri)
-      throws GenerationException, IOException {
-    Schema schema = schemaStore.loadSchema(uri, defaultMetaSchema);
-    getBuilder(schema);
+  public void build(Path outPath, URI uri) throws GenerationException, IOException {
+    getBuilder(schemaStore.loadSchema(uri, defaultMetaSchema));
     jCodeModel.build(outPath.toFile());
   }
 
