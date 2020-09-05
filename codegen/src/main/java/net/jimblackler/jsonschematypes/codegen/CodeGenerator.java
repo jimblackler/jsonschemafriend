@@ -60,10 +60,6 @@ public class CodeGenerator {
       return builtClasses.get(uri);
     }
 
-    if (!schema1.isObjectSchema()) {
-      throw new IllegalStateException("Unexpected boolean schema");
-    }
-
     return new Builder(this, schema1);
   }
 

@@ -19,7 +19,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import net.jimblackler.jsonschemafriend.ObjectSchema;
 import net.jimblackler.jsonschemafriend.Schema;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -30,11 +29,12 @@ public class Builder {
   private final String _name;
   private final JType dataType;
   private final List<JEnumConstant> enumConstants = new ArrayList<>();
-  private final ObjectSchema schema;
+  private final Schema schema;
 
-  public Builder(CodeGenerator codeGenerator, Schema schema1) {
+  public Builder(CodeGenerator codeGenerator, Schema schema) {
     this.codeGenerator = codeGenerator;
-    this.schema = schema1.asObjectSchema();
+    this.schema = schema;
+
     codeGenerator.register(schema.getUri(), this);
 
     JPackage jPackage = codeGenerator.getJPackage();
@@ -99,7 +99,7 @@ public class Builder {
       docs.append("Inferred types ")
           .append(schema.getInferredTypes())
           .append(System.lineSeparator());
-      docs.append("<pre>").append(schema.getSchemaJson().toString(2)).append("</pre>");
+      // docs.append("<pre>").append(schema.getSchemaJson().toString(2)).append("</pre>");
 
       jDefinedClass.javadoc().add(docs.toString());
 
@@ -121,26 +121,18 @@ public class Builder {
 
       for (Map.Entry<String, Schema> entry : schema.getProperties().entrySet()) {
         Schema propertySchema = entry.getValue();
-        if (!propertySchema.isObjectSchema()) {
-          continue;
-        }
-        ObjectSchema propertyObjectSchema = propertySchema.asObjectSchema();
         Builder builder = codeGenerator.getBuilder(propertySchema);
         String propertyName = entry.getKey();
         builder.writePropertyGetters(schema.getRequiredProperties().contains(propertyName),
-            expressionFromObject(propertyObjectSchema.getDefault()), jDefinedClass, dataField,
+            expressionFromObject(propertySchema.getDefault()), jDefinedClass, dataField,
             propertyName);
       }
 
       for (Schema itemsSchema : schema.getItems()) {
-        if (!itemsSchema.isObjectSchema()) {
-          continue;
-        }
         Builder builder = codeGenerator.getBuilder(itemsSchema);
 
-        ObjectSchema itemObjectSchema = itemsSchema.asObjectSchema();
         builder.writeItemGetters(
-            jDefinedClass, expressionFromObject(itemObjectSchema.getDefault()), dataField);
+            jDefinedClass, expressionFromObject(itemsSchema.getDefault()), dataField);
       }
 
       if (types.contains("array")) {

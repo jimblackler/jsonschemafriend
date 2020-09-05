@@ -99,14 +99,12 @@ public class SchemaStore {
     Object baseDocument = documentSource.fetchDocument(PathUtils.baseDocumentFromUri(uri));
     Object object = PathUtils.fetchFromPath(baseDocument, uri.getRawFragment());
 
-    if (object instanceof Boolean) {
-      return new BooleanSchema(this, uri, (boolean) object);
+    if (object == null) {
+      LOG.warning("No schema at " + uri);
+      return null;
+    } else {
+      return new Schema(this, uri, defaultMetaSchema);
     }
-    if (object instanceof JSONObject) {
-      return new ObjectSchema(this, uri, defaultMetaSchema);
-    }
-    LOG.warning("No schema at " + uri);
-    return null;
   }
 
   public void register(URI path, Schema schema) throws GenerationException {

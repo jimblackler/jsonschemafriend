@@ -22,7 +22,7 @@ public class ValidationError {
     String string = object == null ? "" : object.toString();
     return (string.length() <= 20 ? "\"" + string + "\" " : "")
         + (uri.toString().isEmpty() ? "" : "at " + uri + " ") + "failed "
-        + (schemaPath.toString().isEmpty() ? "" : "against " + schemaPath + " ")
-        + (schema instanceof BooleanSchema ? "" : "with \"" + message + "\"");
+        + (schemaPath.toString().isEmpty() ? "" : "against " + schemaPath + " ") + "with \""
+        + message + "\"";
   }
 }
