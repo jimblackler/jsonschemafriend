@@ -1,0 +1,95 @@
+[
+  {
+    "description": "Lists 1",
+    "schema": {
+      "items": {
+        "type": "integer"
+      }
+    },
+    "tests": [
+      {
+        "data": [1],
+        "valid": true
+      },
+      {
+        "data": [1, 2],
+        "valid": true
+      },
+      {
+        "data": ["x"],
+        "valid": false
+      },
+      {
+        "data": [1, "x"],
+        "valid": false
+      }
+    ]
+  },
+  {
+    "description": "Lists 2",
+    "schema": {
+      "items": [
+        {
+          "type": "integer"
+        }
+      ]
+    },
+    "tests": [
+      {
+        "data": [1],
+        "valid": true
+      },
+      {
+        "data": [1, 2],
+        "valid": true
+      },
+      {
+        "data": ["x"],
+        "valid": false
+      },
+      {
+        "data": [1, "x"],
+        "valid": true
+      }
+    ]
+  },
+  {
+    "description": "Lists 4",
+    "schema": {
+      "items": [
+        {
+          "type": "integer"
+        },
+        {
+          "type": "string"
+        }
+      ]
+    },
+    "tests": [
+      {
+        "data": [1],
+        "valid": true
+      },
+      {
+        "data": [1, 2],
+        "valid": false
+      },
+      {
+        "data": ["x"],
+        "valid": false
+      },
+      {
+        "data": [1, "x"],
+        "valid": true
+      },
+      {
+        "data": [1, "x", 1],
+        "valid": true
+      },
+      {
+        "data": [1, "x", "x"],
+        "valid": true
+      }
+    ]
+  }
+]
