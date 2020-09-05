@@ -12,46 +12,51 @@
       ],
       "anyOf": [
         {
-          "mminimum": 10,
+          "minimum": 10,
           "maximum": 20
         },
         {
-          "mminimum": 50,
+          "minimum": 50,
           "maximum": 60
         }
       ]
     },
     "tests": [
       {
-        "description": "test1",
         "valid": true,
         "data": 10
       },
       {
-        "description": "test2",
         "valid": false,
         "data": 11
       },
       {
-        "description": "test3",
         "valid": true,
         "data": 12
       },
       {
-        "description": "test4",
         "valid": false,
         "data": 15
       },
       {
-        "description": "test5",
         "valid": false,
         "data": 30
       },
-
       {
-        "description": "test6",
         "valid": true,
         "data": 50
+      },
+      {
+        "valid": false,
+        "data": -1
+      },
+      {
+        "valid": false,
+        "data": -1.5
+      },
+      {
+        "valid": false,
+        "data": -1.073741824E10
       }
     ]
   }
