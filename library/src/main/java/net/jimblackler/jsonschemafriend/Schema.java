@@ -122,6 +122,14 @@ public class Schema {
           }
         }
       }
+    } else if ((Boolean) schemaObject) {
+      inferredTypes.add("array");
+      inferredTypes.add("boolean");
+      inferredTypes.add("integer");
+      inferredTypes.add("null");
+      inferredTypes.add("number");
+      inferredTypes.add("object");
+      inferredTypes.add("string");
     }
 
     // number checks
@@ -495,7 +503,7 @@ public class Schema {
       object = query;
     }
 
-    object = rewriteObject(object);
+    // object = rewriteObject(object);
 
     if (object instanceof Number) {
       Number number = (Number) object;
@@ -802,6 +810,13 @@ public class Schema {
     validate(document, URI.create(""), errorConsumer);
   }
 
+  public Boolean isFalse() {
+    if (schemaObject instanceof Boolean) {
+      return !(Boolean) schemaObject;
+    }
+    return false;
+  }
+
   public Schema getParent() {
     return parent;
   }
@@ -818,11 +833,11 @@ public class Schema {
   }
 
   public Collection<Ecma262Pattern> getPatternPropertiesPatterns() {
-    return patternPropertiesPatterns;
+    return Collections.unmodifiableCollection(patternPropertiesPatterns);
   }
 
   public Collection<Schema> getPatternPropertiesSchema() {
-    return patternPropertiesSchemas;
+    return Collections.unmodifiableCollection(patternPropertiesSchemas);
   }
 
   public Schema getAdditionalProperties() {
@@ -944,14 +959,19 @@ public class Schema {
   }
 
   public Collection<Schema> getAnyOf() {
-    return Collections.unmodifiableCollection(anyOf);
+    return anyOf == null ? null : Collections.unmodifiableCollection(anyOf);
   }
 
   public Collection<Schema> getOneOf() {
-    return Collections.unmodifiableCollection(oneOf);
+    return oneOf == null ? null : Collections.unmodifiableCollection(oneOf);
   }
 
   public Ecma262Pattern getPattern() {
     return pattern;
+  }
+
+  @Override
+  public String toString() {
+    return schemaObject.toString();
   }
 }
