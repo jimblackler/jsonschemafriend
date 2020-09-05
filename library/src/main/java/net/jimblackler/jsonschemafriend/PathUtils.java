@@ -2,6 +2,7 @@ package net.jimblackler.jsonschemafriend;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.net.URLEncoder;
 import org.json.JSONPointer;
 import org.json.JSONPointerException;
 
@@ -56,28 +57,17 @@ public class PathUtils {
     }
   }
 
-  static String uriComponentEscape(String value) {
-    // We only URL escape tokens strictly necessary, so that the paths are more human readable.
-    // For example: $ is a common character in schema paths, and it doesn't strictly require
-    // escaping.
+  private static String uriComponentEscape(String value) {
+    String encoded = URLEncoder.encode(value);
 
-    value = value.replace("%", "%25"); // % must go first
+    // $ is a common character in schema paths, and it doesn't strictly require escaping, so for
+    // aesthetic reasons we don't escape it.
+    encoded = encoded.replace("%24", "$");
 
-    value = value.replace("\t", "%09");
-    value = value.replace("\n", "%0A");
-    value = value.replace("\f", "%0C");
-    value = value.replace("\r", "%0D");
-    value = value.replace(" ", "%20");
-    value = value.replace("\"", "%22");
-    value = value.replace("#", "%23");
-    value = value.replace("+", "%2B");
-    value = value.replace("\\", "%5C");
-    value = value.replace("^", "%5E");
-    value = value.replace("`", "%60");
-    value = value.replace("{", "%7B");
-    value = value.replace("|", "%7C");
-    value = value.replace("}", "%7D");
-    return refPathEscape(value);
+    // Encoding tilde causes a conflict with the JSON Pointer encoding.
+    encoded = encoded.replace("%7E", "~");
+
+    return encoded;
   }
 
   public static String refPathEscape(String value) {
