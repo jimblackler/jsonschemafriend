@@ -16,9 +16,9 @@ import com.sun.codemodel.JSwitch;
 import com.sun.codemodel.JType;
 import com.sun.codemodel.JVar;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import net.jimblackler.jsonschemafriend.Schema;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -40,7 +40,7 @@ public class Builder {
     JPackage jPackage = codeGenerator.getJPackage();
     JCodeModel jCodeModel = codeGenerator.getJCodeModel();
 
-    Set<String> types = schema.getTypes();
+    Collection<String> types = schema.getTypes();
 
     if (types.size() == 1) {
       switch (types.iterator().next()) {
@@ -128,11 +128,20 @@ public class Builder {
             propertyName);
       }
 
-      for (Schema itemsSchema : schema.getItems()) {
-        Builder builder = codeGenerator.getBuilder(itemsSchema);
+      Collection<Schema> itemsTuple = schema.getItemsTuple();
+      if (itemsTuple != null) {
+        for (Schema itemsSchema : itemsTuple) {
+          Builder builder = codeGenerator.getBuilder(itemsSchema);
+          builder.writeItemGetters(
+              jDefinedClass, expressionFromObject(itemsSchema.getDefault()), dataField);
+        }
+      }
 
+      Schema _items = schema.getItems();
+      if (_items != null) {
+        Builder builder = codeGenerator.getBuilder(_items);
         builder.writeItemGetters(
-            jDefinedClass, expressionFromObject(itemsSchema.getDefault()), dataField);
+            jDefinedClass, expressionFromObject(_items.getDefault()), dataField);
       }
 
       if (types.contains("array")) {

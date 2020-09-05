@@ -45,7 +45,7 @@ public class Schema {
   // array checks
   private final Schema additionalItems;
   private final Schema _items;
-  private final List<Schema> itemsArray;
+  private final List<Schema> itemsTuple;
   private final Number maxItems;
   private final Number minItems;
   private final boolean uniqueItems;
@@ -78,7 +78,7 @@ public class Schema {
   private final Collection<Schema> disallowSchemas = new HashSet<>();
   private final Object defaultValue;
   private Schema parent;
-  private boolean fullyBuilt;
+  private final boolean fullyBuilt;
 
   public Schema(SchemaStore schemaStore, URI uri, URI defaultMetaSchema)
       throws GenerationException {
@@ -122,14 +122,6 @@ public class Schema {
           }
         }
       }
-    } else if ((Boolean) schemaObject) {
-      inferredTypes.add("array");
-      inferredTypes.add("boolean");
-      inferredTypes.add("integer");
-      inferredTypes.add("null");
-      inferredTypes.add("number");
-      inferredTypes.add("object");
-      inferredTypes.add("string");
     }
 
     // number checks
@@ -160,18 +152,19 @@ public class Schema {
 
     // array checks
     additionalItems = getSubSchema(jsonObject, "additionalItems", uri);
-    _items = getSubSchema(jsonObject, "items", uri);
 
     Object itemsObject = jsonObject.opt("items");
     URI itemsPath = PathUtils.append(uri, "items");
     if (itemsObject instanceof JSONArray) {
-      itemsArray = new ArrayList<>();
+      itemsTuple = new ArrayList<>();
       JSONArray jsonArray = (JSONArray) itemsObject;
       for (int idx = 0; idx != jsonArray.length(); idx++) {
-        itemsArray.add(getSubSchema(PathUtils.append(itemsPath, String.valueOf(idx))));
+        itemsTuple.add(getSubSchema(PathUtils.append(itemsPath, String.valueOf(idx))));
       }
+      _items = null;
     } else {
-      itemsArray = null;
+      itemsTuple = null;
+      _items = getSubSchema(jsonObject, "items", uri);
     }
 
     maxItems = (Number) jsonObject.opt("maxItems");
@@ -448,6 +441,18 @@ public class Schema {
     }
   }
 
+  private static Collection<String> allTypes() {
+    Collection<String> types = new HashSet<>();
+    types.add("array");
+    types.add("boolean");
+    types.add("integer");
+    types.add("null");
+    types.add("number");
+    types.add("object");
+    types.add("string");
+    return types;
+  }
+
   public Number getMultipleOf() {
     return multipleOf;
   }
@@ -494,6 +499,9 @@ public class Schema {
       object = PathUtils.fetchFromPath(document, uri.getRawFragment());
       if (object == null) {
         errorConsumer.accept(error(document, uri, "Could not locate " + uri));
+
+        // DO NOT SUBMIT .. just for debugging.
+        object = PathUtils.fetchFromPath(document, uri.getRawFragment());
         return;
       }
     } else {
@@ -569,16 +577,16 @@ public class Schema {
     } else if (object instanceof JSONArray) {
       typeCheck(document, uri, setOf("array"), disallow, errorConsumer);
       JSONArray jsonArray = (JSONArray) object;
-      if (itemsArray != null) {
-        if (jsonArray.length() > itemsArray.size() && additionalItems != null) {
-          for (int idx = itemsArray.size(); idx != jsonArray.length(); idx++) {
+      if (itemsTuple != null) {
+        if (jsonArray.length() > itemsTuple.size() && additionalItems != null) {
+          for (int idx = itemsTuple.size(); idx != jsonArray.length(); idx++) {
             additionalItems.validate(
                 document, PathUtils.append(uri, String.valueOf(idx)), errorConsumer);
           }
         }
 
-        for (int idx = 0; idx != Math.min(itemsArray.size(), jsonArray.length()); idx++) {
-          itemsArray.get(idx).validate(
+        for (int idx = 0; idx != Math.min(itemsTuple.size(), jsonArray.length()); idx++) {
+          itemsTuple.get(idx).validate(
               document, PathUtils.append(uri, String.valueOf(idx)), errorConsumer);
         }
       }
@@ -886,11 +894,15 @@ public class Schema {
     return Collections.unmodifiableSet(explicitTypes);
   }
 
-  public Set<String> getInferredTypes() {
+  public Collection<String> getInferredTypes() {
+    if (inferredTypes.isEmpty()) {
+      // If type inference found nothing, we don't want to imply no types are allowed.
+      return allTypes();
+    }
     return Collections.unmodifiableSet(inferredTypes);
   }
 
-  public Set<String> getTypes() {
+  public Collection<String> getTypes() {
     if (explicitTypes != null) {
       return Collections.unmodifiableSet(explicitTypes);
     }
@@ -899,27 +911,27 @@ public class Schema {
       // subschema.
       Set<String> union = null;
       for (Schema subSchema : allOf) {
-        Set<String> types = subSchema.getTypes();
+        Collection<String> types = subSchema.getTypes();
         if (union == null) {
           union = new HashSet<>(types);
         } else {
           union.retainAll(types);
         }
       }
+      if (union.isEmpty()) {
+        return null;
+      }
       return union;
     }
-    return Collections.unmodifiableSet(inferredTypes);
+    return getInferredTypes();
   }
 
-  public Collection<Schema> getItems() {
-    Collection<Schema> allItems = new ArrayList<>();
-    if (itemsArray != null) {
-      allItems.addAll(itemsArray);
-    }
-    if (_items != null) {
-      allItems.add(_items);
-    }
-    return allItems;
+  public Collection<Schema> getItemsTuple() {
+    return itemsTuple;
+  }
+
+  public Schema getItems() {
+    return _items;
   }
 
   public Collection<String> getRequiredProperties() {
@@ -968,6 +980,10 @@ public class Schema {
 
   public Ecma262Pattern getPattern() {
     return pattern;
+  }
+
+  public Schema getAdditionalItems() {
+    return additionalItems;
   }
 
   @Override
