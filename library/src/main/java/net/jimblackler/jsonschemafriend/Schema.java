@@ -465,6 +465,20 @@ public class Schema {
     return minimum;
   }
 
+  public Number getExclusiveMaximum() {
+    if (exclusiveMaximum instanceof Number) {
+      return (Number) exclusiveMaximum;
+    }
+    return null;
+  }
+
+  public Number getExclusiveMinimum() {
+    if (exclusiveMinimum instanceof Number) {
+      return (Number) exclusiveMinimum;
+    }
+    return null;
+  }
+
   private Schema getSubSchema(JSONObject jsonObject, String name, URI uri)
       throws GenerationException {
     Object object = jsonObject.opt(name);
