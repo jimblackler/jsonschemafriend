@@ -513,9 +513,6 @@ public class Schema {
       object = PathUtils.fetchFromPath(document, uri.getRawFragment());
       if (object == null) {
         errorConsumer.accept(error(document, uri, "Could not locate " + uri));
-
-        // DO NOT SUBMIT .. just for debugging.
-        object = PathUtils.fetchFromPath(document, uri.getRawFragment());
         return;
       }
     } else {
@@ -864,6 +861,14 @@ public class Schema {
 
   public Schema getAdditionalProperties() {
     return additionalProperties;
+  }
+
+  public Number getMinProperties() {
+    return minProperties;
+  }
+
+  public Number getMaxProperties() {
+    return maxProperties;
   }
 
   private void typeCheck(Object document, URI path, Set<String> types, Collection<String> disallow,
