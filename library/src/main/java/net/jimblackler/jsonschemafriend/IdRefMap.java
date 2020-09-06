@@ -36,7 +36,8 @@ class IdRefMap {
     return uri;
   }
 
-  void map(JSONObject baseDocument, URI uri, URI activeId, JSONObject metaSchemaDocument) {
+  void map(JSONObject baseDocument, URI uri, URI activeId, JSONObject metaSchemaDocument)
+      throws MissingPathException {
     JSONObject properties = metaSchemaDocument.optJSONObject("properties");
     String idKey = properties == null || properties.has("$id") ? "$id" : "id";
 
@@ -83,7 +84,7 @@ class IdRefMap {
    * @return The final uri of the schema.
    */
   public URI finalLocation(URI uri, DocumentSource documentSource, URI defaultMetaSchema)
-      throws GenerationException {
+      throws MissingPathException {
     while (true) {
       uri = normalize(uri);
       URI baseDocumentUri = PathUtils.baseDocumentFromUri(uri);

@@ -74,14 +74,14 @@ public class Schema {
   private final Collection<Schema> anyOf;
   private final Collection<Schema> oneOf;
   private final Schema not;
-  private final Set<String> disallow = new HashSet<>();
+  private final Collection<String> disallow = new HashSet<>();
   private final Collection<Schema> disallowSchemas = new HashSet<>();
   private final Object defaultValue;
   private Schema parent;
   private final boolean fullyBuilt;
 
   public Schema(SchemaStore schemaStore, URI uri, URI defaultMetaSchema)
-      throws GenerationException {
+      throws GenerationException, MissingPathException {
     this.uri = uri;
     this.schemaStore = schemaStore;
     schemaStore.register(uri, this);
@@ -480,7 +480,7 @@ public class Schema {
   }
 
   private Schema getSubSchema(JSONObject jsonObject, String name, URI uri)
-      throws GenerationException {
+      throws GenerationException, MissingPathException {
     Object object = jsonObject.opt(name);
     if (object instanceof JSONObject || object instanceof Boolean) {
       return getSubSchema(PathUtils.append(uri, name));
@@ -488,7 +488,7 @@ public class Schema {
     return null;
   }
 
-  private Schema getSubSchema(URI uri) throws GenerationException {
+  private Schema getSubSchema(URI uri) throws GenerationException, MissingPathException {
     Schema subSchema = schemaStore.getSchema(uri, metaSchemaUri);
     if (subSchema != null && subSchema.getUri().equals(uri)) {
       subSchema.setParent(this);
@@ -510,11 +510,14 @@ public class Schema {
     Object object;
     String query = uri.getQuery();
     if (query == null || query.isEmpty()) {
-      object = PathUtils.fetchFromPath(document, uri.getRawFragment());
-      if (object == null) {
-        errorConsumer.accept(error(document, uri, "Could not locate " + uri));
+      try {
+        object = PathUtils.fetchFromPath(document, uri.getRawFragment());
+      } catch (MissingPathException e) {
+        errorConsumer.accept(
+            error(document, uri, "Could not locate " + uri + " : " + e.getMessage()));
         return;
       }
+
     } else {
       // Query part can carry a string for validation while preserving the rest of the URI for error
       // messages. This is used for propertyName validation where it's not possible to link to the
@@ -666,9 +669,9 @@ public class Schema {
         Iterator<Ecma262Pattern> it0 = patternPropertiesPatterns.iterator();
         Iterator<Schema> it1 = patternPropertiesSchemas.iterator();
         while (it0.hasNext()) {
-          Ecma262Pattern pattern = it0.next();
+          Ecma262Pattern pattern1 = it0.next();
           Schema schema = it1.next();
-          if (pattern.matches(property)) {
+          if (pattern1.matches(property)) {
             schema.validate(document, PathUtils.append(uri, property), errorConsumer);
             remainingProperties.remove(property);
           }
@@ -724,7 +727,7 @@ public class Schema {
 
     } else if (object == JSONObject.NULL) {
       typeCheck(document, uri, setOf("null"), disallow, errorConsumer);
-    } else {
+    } else if (object != null) {
       errorConsumer.accept(
           error(document, uri, "Cannot validate type " + object.getClass().getSimpleName()));
     }
@@ -946,7 +949,7 @@ public class Schema {
   }
 
   public Collection<Schema> getItemsTuple() {
-    return itemsTuple;
+    return itemsTuple == null ? null : Collections.unmodifiableList(itemsTuple);
   }
 
   public Schema getItems() {

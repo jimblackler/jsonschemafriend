@@ -37,7 +37,7 @@ public class PathUtils {
     }
   }
 
-  public static Object fetchFromPath(Object document, String path) {
+  public static Object fetchFromPath(Object document, String path) throws MissingPathException {
     if (path == null || path.isEmpty()) {
       return document;
     }
@@ -50,7 +50,7 @@ public class PathUtils {
       try {
         return jsonPointer.queryFrom(document);
       } catch (JSONPointerException ex) {
-        return null;
+        throw new MissingPathException(ex);
       }
     } catch (IllegalArgumentException ex) {
       throw new IllegalStateException("Probable attempt to use an $id as a URL", ex);

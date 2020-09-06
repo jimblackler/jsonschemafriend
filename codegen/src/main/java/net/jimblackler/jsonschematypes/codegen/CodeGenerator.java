@@ -13,6 +13,7 @@ import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
 import net.jimblackler.jsonschemafriend.GenerationException;
+import net.jimblackler.jsonschemafriend.MissingPathException;
 import net.jimblackler.jsonschemafriend.Schema;
 import net.jimblackler.jsonschemafriend.SchemaStore;
 
@@ -41,7 +42,7 @@ public class CodeGenerator {
           Schema schema = schemaStore.loadSchema(uri, defaultMetaSchema);
           getBuilder(schema);
         }
-      } catch (IOException | GenerationException e) {
+      } catch (IOException | GenerationException | MissingPathException e) {
         throw new IllegalStateException(e);
       }
 
@@ -49,7 +50,8 @@ public class CodeGenerator {
     }
   }
 
-  public void build(Path outPath, URI uri) throws GenerationException, IOException {
+  public void build(Path outPath, URI uri)
+      throws GenerationException, IOException, MissingPathException {
     getBuilder(schemaStore.loadSchema(uri, defaultMetaSchema));
     jCodeModel.build(outPath.toFile());
   }

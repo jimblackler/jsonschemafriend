@@ -24,17 +24,17 @@ public class DocumentSource {
     this.rewriters = rewriters;
   }
 
-  public Object fetchDocument(URI originalUrl) throws GenerationException {
+  public Object fetchDocument(URI originalUrl) throws MissingPathException {
     if (memoryCache.containsKey(originalUrl)) {
       return memoryCache.get(originalUrl);
     }
 
     if (!originalUrl.isAbsolute()) {
-      throw new GenerationException("Not an absolute URL");
+      throw new MissingPathException("Not an absolute URL");
     }
 
     if (originalUrl.getRawFragment() != null && !originalUrl.getRawFragment().isEmpty()) {
-      throw new GenerationException("Not a base document");
+      throw new MissingPathException("Not a base document");
     }
 
     URI url = originalUrl;
@@ -62,7 +62,7 @@ public class DocumentSource {
     try {
       content = DocumentUtils.streamToString(url.toURL().openStream());
     } catch (IllegalArgumentException | IOException e) {
-      throw new GenerationException("Error fetching " + url, e);
+      throw new MissingPathException("Error fetching " + url, e);
     }
 
     Object object = DocumentUtils.parseJson(content);
@@ -73,7 +73,7 @@ public class DocumentSource {
       try (PrintWriter out = new PrintWriter(diskCacheName.toFile())) {
         out.println(content);
       } catch (IOException e) {
-        throw new GenerationException(e);
+        throw new MissingPathException(e);
       }
     }
 

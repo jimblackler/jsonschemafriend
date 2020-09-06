@@ -43,26 +43,35 @@ public class SchemaStore {
     URI uri = URI.create("ram://" + memorySchemaNumber);
     memorySchemaNumber++;
     documentSource.store(uri, object);
-    return loadSchema(uri);
+    try {
+      return loadSchema(uri);
+    } catch (MissingPathException e) {
+      throw new GenerationException(e);
+    }
   }
 
   public Schema loadSchema(File file) throws GenerationException {
-    return loadSchema(file.toURI());
+    try {
+      return loadSchema(file.toURI());
+    } catch (MissingPathException e) {
+      throw new GenerationException(e);
+    }
   }
 
   public Schema loadSchema(URL url) throws GenerationException {
     try {
       return loadSchema(url.toURI());
-    } catch (URISyntaxException e) {
+    } catch (URISyntaxException | MissingPathException e) {
       throw new GenerationException(e);
     }
   }
 
-  public Schema loadSchema(URI uri) throws GenerationException {
+  public Schema loadSchema(URI uri) throws GenerationException, MissingPathException {
     return loadSchema(uri, URI.create("http://json-schema.org/draft-07/schema#"));
   }
 
-  public Schema loadSchema(URI uri, URI defaultMetaSchema) throws GenerationException {
+  public Schema loadSchema(URI uri, URI defaultMetaSchema)
+      throws GenerationException, MissingPathException {
     Object document = documentSource.fetchDocument(PathUtils.baseDocumentFromUri(uri));
     Object schemaObject = PathUtils.fetchFromPath(document, uri.getRawFragment());
     // If we can, we fetch and build the schema's meta-schema and validate the object against it,
@@ -85,7 +94,8 @@ public class SchemaStore {
     return getSchema(uri, defaultMetaSchema);
   }
 
-  Schema getSchema(URI uri, URI defaultMetaSchema) throws GenerationException {
+  Schema getSchema(URI uri, URI defaultMetaSchema)
+      throws GenerationException, MissingPathException {
     // The schema at an uri can be requested by a client that doesn't know that the uri is the
     // beginning of a chain of $refs. We must find the end of the chain, where the actual schema is
     // to be found.
@@ -96,14 +106,11 @@ public class SchemaStore {
       return builtSchemas.get(uri);
     }
 
-    Object baseDocument = documentSource.fetchDocument(PathUtils.baseDocumentFromUri(uri));
-    Object object = PathUtils.fetchFromPath(baseDocument, uri.getRawFragment());
-
-    if (object == null) {
-      LOG.warning("No schema at " + uri);
-      return null;
-    } else {
+    try {
       return new Schema(this, uri, defaultMetaSchema);
+    } catch (MissingPathException e) {
+      LOG.warning("No schema at " + uri + " : " + e.getMessage());
+      return null;
     }
   }
 
