@@ -909,9 +909,16 @@ public class Schema {
             + "Found: [" + String.join(", ", types) + "]"));
   }
 
-  public Set<String> getExplicitTypes() {
+  public Collection<String> getExplicitTypes() {
     if (explicitTypes == null) {
       return null;
+    }
+    return Collections.unmodifiableSet(explicitTypes);
+  }
+
+  public Collection<String> getNonProhibitedTypes() {
+    if (explicitTypes == null) {
+      return allTypes();
     }
     return Collections.unmodifiableSet(explicitTypes);
   }
@@ -1015,5 +1022,13 @@ public class Schema {
 
   public Object getConst() {
     return _const;
+  }
+
+  public Schema getContains() {
+    return contains;
+  }
+
+  public boolean isUniqueItems() {
+    return uniqueItems;
   }
 }
