@@ -1012,4 +1012,8 @@ public class Schema {
   public String toString() {
     return schemaObject.toString();
   }
+
+  public Object getConst() {
+    return _const;
+  }
 }
