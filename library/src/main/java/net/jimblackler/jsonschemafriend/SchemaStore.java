@@ -1,5 +1,7 @@
 package net.jimblackler.jsonschemafriend;
 
+import static net.jimblackler.jsonschemafriend.Validator.validate;
+
 import java.io.File;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -83,7 +85,7 @@ public class SchemaStore {
       URI metaSchemaUri = schemaValue.isEmpty() ? defaultMetaSchema : URI.create(schemaValue);
       Schema metaSchema = getSchema(metaSchemaUri, metaSchemaUri);
       List<ValidationError> errors = new ArrayList<>();
-      metaSchema.validate(schemaObject, ROOT, errors::add);
+      validate(metaSchema, schemaObject, ROOT, errors::add);
       if (!errors.isEmpty()) {
         throw new GenerationException(errors.stream()
                                           .map(Object::toString)

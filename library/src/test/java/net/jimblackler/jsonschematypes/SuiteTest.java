@@ -1,5 +1,6 @@
 package net.jimblackler.jsonschematypes;
 
+import static net.jimblackler.jsonschemafriend.Validator.validate;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.fail;
 import static org.junit.jupiter.api.DynamicContainer.dynamicContainer;
@@ -123,7 +124,7 @@ public class SuiteTest {
             System.out.println();
 
             List<ValidationError> errors = new ArrayList<>();
-            schema1.validate(data, URI.create(""), errors::add);
+            validate(schema1, data, URI.create(""), errors::add);
 
             System.out.print("Expected to " + (valid ? "pass" : "fail") + " ... ");
             if (errors.isEmpty()) {

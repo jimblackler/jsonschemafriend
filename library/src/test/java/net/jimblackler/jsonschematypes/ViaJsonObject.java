@@ -1,5 +1,6 @@
 package net.jimblackler.jsonschematypes;
 
+import static net.jimblackler.jsonschemafriend.Validator.validate;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -29,7 +30,7 @@ public class ViaJsonObject {
       JSONObject myObject = new JSONObject();
       myObject.put("myValue", "x");
       List<ValidationError> errors = new ArrayList<>();
-      schema.validate(myObject, errors::add);
+      validate(schema, myObject, errors::add);
       assertFalse(errors.isEmpty());
     }
 
@@ -37,7 +38,7 @@ public class ViaJsonObject {
       JSONObject myObject = new JSONObject();
       myObject.put("myValue", 1);
       List<ValidationError> errors = new ArrayList<>();
-      schema.validate(myObject, errors::add);
+      validate(schema, myObject, errors::add);
       assertTrue(errors.isEmpty());
     }
   }
