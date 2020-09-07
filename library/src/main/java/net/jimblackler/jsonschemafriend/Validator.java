@@ -23,7 +23,7 @@ public class Validator {
   public static void validate(
       Schema schema, Object document, URI uri, Consumer<ValidationError> errorConsumer) {
     if (schema.isFalse()) {
-      errorConsumer.accept(new ValidationError(uri, document, "Failed", schema));
+      errorConsumer.accept(new FalseSchemaError(uri, document, schema));
       return;
     }
     Object object;
@@ -178,11 +178,11 @@ public class Validator {
       JSONObject jsonObject = (JSONObject) object;
       Number maxProperties = schema.getMaxProperties();
       if (maxProperties != null && jsonObject.length() > maxProperties.intValue()) {
-        errorConsumer.accept(new ValidationError(uri, document, "Too mamy properties", schema));
+        errorConsumer.accept(new MaxPropertiesError(uri, document, schema));
       }
       Number minProperties = schema.getMinProperties();
       if (minProperties != null && jsonObject.length() < minProperties.intValue()) {
-        errorConsumer.accept(new ValidationError(uri, document, "Too few properties", schema));
+        errorConsumer.accept(new MinPropertiesError(uri, document, schema));
       }
 
       Collection<String> requiredProperties = schema.getRequiredProperties();
