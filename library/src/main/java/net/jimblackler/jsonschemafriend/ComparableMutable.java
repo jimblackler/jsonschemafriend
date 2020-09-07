@@ -14,7 +14,9 @@ public class ComparableMutable {
   }
 
   static Object makeComparable(Object a) {
-    if (a instanceof Number) {
+    if (a == null) {
+      return new ComparableNull();
+    } else if (a instanceof Number) {
       return ((Number) a).doubleValue();
     } else if (a instanceof JSONArray || a instanceof JSONObject) {
       return new ComparableMutable(a);

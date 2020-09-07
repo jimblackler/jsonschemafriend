@@ -57,13 +57,13 @@ public class Validator {
     if (object instanceof Number) {
       Number number = (Number) object;
       if (multipleOf != null && number.doubleValue() / multipleOf.doubleValue() % 1 != 0) {
-        errorConsumer.accept(new NotAMultipleError(uri, document, multipleOf, schema));
+        errorConsumer.accept(new NotAMultipleError(uri, document, schema));
       }
       if (maximum != null
           && (exclusiveMaximumBoolean ? number.doubleValue() >= maximum.doubleValue()
                                       : number.doubleValue() > maximum.doubleValue())) {
         errorConsumer.accept(
-            new GreaterThanMaximumError(uri, document, exclusiveMaximumBoolean, maximum, schema));
+            new GreaterThanMaximumError(uri, document, schema));
       }
 
       if (exclusiveMaximum != null && number.doubleValue() >= exclusiveMaximum.doubleValue()) {
@@ -74,7 +74,7 @@ public class Validator {
         if (exclusiveMinimumBoolean ? number.doubleValue() <= minimum.doubleValue()
                                     : number.doubleValue() < minimum.doubleValue()) {
           errorConsumer.accept(
-              new LessThanMinimumError(uri, document, exclusiveMinimumBoolean, minimum, schema));
+              new LessThanMinimumError(uri, document, schema));
         }
       }
       if (exclusiveMinimum != null && number.doubleValue() <= exclusiveMinimum.doubleValue()) {
@@ -143,12 +143,12 @@ public class Validator {
 
       Number maxItems = schema.getMaxItems();
       if (maxItems != null && jsonArray.length() > maxItems.intValue()) {
-        errorConsumer.accept(new AboveMaxItemsValidationError(uri, document, maxItems, schema));
+        errorConsumer.accept(new AboveMaxItemsError(uri, document, schema));
       }
 
       Number minItems = schema.getMinItems();
       if (minItems != null && jsonArray.length() < minItems.intValue()) {
-        errorConsumer.accept(new BelowMinItemsValidationError(uri, document, minItems, schema));
+        errorConsumer.accept(new BelowMinItemsError(uri, document, schema));
       }
 
       boolean uniqueItems = schema.getUniqueItems();
@@ -279,7 +279,7 @@ public class Validator {
     Object _const = schema.getConst();
     if (_const != null) {
       if (!makeComparable(_const).equals(makeComparable(object))) {
-        errorConsumer.accept(new ConstMismatchError(uri, document, _const, schema));
+        errorConsumer.accept(new ConstMismatchError(uri, document, schema));
       }
     }
 
@@ -294,7 +294,7 @@ public class Validator {
         }
       }
       if (!matchedOne) {
-        errorConsumer.accept(new ValidationError(uri, document, "Object not in enum", schema));
+        errorConsumer.accept(new EnumError(uri, document, schema));
       }
     }
 
@@ -353,7 +353,7 @@ public class Validator {
       }
       if (numberPassed != 1) {
         errorConsumer.accept(
-            new OneOfValidationError(uri, document, numberPassed, allErrors, schema));
+            new OneOfError(uri, document, numberPassed, allErrors, schema));
       }
     }
 
@@ -362,7 +362,7 @@ public class Validator {
       List<ValidationError> errors = new ArrayList<>();
       validate(not, document, uri, errors::add);
       if (errors.isEmpty()) {
-        errorConsumer.accept(new NotValidationError(uri, document, schema));
+        errorConsumer.accept(new NotError(uri, document, schema));
       }
     }
 
