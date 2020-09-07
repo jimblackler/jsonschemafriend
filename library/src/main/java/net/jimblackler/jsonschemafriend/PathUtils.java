@@ -2,6 +2,7 @@ package net.jimblackler.jsonschemafriend;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.net.URLDecoder;
 import java.net.URLEncoder;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -26,7 +27,7 @@ public class PathUtils {
       value = ESCAPED_EMPTY;
     }
 
-    value = uriComponentEscape(value);
+    value = uriComponentEncode(value);
 
     return URI.create(baseDocumentFromUri(uri) + "#" + fragment + value);
   }
@@ -71,12 +72,46 @@ public class PathUtils {
       try {
         Object parentObject = jsonPointer.queryFrom(document);
         String lastPart = getLastPart(path);
+        lastPart = URLDecoder.decode(lastPart);
+        lastPart = jsonPointerUnescape(lastPart);
+
         if (parentObject instanceof JSONObject) {
           ((JSONObject) parentObject).put(lastPart, newObject);
           return;
         }
         if (parentObject instanceof JSONArray) {
           ((JSONArray) parentObject).put(Integer.parseInt(lastPart), newObject);
+          return;
+        }
+        throw new MissingPathException("Could not modify document");
+      } catch (JSONPointerException ex) {
+        throw new MissingPathException(ex);
+      }
+    } catch (IllegalArgumentException ex) {
+      throw new MissingPathException("Probable attempt to use an $id as a URL", ex);
+    }
+  }
+
+  public static void deleteAtPath(Object document, String path) throws MissingPathException {
+    if (path == null || path.isEmpty()) {
+      throw new MissingPathException();
+    }
+    try {
+      String parentPath = getParentPath(path);
+      path = path.replace(ESCAPED_EMPTY, "");
+      JSONPointer jsonPointer = new JSONPointer("#" + parentPath);
+      try {
+        Object parentObject = jsonPointer.queryFrom(document);
+        String lastPart = getLastPart(path);
+        lastPart = URLDecoder.decode(lastPart);
+        lastPart = jsonPointerUnescape(lastPart);
+
+        if (parentObject instanceof JSONObject) {
+          ((JSONObject) parentObject).remove(lastPart);
+          return;
+        }
+        if (parentObject instanceof JSONArray) {
+          ((JSONArray) parentObject).remove(Integer.parseInt(lastPart));
           return;
         }
         throw new MissingPathException("Could not modify document");
@@ -104,7 +139,7 @@ public class PathUtils {
     return path.substring(i + 1);
   }
 
-  private static String uriComponentEscape(String value) {
+  private static String uriComponentEncode(String value) {
     String encoded = URLEncoder.encode(value);
 
     // $ is a common character in schema paths, and it doesn't strictly require escaping, so for
@@ -117,14 +152,18 @@ public class PathUtils {
     return encoded;
   }
 
+  private static String jsonPointerEscape(String token) {
+    return token.replace("~", "~0").replace("/", "~1").replace("\\", "\\\\").replace("\"", "\\\"");
+  }
+
+  private static String jsonPointerUnescape(String token) {
+    return token.replace("~1", "/").replace("~0", "~").replace("\\\"", "\"").replace("\\\\", "\\");
+  }
+
   public static String refPathEscape(String value) {
     // These characters have been seen in paths.
     value = value.replace("<", "%3C");
     value = value.replace(">", "%3E");
     return value;
-  }
-
-  private static String jsonPointerEscape(String token) {
-    return token.replace("~", "~0").replace("/", "~1").replace("\\", "\\\\").replace("\"", "\\\"");
   }
 }
