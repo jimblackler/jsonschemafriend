@@ -97,10 +97,10 @@ public class Validator {
       Number minLength = schema.getMinLength();
       Number maxLength = schema.getMaxLength();
       if (maxLength != null && unicodeCompliantLength > maxLength.intValue()) {
-        errorConsumer.accept(new ValidationError(uri, document, "Longer than maxLength", schema));
+        errorConsumer.accept(new MaxLengthError(uri, document, schema));
       }
       if (minLength != null && unicodeCompliantLength < minLength.intValue()) {
-        errorConsumer.accept(new ValidationError(uri, document, "Shorter than minLength", schema));
+        errorConsumer.accept(new MinLengthError(uri, document, schema));
       }
       Ecma262Pattern pattern = schema.getPattern();
       if (pattern != null && !pattern.matches(string)) {

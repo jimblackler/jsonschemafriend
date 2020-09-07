@@ -204,7 +204,8 @@ public class Schema {
         Object propertyObject = new JSONPointer("#" + propertyUri.getRawFragment()).queryFrom(base);
         if (propertyObject instanceof JSONObject) {
           JSONObject propertyJsonObject = (JSONObject) propertyObject;
-          if (propertyJsonObject.optBoolean("required")) {
+          Object required = propertyJsonObject.opt("required");
+          if (required instanceof Boolean && (Boolean) required) {
             requiredProperties.add(propertyName);
           }
         }
