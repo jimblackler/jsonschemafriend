@@ -689,4 +689,8 @@ public class Schema {
   public Collection<Schema> getTypesSchema() {
     return typesSchema;
   }
+
+  public Object getSchemaObject() {
+    return schemaObject;
+  }
 }

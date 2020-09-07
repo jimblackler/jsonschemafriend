@@ -57,29 +57,25 @@ public class Validator {
     if (object instanceof Number) {
       Number number = (Number) object;
       if (multipleOf != null && number.doubleValue() / multipleOf.doubleValue() % 1 != 0) {
-        errorConsumer.accept(new NotAMultipleError(uri, document, schema));
+        errorConsumer.accept(new MultipleError(uri, document, schema));
       }
       if (maximum != null
           && (exclusiveMaximumBoolean ? number.doubleValue() >= maximum.doubleValue()
                                       : number.doubleValue() > maximum.doubleValue())) {
-        errorConsumer.accept(
-            new GreaterThanMaximumError(uri, document, schema));
+        errorConsumer.accept(new MaximumError(uri, document, schema));
       }
 
       if (exclusiveMaximum != null && number.doubleValue() >= exclusiveMaximum.doubleValue()) {
-        errorConsumer.accept(new ValidationError(
-            uri, document, "Greater than or equal to exclusive maximum", schema));
+        errorConsumer.accept(new ExclusiveMaximumError(uri, document, schema));
       }
       if (minimum != null) {
         if (exclusiveMinimumBoolean ? number.doubleValue() <= minimum.doubleValue()
                                     : number.doubleValue() < minimum.doubleValue()) {
-          errorConsumer.accept(
-              new LessThanMinimumError(uri, document, schema));
+          errorConsumer.accept(new MinimumError(uri, document, schema));
         }
       }
       if (exclusiveMinimum != null && number.doubleValue() <= exclusiveMinimum.doubleValue()) {
-        errorConsumer.accept(
-            new ValidationError(uri, document, "Less than or equal to exclusive minimum", schema));
+        errorConsumer.accept(new ExclusiveMinimumError(uri, document, schema));
       }
       Set<String> okTypes = new HashSet<>();
       okTypes.add("number");
@@ -143,12 +139,12 @@ public class Validator {
 
       Number maxItems = schema.getMaxItems();
       if (maxItems != null && jsonArray.length() > maxItems.intValue()) {
-        errorConsumer.accept(new AboveMaxItemsError(uri, document, schema));
+        errorConsumer.accept(new MaxItemsError(uri, document, schema));
       }
 
       Number minItems = schema.getMinItems();
       if (minItems != null && jsonArray.length() < minItems.intValue()) {
-        errorConsumer.accept(new BelowMinItemsError(uri, document, schema));
+        errorConsumer.accept(new MinItemsError(uri, document, schema));
       }
 
       boolean uniqueItems = schema.getUniqueItems();
@@ -279,7 +275,7 @@ public class Validator {
     Object _const = schema.getConst();
     if (_const != null) {
       if (!makeComparable(_const).equals(makeComparable(object))) {
-        errorConsumer.accept(new ConstMismatchError(uri, document, schema));
+        errorConsumer.accept(new ConstError(uri, document, schema));
       }
     }
 
@@ -335,7 +331,7 @@ public class Validator {
         allErrors.add(errors);
       }
       if (!onePassed) {
-        errorConsumer.accept(new AnyOfValidationError(uri, document, allErrors, schema));
+        errorConsumer.accept(new AnyOfError(uri, document, allErrors, schema));
       }
     }
 
@@ -352,8 +348,7 @@ public class Validator {
         allErrors.add(errors);
       }
       if (numberPassed != 1) {
-        errorConsumer.accept(
-            new OneOfError(uri, document, numberPassed, allErrors, schema));
+        errorConsumer.accept(new OneOfError(uri, document, numberPassed, allErrors, schema));
       }
     }
 
@@ -382,7 +377,7 @@ public class Validator {
     Collection<String> typesIn0 = new HashSet<>(types);
     typesIn0.retainAll(disallow);
     if (!typesIn0.isEmpty()) {
-      errorConsumer.accept(new ValidationError(path, document, "Type disallowed", schema));
+      errorConsumer.accept(new TypeDisallowedError(path, document, typesIn0, schema));
     }
 
     Collection<String> explicitTypes = schema.getExplicitTypes();
@@ -411,10 +406,7 @@ public class Validator {
       return;
     }
 
-    errorConsumer.accept(new ValidationError(path, document,
-        "Expected: [" + String.join(", ", explicitTypes) + "] "
-            + "Found: [" + String.join(", ", types) + "]",
-        schema));
+    errorConsumer.accept(new TypeError(path, document, explicitTypes, types, schema));
   }
 
   public static void validate(Schema schema, Object document) throws ValidationException {
