@@ -104,8 +104,7 @@ public class Validator {
       }
       Ecma262Pattern pattern = schema.getPattern();
       if (pattern != null && !pattern.matches(string)) {
-        errorConsumer.accept(
-            new ValidationError(uri, document, "Did not match pattern: " + pattern, schema));
+        errorConsumer.accept(new PatternError(uri, document, schema));
       }
       typeCheck(schema, document, uri, setOf("string"), disallow, errorConsumer);
     } else if (object instanceof Boolean) {
