@@ -24,7 +24,6 @@ public class Validator {
       Schema schema, Object document, URI uri, Consumer<ValidationError> errorConsumer) {
     if (schema.isFalse()) {
       errorConsumer.accept(new ValidationError(uri, document, "Failed", schema));
-
       return;
     }
     Object object;
@@ -37,7 +36,6 @@ public class Validator {
             uri, document, "Could not locate " + uri + " : " + e.getMessage(), schema));
         return;
       }
-
     } else {
       // Query part can carry a string for validation while preserving the rest of the URI for error
       // messages. This is used for propertyName validation where it's not possible to link to the
@@ -59,12 +57,13 @@ public class Validator {
     if (object instanceof Number) {
       Number number = (Number) object;
       if (multipleOf != null && number.doubleValue() / multipleOf.doubleValue() % 1 != 0) {
-        errorConsumer.accept(new ValidationError(uri, document, "Not a multiple", schema));
+        errorConsumer.accept(new NotAMultipleError(uri, document, multipleOf, schema));
       }
       if (maximum != null
           && (exclusiveMaximumBoolean ? number.doubleValue() >= maximum.doubleValue()
                                       : number.doubleValue() > maximum.doubleValue())) {
-        errorConsumer.accept(new ValidationError(uri, document, "Greater than maximum", schema));
+        errorConsumer.accept(
+            new GreaterThanMaximumError(uri, document, exclusiveMaximumBoolean, maximum, schema));
       }
 
       if (exclusiveMaximum != null && number.doubleValue() >= exclusiveMaximum.doubleValue()) {
@@ -72,16 +71,10 @@ public class Validator {
             uri, document, "Greater than or equal to exclusive maximum", schema));
       }
       if (minimum != null) {
-        if (exclusiveMinimumBoolean) {
-          if (number.doubleValue() <= minimum.doubleValue()) {
-            errorConsumer.accept(new ValidationError(
-                uri, document, "Less than exclusive minimum: " + minimum, schema));
-          }
-        } else {
-          if (number.doubleValue() < minimum.doubleValue()) {
-            errorConsumer.accept(
-                new ValidationError(uri, document, "Less than minimum: " + minimum, schema));
-          }
+        if (exclusiveMinimumBoolean ? number.doubleValue() <= minimum.doubleValue()
+                                    : number.doubleValue() < minimum.doubleValue()) {
+          errorConsumer.accept(
+              new LessThanMinimumError(uri, document, exclusiveMinimumBoolean, minimum, schema));
         }
       }
       if (exclusiveMinimum != null && number.doubleValue() <= exclusiveMinimum.doubleValue()) {
@@ -150,12 +143,12 @@ public class Validator {
 
       Number maxItems = schema.getMaxItems();
       if (maxItems != null && jsonArray.length() > maxItems.intValue()) {
-        errorConsumer.accept(new ValidationError(uri, document, "Above max length", schema));
+        errorConsumer.accept(new AboveMaxItemsValidationError(uri, document, maxItems, schema));
       }
 
       Number minItems = schema.getMinItems();
       if (minItems != null && jsonArray.length() < minItems.intValue()) {
-        errorConsumer.accept(new ValidationError(uri, document, "Below min items", schema));
+        errorConsumer.accept(new BelowMinItemsValidationError(uri, document, minItems, schema));
       }
 
       boolean uniqueItems = schema.getUniqueItems();
@@ -200,8 +193,7 @@ public class Validator {
       Collection<String> requiredProperties = schema.getRequiredProperties();
       for (String property : requiredProperties) {
         if (!jsonObject.has(property)) {
-          errorConsumer.accept(
-              new ValidationError(uri, document, "Missing required property " + property, schema));
+          errorConsumer.accept(new MissingPropertyError(uri, document, property, schema));
         }
       }
 
@@ -287,7 +279,7 @@ public class Validator {
     Object _const = schema.getConst();
     if (_const != null) {
       if (!makeComparable(_const).equals(makeComparable(object))) {
-        errorConsumer.accept(new ValidationError(uri, document, "Const mismatch", schema));
+        errorConsumer.accept(new ConstMismatchError(uri, document, _const, schema));
       }
     }
 
@@ -332,6 +324,7 @@ public class Validator {
     Collection<Schema> anyOf = schema.getAnyOf();
     if (anyOf != null) {
       boolean onePassed = false;
+      List<List<ValidationError>> allErrors = new ArrayList<>();
       for (Schema schema1 : anyOf) {
         List<ValidationError> errors = new ArrayList<>();
         validate(schema1, document, uri, errors::add);
@@ -339,25 +332,28 @@ public class Validator {
           onePassed = true;
           break;
         }
+        allErrors.add(errors);
       }
       if (!onePassed) {
-        errorConsumer.accept(new ValidationError(uri, document, "All anyOf failed", schema));
+        errorConsumer.accept(new AnyOfValidationError(uri, document, allErrors, schema));
       }
     }
 
     Collection<Schema> oneOf = schema.getOneOf();
     if (oneOf != null) {
       int numberPassed = 0;
+      List<List<ValidationError>> allErrors = new ArrayList<>();
       for (Schema schema1 : oneOf) {
         List<ValidationError> errors = new ArrayList<>();
         validate(schema1, document, uri, errors::add);
         if (errors.isEmpty()) {
           numberPassed++;
         }
+        allErrors.add(errors);
       }
       if (numberPassed != 1) {
         errorConsumer.accept(
-            new ValidationError(uri, document, numberPassed + " passed oneOf", schema));
+            new OneOfValidationError(uri, document, numberPassed, allErrors, schema));
       }
     }
 
@@ -366,7 +362,7 @@ public class Validator {
       List<ValidationError> errors = new ArrayList<>();
       validate(not, document, uri, errors::add);
       if (errors.isEmpty()) {
-        errorConsumer.accept(new ValidationError(uri, document, "not condition passed", schema));
+        errorConsumer.accept(new NotValidationError(uri, document, schema));
       }
     }
 

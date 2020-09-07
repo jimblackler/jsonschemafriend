@@ -3,6 +3,8 @@ package net.jimblackler.jsonschemafriend;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URLEncoder;
+import org.json.JSONArray;
+import org.json.JSONObject;
 import org.json.JSONPointer;
 import org.json.JSONPointerException;
 
@@ -53,8 +55,53 @@ public class PathUtils {
         throw new MissingPathException(ex);
       }
     } catch (IllegalArgumentException ex) {
-      throw new IllegalStateException("Probable attempt to use an $id as a URL", ex);
+      throw new MissingPathException("Probable attempt to use an $id as a URL", ex);
     }
+  }
+
+  public static void modifyAtPath(Object document, String path, Object newObject)
+      throws MissingPathException {
+    if (path == null || path.isEmpty()) {
+      throw new MissingPathException();
+    }
+    try {
+      String parentPath = getParentPath(path);
+      path = path.replace(ESCAPED_EMPTY, "");
+      JSONPointer jsonPointer = new JSONPointer("#" + parentPath);
+      try {
+        Object parentObject = jsonPointer.queryFrom(document);
+        String lastPart = getLastPart(path);
+        if (parentObject instanceof JSONObject) {
+          ((JSONObject) parentObject).put(lastPart, newObject);
+          return;
+        }
+        if (parentObject instanceof JSONArray) {
+          ((JSONArray) parentObject).put(Integer.parseInt(lastPart), newObject);
+          return;
+        }
+        throw new MissingPathException("Could not modify document");
+      } catch (JSONPointerException ex) {
+        throw new MissingPathException(ex);
+      }
+    } catch (IllegalArgumentException ex) {
+      throw new MissingPathException("Probable attempt to use an $id as a URL", ex);
+    }
+  }
+
+  private static String getParentPath(String path) throws MissingPathException {
+    int i = path.lastIndexOf("/");
+    if (i == -1) {
+      throw new MissingPathException("No parent");
+    }
+    return path.substring(0, i);
+  }
+
+  private static String getLastPart(String path) {
+    int i = path.lastIndexOf("/");
+    if (i == -1) {
+      return path;
+    }
+    return path.substring(i + 1);
   }
 
   private static String uriComponentEscape(String value) {

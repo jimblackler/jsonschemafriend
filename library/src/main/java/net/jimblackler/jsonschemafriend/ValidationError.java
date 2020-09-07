@@ -6,7 +6,7 @@ public class ValidationError {
   private final URI uri;
   private final Object document;
   private final Schema schema;
-  private final String message;
+  private final String message; // TODO: maybe not keep 'message' as a field.
 
   public ValidationError(URI uri, Object document, String message, Schema schema) {
     this.uri = uri;
@@ -29,5 +29,17 @@ public class ValidationError {
         + (uri.toString().isEmpty() ? "" : "at " + uri + " ") + "failed "
         + (schemaPath.toString().isEmpty() ? "" : "against " + schemaPath + " ") + "with \""
         + message + "\"";
+  }
+
+  public URI getUri() {
+    return uri;
+  }
+
+  public Object getDocument() {
+    return document;
+  }
+
+  public Schema getSchema() {
+    return schema;
   }
 }
