@@ -20,8 +20,8 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 public class Validator {
-  public static void validate(
-      Schema schema, Object document, URI uri, Consumer<ValidationError> errorConsumer) {
+  public static void validate(Schema schema, Object document, URI uri,
+      Consumer<ValidationError> errorConsumer) throws MissingPathException {
     if (schema.isFalse()) {
       errorConsumer.accept(new FalseSchemaError(uri, document, schema));
       return;
@@ -29,13 +29,7 @@ public class Validator {
     Object object;
     String query = uri.getQuery();
     if (query == null || query.isEmpty()) {
-      try {
-        object = PathUtils.fetchFromPath(document, uri.getRawFragment());
-      } catch (MissingPathException e) {
-        errorConsumer.accept(new ValidationError(
-            uri, document, "Could not locate " + uri + " : " + e.getMessage(), schema));
-        return;
-      }
+      object = PathUtils.fetchFromPath(document, uri.getRawFragment());
     } else {
       // Query part can carry a string for validation while preserving the rest of the URI for error
       // messages. This is used for propertyName validation where it's not possible to link to the
@@ -88,7 +82,7 @@ public class Validator {
 
       Number divisibleBy = schema.getDivisibleBy();
       if (divisibleBy != null && number.doubleValue() / divisibleBy.doubleValue() % 1 != 0) {
-        errorConsumer.accept(new ValidationError(uri, document, "divisibleBy failed", schema));
+        errorConsumer.accept(new DivisibleByError(uri, document, schema));
       }
 
     } else if (object instanceof String) {
@@ -151,8 +145,7 @@ public class Validator {
         Collection<Object> items = new HashSet<>();
         for (int idx = 0; idx != jsonArray.length(); idx++) {
           if (!items.add(makeComparable(jsonArray.get(idx)))) {
-            errorConsumer.accept(
-                new ValidationError(uri, document, "Non-unique item found", schema));
+            errorConsumer.accept(new UniqueItemsError(uri, document, schema));
           }
         }
       }
@@ -169,8 +162,7 @@ public class Validator {
           }
         }
         if (!onePassed) {
-          errorConsumer.accept(new ValidationError(
-              uri, document, "No element in the array matched contains", schema));
+          errorConsumer.accept(new ContainsError(uri, document, schema));
         }
       }
     } else if (object instanceof JSONObject) {
@@ -259,16 +251,14 @@ public class Validator {
           if (jsonObject.has(dependency)) {
             continue;
           }
-          errorConsumer.accept(new ValidationError(
-              uri, document, "Missing dependency " + property + " -> " + dependency, schema));
+          errorConsumer.accept(new DependencyError(uri, document, property, dependency, schema));
         }
       }
 
     } else if (object == JSONObject.NULL) {
       typeCheck(schema, document, uri, setOf("null"), disallow, errorConsumer);
     } else if (object != null) {
-      errorConsumer.accept(new ValidationError(
-          uri, document, "Cannot validate type " + object.getClass().getSimpleName(), schema));
+      errorConsumer.accept(new UnexpecedTypeError(uri, document, object, schema));
     }
 
     Object _const = schema.getConst();
@@ -365,14 +355,14 @@ public class Validator {
       List<ValidationError> errors = new ArrayList<>();
       validate(disallowSchema, document, uri, errors::add);
       if (errors.isEmpty()) {
-        errorConsumer.accept(
-            new ValidationError(uri, document, "disallow condition passed", schema));
+        errorConsumer.accept(new DisallowError(uri, document, schema));
       }
     }
   }
 
   private static void typeCheck(Schema schema, Object document, URI path, Set<String> types,
-      Collection<String> disallow, Consumer<ValidationError> errorConsumer) {
+      Collection<String> disallow, Consumer<ValidationError> errorConsumer)
+      throws MissingPathException {
     Collection<String> typesIn0 = new HashSet<>(types);
     typesIn0.retainAll(disallow);
     if (!typesIn0.isEmpty()) {
@@ -408,7 +398,7 @@ public class Validator {
     errorConsumer.accept(new TypeError(path, document, explicitTypes, types, schema));
   }
 
-  public static void validate(Schema schema, Object document) throws ValidationException {
+  public static void validate(Schema schema, Object document) throws SchemaException {
     Collection<ValidationError> errors = new ArrayList<>();
     validate(schema, document, errors::add);
     if (!errors.isEmpty()) {
@@ -416,8 +406,8 @@ public class Validator {
     }
   }
 
-  public static void validate(
-      Schema schema, Object document, Consumer<ValidationError> errorConsumer) {
+  public static void validate(Schema schema, Object document,
+      Consumer<ValidationError> errorConsumer) throws MissingPathException {
     validate(schema, document, URI.create(""), errorConsumer);
   }
 

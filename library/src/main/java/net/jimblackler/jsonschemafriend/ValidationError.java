@@ -2,7 +2,7 @@ package net.jimblackler.jsonschemafriend;
 
 import java.net.URI;
 
-public class ValidationError {
+public abstract class ValidationError {
   private final URI uri;
   private final Object document;
   private final Schema schema;

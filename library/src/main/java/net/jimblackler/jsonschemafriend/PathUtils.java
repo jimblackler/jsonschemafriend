@@ -153,7 +153,7 @@ public class PathUtils {
   }
 
   private static String jsonPointerEscape(String token) {
-    return token.replace("~", "~0").replace("/", "~1").replace("\\", "\\\\").replace("\"", "\\\"");
+    return token.replace("\\", "\\\\").replace("\"", "\\\"").replace("~", "~0").replace("/", "~1");
   }
 
   private static String jsonPointerUnescape(String token) {
