@@ -9,7 +9,7 @@ public class OneOfError extends ValidationError {
 
   public OneOfError(URI uri, Object document, int numberPassed,
       List<List<ValidationError>> allErrors, Schema schema) {
-    super(uri, document, "oneOf: " + numberPassed + " passed, not 1", schema);
+    super(uri, document, schema);
     this.numberPassed = numberPassed;
     this.allErrors = allErrors;
   }
@@ -20,5 +20,10 @@ public class OneOfError extends ValidationError {
 
   public int getNumberPassed() {
     return numberPassed;
+  }
+
+  @Override
+  String getMessage() {
+    return "oneOf: " + numberPassed + " passed, not 1";
   }
 }

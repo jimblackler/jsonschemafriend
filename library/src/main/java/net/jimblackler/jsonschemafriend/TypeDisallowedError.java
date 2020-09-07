@@ -8,7 +8,12 @@ public class TypeDisallowedError extends ValidationError {
 
   public TypeDisallowedError(
       URI path, Object document, Collection<String> disallowed, Schema schema) {
-    super(path, document, "Type disallowed: " + disallowed, schema);
+    super(path, document, schema);
     this.disallowed = disallowed;
+  }
+
+  @Override
+  String getMessage() {
+    return "Type disallowed: " + disallowed;
   }
 }

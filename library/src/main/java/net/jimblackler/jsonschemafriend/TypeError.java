@@ -9,10 +9,7 @@ public class TypeError extends ValidationError {
 
   public TypeError(URI path, Object document, Collection<String> expected, Collection<String> found,
       Schema schema) {
-    super(path, document,
-        "Expected: [" + String.join(", ", expected) + "] "
-            + "Found: [" + String.join(", ", found) + "]",
-        schema);
+    super(path, document, schema);
 
     expectedTypes = expected;
     foundTypes = found;
@@ -24,5 +21,11 @@ public class TypeError extends ValidationError {
 
   public Collection<String> getFoundTypes() {
     return foundTypes;
+  }
+
+  @Override
+  String getMessage() {
+    return "Expected: [" + String.join(", ", expectedTypes) + "] "
+        + "Found: [" + String.join(", ", foundTypes) + "]";
   }
 }

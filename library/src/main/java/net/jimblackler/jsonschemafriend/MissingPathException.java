@@ -1,9 +1,7 @@
 package net.jimblackler.jsonschemafriend;
 
 public class MissingPathException extends SchemaException {
-  public MissingPathException() {
-    super();
-  }
+  public MissingPathException() {}
 
   public MissingPathException(String message) {
     super(message);

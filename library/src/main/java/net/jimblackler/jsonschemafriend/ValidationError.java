@@ -6,13 +6,11 @@ public abstract class ValidationError {
   private final URI uri;
   private final Object document;
   private final Schema schema;
-  private final String message; // TODO: maybe not keep 'message' as a field.
 
-  public ValidationError(URI uri, Object document, String message, Schema schema) {
+  protected ValidationError(URI uri, Object document, Schema schema) {
     this.uri = uri;
     this.document = document;
     this.schema = schema;
-    this.message = message;
   }
 
   @Override
@@ -28,7 +26,7 @@ public abstract class ValidationError {
     return (string.length() <= 20 ? "\"" + string + "\" " : "")
         + (uri.toString().isEmpty() ? "" : "at " + uri + " ") + "failed "
         + (schemaPath.toString().isEmpty() ? "" : "against " + schemaPath + " ") + "with \""
-        + message + "\"";
+        + getMessage() + "\"";
   }
 
   public URI getUri() {
@@ -42,4 +40,6 @@ public abstract class ValidationError {
   public Schema getSchema() {
     return schema;
   }
+
+  abstract String getMessage();
 }

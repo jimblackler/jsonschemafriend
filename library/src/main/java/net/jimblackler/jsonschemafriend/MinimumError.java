@@ -4,9 +4,12 @@ import java.net.URI;
 
 public class MinimumError extends ValidationError {
   public MinimumError(URI uri, Object document, Schema schema) {
-    super(uri, document,
-        "Less than minimum: " + schema.getMinimum()
-            + (schema.getExclusiveMinimumBoolean() ? " (exclusive)" : ""),
-        schema);
+    super(uri, document, schema);
+  }
+
+  @Override
+  String getMessage() {
+    return "Less than minimum: " + getSchema().getMinimum()
+        + (getSchema().getExclusiveMinimumBoolean() ? " (exclusive)" : "");
   }
 }

@@ -8,11 +8,16 @@ public class AnyOfError extends ValidationError {
 
   public AnyOfError(
       URI uri, Object document, List<List<ValidationError>> allErrors, Schema schema) {
-    super(uri, document, "All anyOf failed", schema);
+    super(uri, document, schema);
     this.allErrors = allErrors;
   }
 
   public List<List<ValidationError>> getAllErrors() {
     return allErrors;
+  }
+
+  @Override
+  String getMessage() {
+    return "All anyOf failed";
   }
 }
