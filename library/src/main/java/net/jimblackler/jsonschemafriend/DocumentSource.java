@@ -12,7 +12,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class DocumentSource {
-  public static final FileSystem FILE_SYSTEM = FileSystems.getDefault();
+  private static final FileSystem FILE_SYSTEM = FileSystems.getDefault();
   private final Iterable<UrlRewriter> rewriters;
   private final Map<URI, Object> memoryCache = new HashMap<>();
 
