@@ -23,7 +23,7 @@ import net.jimblackler.jsonschemafriend.Schema;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-public class Builder {
+public class JavaBuilder {
   private final CodeGenerator codeGenerator;
   private final JDefinedClass jDefinedClass;
   private final String _name;
@@ -31,7 +31,7 @@ public class Builder {
   private final List<JEnumConstant> enumConstants = new ArrayList<>();
   private final Schema schema;
 
-  public Builder(CodeGenerator codeGenerator, Schema schema) {
+  public JavaBuilder(CodeGenerator codeGenerator, Schema schema) {
     this.codeGenerator = codeGenerator;
     this.schema = schema;
 
@@ -121,9 +121,9 @@ public class Builder {
 
       for (Map.Entry<String, Schema> entry : schema.getProperties().entrySet()) {
         Schema propertySchema = entry.getValue();
-        Builder builder = codeGenerator.getBuilder(propertySchema);
+        JavaBuilder javaBuilder = codeGenerator.getBuilder(propertySchema);
         String propertyName = entry.getKey();
-        builder.writePropertyGetters(schema.getRequiredProperties().contains(propertyName),
+        javaBuilder.writePropertyGetters(schema.getRequiredProperties().contains(propertyName),
             expressionFromObject(propertySchema.getDefault()), jDefinedClass, dataField,
             propertyName);
       }
@@ -131,16 +131,16 @@ public class Builder {
       Collection<Schema> itemsTuple = schema.getItemsTuple();
       if (itemsTuple != null) {
         for (Schema itemsSchema : itemsTuple) {
-          Builder builder = codeGenerator.getBuilder(itemsSchema);
-          builder.writeItemGetters(
+          JavaBuilder javaBuilder = codeGenerator.getBuilder(itemsSchema);
+          javaBuilder.writeItemGetters(
               jDefinedClass, expressionFromObject(itemsSchema.getDefault()), dataField);
         }
       }
 
       Schema _items = schema.getItems();
       if (_items != null) {
-        Builder builder = codeGenerator.getBuilder(_items);
-        builder.writeItemGetters(
+        JavaBuilder javaBuilder = codeGenerator.getBuilder(_items);
+        javaBuilder.writeItemGetters(
             jDefinedClass, expressionFromObject(_items.getDefault()), dataField);
       }
 

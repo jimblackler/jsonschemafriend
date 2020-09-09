@@ -19,7 +19,7 @@ import net.jimblackler.jsonschemafriend.SchemaStore;
 
 public class CodeGenerator {
   private final JCodeModel jCodeModel = new JCodeModel();
-  private final Map<URI, Builder> builtClasses = new HashMap<>();
+  private final Map<URI, JavaBuilder> builtClasses = new HashMap<>();
   private final JPackage jPackage;
   private final SchemaStore schemaStore = new SchemaStore();
   private final URI defaultMetaSchema = URI.create("http://json-schema.org/draft-07/schema#");
@@ -56,21 +56,21 @@ public class CodeGenerator {
     jCodeModel.build(outPath.toFile());
   }
 
-  Builder getBuilder(Schema schema1) {
+  JavaBuilder getBuilder(Schema schema1) {
     URI uri = schema1.getUri();
     if (builtClasses.containsKey(uri)) {
       return builtClasses.get(uri);
     }
 
-    return new Builder(this, schema1);
+    return new JavaBuilder(this, schema1);
   }
 
   public JCodeModel getJCodeModel() {
     return jCodeModel;
   }
 
-  public void register(URI uri, Builder builder) {
-    builtClasses.put(uri, builder);
+  public void register(URI uri, JavaBuilder javaBuilder) {
+    builtClasses.put(uri, javaBuilder);
   }
 
   public JPackage getJPackage() {
