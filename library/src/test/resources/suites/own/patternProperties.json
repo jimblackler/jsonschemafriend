@@ -1,78 +1,124 @@
 [
-    {
-        "description": "patternProperties validates properties matching a regex",
-        "schema": {
-            "additionalProperties": false,
-            "patternProperties": {
-                "a.*b": {
-                    "type": "integer"
-                }
-            }
-        },
-        "tests": [
-            {
-                "data": {
-                    "ab": 1
-                },
-                "valid": true
-            },
-            {
-                "data": {
-                    "ac": 1
-                },
-                "valid": false
-            }
-        ]
+  {
+    "description": "patternProperties validates properties matching a regex",
+    "schema": {
+      "additionalProperties": false,
+      "patternProperties": {
+        "a.*b": {
+          "type": "integer"
+        }
+      }
     },
-    {
-        "description": "patternProperties validates properties matching a regex",
-        "schema": {
-            "additionalProperties": false,
-            "patternProperties": {
-                "a.*b": {
-                    "type": "integer"
-                }
-            }
+    "tests": [
+      {
+        "data": {
+          "ab": 1
         },
-        "tests": [
-            {
-                "data": {
-                    "ab": 1
-                },
-                "valid": true
-            },
-            {
-                "data": {
-                    "ac": 1
-                },
-                "valid": false
-            }
-        ]
+        "valid": true
+      },
+      {
+        "data": {
+          "ac": 1
+        },
+        "valid": false
+      }
+    ]
+  },
+  {
+    "description": "patternProperties validates properties matching a regex",
+    "schema": {
+      "additionalProperties": false,
+      "patternProperties": {
+        "a.*b": {
+          "type": "integer"
+        }
+      }
     },
-    {
-        "description": "Empty patternProperties",
-        "schema": {
-            "additionalProperties": false,
-            "patternProperties": {
-                "": {
-                    "type": "integer"
-                }
-            }
+    "tests": [
+      {
+        "data": {
+          "ab": 1
         },
-        "tests": [
-            {
-                "data": {
-                    "ab": 1
-                },
-                "valid": true
-            },
-            {
-                "data": {
-                    "ab": "x"
-                },
-                "valid": false
-            }
-        ]
-    }
-
+        "valid": true
+      },
+      {
+        "data": {
+          "ac": 1
+        },
+        "valid": false
+      }
+    ]
+  },
+  {
+    "description": "Empty patternProperties",
+    "schema": {
+      "additionalProperties": false,
+      "patternProperties": {
+        "": {
+          "type": "integer"
+        }
+      }
+    },
+    "tests": [
+      {
+        "data": {
+          "ab": 1
+        },
+        "valid": true
+      },
+      {
+        "data": {
+          "ab": "x"
+        },
+        "valid": false
+      }
+    ]
+  },
+  {
+    "description": "patternProperties vs properties",
+    "schema": {
+      "patternProperties": {
+        ".*": {
+          "type": "string"
+        }
+      },
+      "properties": {
+        "a": {
+          "type": "boolean"
+        }
+      }
+    },
+    "tests": [
+      {
+        "data": {
+          "a": true
+        },
+        "valid": false
+      },
+      {
+        "data": {
+          "a": "x"
+        },
+        "valid": false
+      },
+      {
+        "data": {
+          "a": "x"
+        },
+        "valid": false
+      },
+      {
+        "data": {
+          "b": "x"
+        },
+        "valid": true
+      },
+      {
+        "data": {
+          "b": true
+        },
+        "valid": false
+      }
+    ]
+  }
 ]
