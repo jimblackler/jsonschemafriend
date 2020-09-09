@@ -6,8 +6,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.ArrayList;
 import java.util.List;
-import net.jimblackler.jsonschemafriend.GenerationException;
 import net.jimblackler.jsonschemafriend.Schema;
+import net.jimblackler.jsonschemafriend.SchemaException;
 import net.jimblackler.jsonschemafriend.SchemaStore;
 import net.jimblackler.jsonschemafriend.ValidationError;
 import org.json.JSONObject;
@@ -15,7 +15,7 @@ import org.junit.jupiter.api.Test;
 
 public class ViaJsonObject {
   @Test
-  public void viaJsonObject() throws GenerationException {
+  public void viaJsonObject() throws SchemaException {
     JSONObject mySchema = new JSONObject();
     mySchema.put("$schema", "http://json-schema.org/draft-07/schema#");
     JSONObject properties = new JSONObject();
