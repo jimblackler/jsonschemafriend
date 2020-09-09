@@ -417,32 +417,6 @@ public class Schema {
     return types;
   }
 
-  public Number getMultipleOf() {
-    return multipleOf;
-  }
-
-  public Number getMaximum() {
-    return maximum;
-  }
-
-  public Number getMinimum() {
-    return minimum;
-  }
-
-  public Number getExclusiveMaximum() {
-    if (exclusiveMaximum instanceof Number) {
-      return (Number) exclusiveMaximum;
-    }
-    return null;
-  }
-
-  public Number getExclusiveMinimum() {
-    if (exclusiveMinimum instanceof Number) {
-      return (Number) exclusiveMinimum;
-    }
-    return null;
-  }
-
   private Schema getSubSchema(JSONObject jsonObject, String name, URI uri)
       throws GenerationException, MissingPathException {
     Object object = jsonObject.opt(name);
@@ -460,19 +434,11 @@ public class Schema {
     return subSchema;
   }
 
-  public URI getUri() {
-    return uri;
-  }
-
   public Boolean isFalse() {
     if (schemaObject instanceof Boolean) {
       return !(Boolean) schemaObject;
     }
     return false;
-  }
-
-  public Schema getParent() {
-    return parent;
   }
 
   protected void setParent(Schema parent) {
@@ -482,50 +448,11 @@ public class Schema {
     this.parent = parent;
   }
 
-  public Map<String, Schema> getProperties() {
-    return Collections.unmodifiableMap(_properties);
-  }
-
-  public Collection<Ecma262Pattern> getPatternPropertiesPatterns() {
-    return Collections.unmodifiableCollection(patternPropertiesPatterns);
-  }
-
-  public Collection<Schema> getPatternPropertiesSchema() {
-    return Collections.unmodifiableCollection(patternPropertiesSchemas);
-  }
-
-  public Schema getAdditionalProperties() {
-    return additionalProperties;
-  }
-
-  public Number getMinProperties() {
-    return minProperties;
-  }
-
-  public Number getMaxProperties() {
-    return maxProperties;
-  }
-
-  public Collection<String> getExplicitTypes() {
-    if (explicitTypes == null) {
-      return null;
-    }
-    return Collections.unmodifiableSet(explicitTypes);
-  }
-
   public Collection<String> getNonProhibitedTypes() {
     if (explicitTypes == null) {
       return allTypes();
     }
     return Collections.unmodifiableSet(explicitTypes);
-  }
-
-  public Collection<String> getInferredTypes() {
-    if (inferredTypes.isEmpty()) {
-      // If type inference found nothing, we don't want to imply no types are allowed.
-      return allTypes();
-    }
-    return Collections.unmodifiableSet(inferredTypes);
   }
 
   public Collection<String> getTypes() {
@@ -552,77 +479,9 @@ public class Schema {
     return getInferredTypes();
   }
 
-  public List<Schema> getItemsTuple() {
-    return itemsTuple == null ? null : Collections.unmodifiableList(itemsTuple);
-  }
-
-  public Schema getItems() {
-    return _items;
-  }
-
-  public Collection<String> getRequiredProperties() {
-    return Collections.unmodifiableCollection(requiredProperties);
-  }
-
-  public Object getDefault() {
-    return defaultValue;
-  }
-
-  public List<Object> getEnums() {
-    return enums == null ? null : Collections.unmodifiableList(enums);
-  }
-
-  public Number getMinLength() {
-    return minLength;
-  }
-
-  public Number getMaxLength() {
-    return maxLength;
-  }
-
-  public Number getMinItems() {
-    return minItems;
-  }
-
-  public Number getMaxItems() {
-    return maxItems;
-  }
-
-  public boolean isFullyBuilt() {
-    return fullyBuilt;
-  }
-
-  public Collection<Schema> getAllOf() {
-    return Collections.unmodifiableCollection(allOf);
-  }
-
-  public Collection<Schema> getAnyOf() {
-    return anyOf == null ? null : Collections.unmodifiableCollection(anyOf);
-  }
-
-  public Collection<Schema> getOneOf() {
-    return oneOf == null ? null : Collections.unmodifiableCollection(oneOf);
-  }
-
-  public Ecma262Pattern getPattern() {
-    return pattern;
-  }
-
-  public Schema getAdditionalItems() {
-    return additionalItems;
-  }
-
   @Override
   public String toString() {
     return schemaObject.toString();
-  }
-
-  public Object getConst() {
-    return _const;
-  }
-
-  public Schema getContains() {
-    return contains;
   }
 
   public boolean isUniqueItems() {
@@ -643,32 +502,149 @@ public class Schema {
     return false;
   }
 
-  public Collection<String> getDisallow() {
-    return disallow;
+  public Object getSchemaObject() {
+    return schemaObject;
   }
 
-  public Collection<Schema> getDisallowSchemas() {
-    return disallowSchemas;
+  public URI getUri() {
+    return uri;
+  }
+
+  public Number getMultipleOf() {
+    return multipleOf;
+  }
+
+  public Number getMaximum() {
+    return maximum;
+  }
+
+  public Number getExclusiveMaximum() {
+    if (exclusiveMaximum instanceof Number) {
+      return (Number) exclusiveMaximum;
+    }
+    return null;
+  }
+
+  public Number getMinimum() {
+    return minimum;
+  }
+
+  public Number getExclusiveMinimum() {
+    if (exclusiveMinimum instanceof Number) {
+      return (Number) exclusiveMinimum;
+    }
+    return null;
   }
 
   public Number getDivisibleBy() {
     return divisibleBy;
   }
 
+  public Number getMaxLength() {
+    return maxLength;
+  }
+
+  public Number getMinLength() {
+    return minLength;
+  }
+
+  public Ecma262Pattern getPattern() {
+    return pattern;
+  }
+
+  public Schema getAdditionalItems() {
+    return additionalItems;
+  }
+
+  public Schema getItems() {
+    return _items;
+  }
+
+  public List<Schema> getItemsTuple() {
+    return itemsTuple == null ? null : Collections.unmodifiableList(itemsTuple);
+  }
+
+  public Number getMaxItems() {
+    return maxItems;
+  }
+
+  public Number getMinItems() {
+    return minItems;
+  }
+
   public boolean getUniqueItems() {
     return uniqueItems;
   }
 
-  public Schema getPropertyNames() {
-    return propertyNames;
+  public Schema getContains() {
+    return contains;
+  }
+
+  public Number getMaxProperties() {
+    return maxProperties;
+  }
+
+  public Number getMinProperties() {
+    return minProperties;
+  }
+
+  public Collection<String> getRequiredProperties() {
+    return Collections.unmodifiableCollection(requiredProperties);
+  }
+
+  public Schema getAdditionalProperties() {
+    return additionalProperties;
+  }
+
+  public Map<String, Schema> getProperties() {
+    return Collections.unmodifiableMap(_properties);
+  }
+
+  public Collection<Ecma262Pattern> getPatternPropertiesPatterns() {
+    return Collections.unmodifiableCollection(patternPropertiesPatterns);
+  }
+
+  public Collection<Schema> getPatternPropertiesSchema() {
+    return Collections.unmodifiableCollection(patternPropertiesSchemas);
+  }
+
+  public Map<String, Collection<String>> getDependencies() {
+    return dependencies;
   }
 
   public Map<String, Schema> getSchemaDependencies() {
     return schemaDependencies;
   }
 
-  public Map<String, Collection<String>> getDependencies() {
-    return dependencies;
+  public Schema getPropertyNames() {
+    return propertyNames;
+  }
+
+  public Object getConst() {
+    return _const;
+  }
+
+  public List<Object> getEnums() {
+    return enums == null ? null : Collections.unmodifiableList(enums);
+  }
+
+  public Collection<String> getExplicitTypes() {
+    if (explicitTypes == null) {
+      return null;
+    }
+    return Collections.unmodifiableSet(explicitTypes);
+  }
+
+  public Collection<String> getInferredTypes() {
+    if (inferredTypes.isEmpty()) {
+      // If type inference found nothing, we don't want to imply no types are allowed.
+      return allTypes();
+    }
+    return Collections.unmodifiableSet(inferredTypes);
+  }
+
+  public Collection<Schema> getTypesSchema() {
+    return typesSchema;
   }
 
   public Schema getIf() {
@@ -683,15 +659,39 @@ public class Schema {
     return _else;
   }
 
+  public Collection<Schema> getAllOf() {
+    return Collections.unmodifiableCollection(allOf);
+  }
+
+  public Collection<Schema> getAnyOf() {
+    return anyOf == null ? null : Collections.unmodifiableCollection(anyOf);
+  }
+
+  public Collection<Schema> getOneOf() {
+    return oneOf == null ? null : Collections.unmodifiableCollection(oneOf);
+  }
+
   public Schema getNot() {
     return not;
   }
 
-  public Collection<Schema> getTypesSchema() {
-    return typesSchema;
+  public Collection<String> getDisallow() {
+    return disallow;
   }
 
-  public Object getSchemaObject() {
-    return schemaObject;
+  public Collection<Schema> getDisallowSchemas() {
+    return disallowSchemas;
+  }
+
+  public Object getDefault() {
+    return defaultValue;
+  }
+
+  public boolean isFullyBuilt() {
+    return fullyBuilt;
+  }
+
+  public Schema getParent() {
+    return parent;
   }
 }
