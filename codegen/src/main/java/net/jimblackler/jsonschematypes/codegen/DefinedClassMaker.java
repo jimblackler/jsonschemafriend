@@ -5,10 +5,6 @@ import com.sun.codemodel.JClassContainer;
 import com.sun.codemodel.JDefinedClass;
 
 class DefinedClassMaker {
-  interface Client {
-    JDefinedClass getaClass(String name) throws JClassAlreadyExistsException;
-  }
-
   static JDefinedClass makeClassForSchema(JClassContainer classParent, String name, Client client) {
     /* Ensure no direct ancestor has the same name */
     while (true) {
@@ -49,5 +45,9 @@ class DefinedClassMaker {
       }
     }
     return name + "2";
+  }
+
+  interface Client {
+    JDefinedClass getaClass(String name) throws JClassAlreadyExistsException;
   }
 }

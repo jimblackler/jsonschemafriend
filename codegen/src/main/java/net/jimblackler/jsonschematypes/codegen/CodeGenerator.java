@@ -10,7 +10,9 @@ import java.net.URI;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import net.jimblackler.jsonschemafriend.GenerationException;
 import net.jimblackler.jsonschemafriend.MissingPathException;
@@ -28,7 +30,34 @@ public class CodeGenerator {
     jPackage = jCodeModel._package(packageName);
   }
 
-  public void build(Path outPath, URL resource1) throws IOException {
+  public void build(Path outPath, URL url) throws CodeGenerationException {
+    try {
+      List<Schema> schemas = getSchemas(url);
+      for (Schema schema : schemas) {
+        getBuilder(schema);
+      }
+      build(outPath);
+    } catch (GenerationException | MissingPathException | IOException e) {
+      throw new CodeGenerationException(e);
+    }
+  }
+
+  public void build(Path outPath, URI uri) throws CodeGenerationException {
+    try {
+      getBuilder(schemaStore.loadSchema(uri, defaultMetaSchema));
+      build(outPath);
+    } catch (GenerationException | MissingPathException | IOException e) {
+      throw new CodeGenerationException(e);
+    }
+  }
+
+  private void build(Path outPath) throws IOException {
+    jCodeModel.build(outPath.toFile());
+  }
+
+  private List<Schema> getSchemas(URL resource1)
+      throws IOException, GenerationException, MissingPathException {
+    List<Schema> schemas = new ArrayList<>();
     try (InputStream stream = resource1.openStream()) {
       try (BufferedReader bufferedReader =
                new BufferedReader(new InputStreamReader(stream, StandardCharsets.UTF_8))) {
@@ -39,21 +68,11 @@ public class CodeGenerator {
           }
           URI uri =
               URI.create(resource1 + (resource1.toString().endsWith("/") ? "" : "/") + resource);
-          Schema schema = schemaStore.loadSchema(uri, defaultMetaSchema);
-          getBuilder(schema);
+          schemas.add(schemaStore.loadSchema(uri, defaultMetaSchema));
         }
-      } catch (IOException | GenerationException | MissingPathException e) {
-        throw new IllegalStateException(e);
       }
-
-      jCodeModel.build(outPath.toFile());
     }
-  }
-
-  public void build(Path outPath, URI uri)
-      throws GenerationException, IOException, MissingPathException {
-    getBuilder(schemaStore.loadSchema(uri, defaultMetaSchema));
-    jCodeModel.build(outPath.toFile());
+    return schemas;
   }
 
   JavaBuilder getBuilder(Schema schema1) {

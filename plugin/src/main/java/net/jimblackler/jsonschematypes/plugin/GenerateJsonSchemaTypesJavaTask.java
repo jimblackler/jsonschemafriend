@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.nio.file.FileSystem;
 import java.nio.file.FileSystems;
 import java.nio.file.Path;
+import net.jimblackler.jsonschematypes.codegen.CodeGenerationException;
 import net.jimblackler.jsonschematypes.codegen.CodeGenerator;
 import net.jimblackler.jsonschematypes.codegen.FileUtils;
 import org.gradle.api.DefaultTask;
@@ -15,7 +16,7 @@ import org.gradle.api.tasks.TaskAction;
 
 public class GenerateJsonSchemaTypesJavaTask extends DefaultTask {
   @TaskAction
-  public void generate() throws IOException {
+  public void generate() throws IOException, CodeGenerationException {
     Project project = getProject();
     SourceSet mainSourceSet = ((SourceSetContainer) project.getProperties().get("sourceSets"))
                                   .getByName(SourceSet.MAIN_SOURCE_SET_NAME);

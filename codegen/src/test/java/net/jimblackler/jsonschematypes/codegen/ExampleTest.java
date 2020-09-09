@@ -8,7 +8,7 @@ import java.nio.file.Path;
 public class ExampleTest {
   public static final FileSystem FILE_SYSTEM = FileSystems.getDefault();
 
-  public static void main(String[] args) throws IOException {
+  public static void main(String[] args) throws IOException, CodeGenerationException {
     Path out = FILE_SYSTEM.getPath("out");
     FileUtils.createOrEmpty(out);
 
@@ -21,7 +21,8 @@ public class ExampleTest {
     scan(out, "org.example.docs", base.resolve("docs"));
   }
 
-  private static void scan(Path out, String namespace, Path testDir) throws IOException {
+  private static void scan(Path out, String namespace, Path testDir)
+      throws CodeGenerationException {
     new CodeGenerator(namespace).build(
         out, ExampleTest.class.getResource(testDir.resolve("schemas").toString()));
   }
