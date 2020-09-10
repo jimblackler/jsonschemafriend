@@ -24,21 +24,17 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 public class JavaBuilder {
-  private final CodeGenerator codeGenerator;
   private final JDefinedClass jDefinedClass;
   private final String _name;
   private final JType dataType;
   private final List<JEnumConstant> enumConstants = new ArrayList<>();
   private final Schema schema;
 
-  public JavaBuilder(CodeGenerator codeGenerator, Schema schema) {
-    this.codeGenerator = codeGenerator;
+  public JavaBuilder(
+      CodeGenerator codeGenerator, Schema schema, JCodeModel jCodeModel, JPackage jPackage) {
     this.schema = schema;
 
     codeGenerator.register(schema.getUri(), this);
-
-    JPackage jPackage = codeGenerator.getJPackage();
-    JCodeModel jCodeModel = codeGenerator.getJCodeModel();
 
     Collection<String> types = schema.getTypes();
 
@@ -125,7 +121,7 @@ public class JavaBuilder {
         String propertyName = entry.getKey();
         javaBuilder.writePropertyGetters(schema.getRequiredProperties().contains(propertyName),
             expressionFromObject(propertySchema.getDefault()), jDefinedClass, dataField,
-            propertyName);
+            propertyName, jCodeModel);
       }
 
       Collection<Schema> itemsTuple = schema.getItemsTuple();
@@ -133,7 +129,7 @@ public class JavaBuilder {
         for (Schema itemsSchema : itemsTuple) {
           JavaBuilder javaBuilder = codeGenerator.build(itemsSchema);
           javaBuilder.writeItemGetters(
-              jDefinedClass, expressionFromObject(itemsSchema.getDefault()), dataField);
+              jDefinedClass, expressionFromObject(itemsSchema.getDefault()), dataField, jCodeModel);
         }
       }
 
@@ -141,7 +137,7 @@ public class JavaBuilder {
       if (_items != null) {
         JavaBuilder javaBuilder = codeGenerator.build(_items);
         javaBuilder.writeItemGetters(
-            jDefinedClass, expressionFromObject(_items.getDefault()), dataField);
+            jDefinedClass, expressionFromObject(_items.getDefault()), dataField, jCodeModel);
       }
 
       if (types.contains("array")) {
@@ -262,8 +258,7 @@ public class JavaBuilder {
   }
 
   private void writePropertyGetters(boolean requiredProperty, JExpression defaultValue,
-      JDefinedClass holderClass, JFieldVar dataField, String propertyName) {
-    JCodeModel jCodeModel = codeGenerator.getJCodeModel();
+      JDefinedClass holderClass, JFieldVar dataField, String propertyName, JCodeModel jCodeModel) {
     JExpression asJsonObject = castIfNeeded(jCodeModel.ref(JSONObject.class), dataField);
     String nameForGetters = NameUtils.snakeToCamel(propertyName);
     JType returnType;
@@ -303,9 +298,8 @@ public class JavaBuilder {
     }
   }
 
-  private void writeItemGetters(
-      JDefinedClass holderClass, JExpression defaultValue, JFieldVar dataField) {
-    JCodeModel jCodeModel = codeGenerator.getJCodeModel();
+  private void writeItemGetters(JDefinedClass holderClass, JExpression defaultValue,
+      JFieldVar dataField, JCodeModel jCodeModel) {
     JExpression asJsonArray = castIfNeeded(jCodeModel.ref(JSONArray.class), dataField);
     String nameForGetters = _name;
     JType returnType;

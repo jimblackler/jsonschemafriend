@@ -76,18 +76,10 @@ public class CodeGenerator {
       return builtClasses.get(uri);
     }
 
-    return new JavaBuilder(this, schema1);
-  }
-
-  public JCodeModel getJCodeModel() {
-    return jCodeModel;
+    return new JavaBuilder(this, schema1, jCodeModel, jPackage);
   }
 
   public void register(URI uri, JavaBuilder javaBuilder) {
     builtClasses.put(uri, javaBuilder);
-  }
-
-  public JPackage getJPackage() {
-    return jPackage;
   }
 }
