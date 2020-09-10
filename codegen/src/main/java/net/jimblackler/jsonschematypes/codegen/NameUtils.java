@@ -1,5 +1,7 @@
 package net.jimblackler.jsonschematypes.codegen;
 
+import net.jimblackler.jsonschemafriend.Schema;
+
 public class NameUtils {
   static String capitalizeFirst(String in) {
     return Character.toUpperCase(in.charAt(0)) + in.substring(1);
@@ -23,5 +25,26 @@ public class NameUtils {
 
   public static String camelToSnake(String in) {
     return in.replaceAll("([^_A-Z])([A-Z])", "$1_$2");
+  }
+
+  static String nameForSchema(Schema schema) {
+    String[] split = schema.getUri().toString().split("/");
+    String lastPart = split[split.length - 1];
+    String namePart = lastPart.split("\\.", 2)[0];
+
+    String converted = snakeToCamel(namePart);
+    if (!Character.isJavaIdentifierStart(converted.charAt(0))) {
+      converted = "_" + converted;
+    }
+
+    StringBuilder builder = new StringBuilder();
+    for (int idx = 0; idx != converted.length(); idx++) {
+      char chr = converted.charAt(idx);
+      if (Character.isJavaIdentifierPart(chr)) {
+        builder.append(chr);
+      }
+    }
+
+    return builder.toString();
   }
 }

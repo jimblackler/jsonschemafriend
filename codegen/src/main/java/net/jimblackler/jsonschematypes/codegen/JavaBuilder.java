@@ -1,5 +1,7 @@
 package net.jimblackler.jsonschematypes.codegen;
 
+import static net.jimblackler.jsonschematypes.codegen.NameUtils.nameForSchema;
+
 import com.sun.codemodel.JClass;
 import com.sun.codemodel.JClassContainer;
 import com.sun.codemodel.JCodeModel;
@@ -30,11 +32,11 @@ public class JavaBuilder {
   private final List<JEnumConstant> enumConstants = new ArrayList<>();
   private final Schema schema;
 
-  public JavaBuilder(
-      CodeGenerator codeGenerator, Schema schema, JCodeModel jCodeModel, JPackage jPackage) {
+  public JavaBuilder(JavaCodeGenerator javaCodeGenerator, Schema schema) {
     this.schema = schema;
-
-    codeGenerator.register(schema.getUri(), this);
+    JCodeModel jCodeModel = javaCodeGenerator.getJCodeModel();
+    JPackage jPackage = javaCodeGenerator.getJPackage();
+    javaCodeGenerator.register(schema.getUri(), this);
 
     Collection<String> types = schema.getTypes();
 
@@ -72,14 +74,14 @@ public class JavaBuilder {
 
     Schema parentSchema = schema.getParent();
     JClassContainer classParent =
-        parentSchema == null ? jPackage : codeGenerator.build(parentSchema).getDefinedClass();
+        parentSchema == null ? jPackage : javaCodeGenerator.get(parentSchema).getDefinedClass();
 
     String name = nameForSchema(schema);
     boolean isComplexObject =
         dataType.equals(jCodeModel.ref(JSONObject.class)) && !schema.getProperties().isEmpty();
     if (isComplexObject || dataType.equals(jCodeModel.ref(Object.class))
         || dataType.equals(jCodeModel.ref(JSONArray.class))) {
-      JDefinedClass _class = DefinedClassMaker.makeClassForSchema(classParent, name,
+      JDefinedClass _class = JavaDefinedClassMaker.makeClassForSchema(classParent, name,
           (name12)
               -> classParent._class(
                   parentSchema == null ? JMod.PUBLIC : JMod.STATIC | JMod.PUBLIC, name12));
@@ -117,7 +119,7 @@ public class JavaBuilder {
 
       for (Map.Entry<String, Schema> entry : schema.getProperties().entrySet()) {
         Schema propertySchema = entry.getValue();
-        JavaBuilder javaBuilder = codeGenerator.build(propertySchema);
+        JavaBuilder javaBuilder = javaCodeGenerator.get(propertySchema);
         String propertyName = entry.getKey();
         javaBuilder.writePropertyGetters(schema.getRequiredProperties().contains(propertyName),
             expressionFromObject(propertySchema.getDefault()), jDefinedClass, dataField,
@@ -127,7 +129,7 @@ public class JavaBuilder {
       Collection<Schema> itemsTuple = schema.getItemsTuple();
       if (itemsTuple != null) {
         for (Schema itemsSchema : itemsTuple) {
-          JavaBuilder javaBuilder = codeGenerator.build(itemsSchema);
+          JavaBuilder javaBuilder = javaCodeGenerator.get(itemsSchema);
           javaBuilder.writeItemGetters(
               jDefinedClass, expressionFromObject(itemsSchema.getDefault()), dataField, jCodeModel);
         }
@@ -135,7 +137,7 @@ public class JavaBuilder {
 
       Schema _items = schema.getItems();
       if (_items != null) {
-        JavaBuilder javaBuilder = codeGenerator.build(_items);
+        JavaBuilder javaBuilder = javaCodeGenerator.get(_items);
         javaBuilder.writeItemGetters(
             jDefinedClass, expressionFromObject(_items.getDefault()), dataField, jCodeModel);
       }
@@ -148,7 +150,7 @@ public class JavaBuilder {
     } else if (schema.getEnums() != null && dataType.equals(jCodeModel.ref(String.class))) {
       List<Object> enums = schema.getEnums();
       JDefinedClass _enum =
-          DefinedClassMaker.makeClassForSchema(classParent, name, classParent::_enum);
+          JavaDefinedClassMaker.makeClassForSchema(classParent, name, classParent::_enum);
 
       StringBuilder docs = new StringBuilder();
       docs.append("Created from ").append(schema.getUri()).append(System.lineSeparator());
@@ -199,27 +201,6 @@ public class JavaBuilder {
     }
 
     return null;
-  }
-
-  private static String nameForSchema(Schema schema) {
-    String[] split = schema.getUri().toString().split("/");
-    String lastPart = split[split.length - 1];
-    String namePart = lastPart.split("\\.", 2)[0];
-
-    String converted = NameUtils.snakeToCamel(namePart);
-    if (!Character.isJavaIdentifierStart(converted.charAt(0))) {
-      converted = "_" + converted;
-    }
-
-    StringBuilder builder = new StringBuilder();
-    for (int idx = 0; idx != converted.length(); idx++) {
-      char chr = converted.charAt(idx);
-      if (Character.isJavaIdentifierPart(chr)) {
-        builder.append(chr);
-      }
-    }
-
-    return builder.toString();
   }
 
   private static JExpression castIfNeeded(JClass _class, JFieldVar field) {

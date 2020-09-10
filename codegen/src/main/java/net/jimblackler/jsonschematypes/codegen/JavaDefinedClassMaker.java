@@ -4,7 +4,7 @@ import com.sun.codemodel.JClassAlreadyExistsException;
 import com.sun.codemodel.JClassContainer;
 import com.sun.codemodel.JDefinedClass;
 
-class DefinedClassMaker {
+class JavaDefinedClassMaker {
   static JDefinedClass makeClassForSchema(JClassContainer classParent, String name, Client client) {
     /* Ensure no direct ancestor has the same name */
     while (true) {

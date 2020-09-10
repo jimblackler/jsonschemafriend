@@ -10,6 +10,7 @@ import java.nio.file.FileSystems;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import org.json.JSONArray;
 import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.TestFactory;
@@ -30,7 +31,14 @@ public class FromInternet {
         String str = array.getString(idx);
         testsOut.add(DynamicTest.dynamicTest(str, () -> {
           URI uri = URI.create(str);
-          new CodeGenerator(uri.getHost()).build(out, uri);
+          JavaCodeGenerator javaCodeGenerator = new JavaCodeGenerator(uri.getHost());
+          TypeScriptCodeGenerator typeScriptCodeGenerator = new TypeScriptCodeGenerator();
+          List<CodeGenerator> generators = new ArrayList<>();
+          generators.add(javaCodeGenerator);
+          generators.add(typeScriptCodeGenerator);
+          CodeGeneration.build(uri, new MultiGenerator(generators));
+          javaCodeGenerator.output(out);
+          typeScriptCodeGenerator.output(out);
         }));
       }
     }

@@ -2,12 +2,16 @@ package net.jimblackler.jsonschematypes.plugin;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.FileSystem;
-import java.nio.file.FileSystems;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
+import net.jimblackler.jsonschematypes.codegen.CodeGeneration;
 import net.jimblackler.jsonschematypes.codegen.CodeGenerationException;
 import net.jimblackler.jsonschematypes.codegen.CodeGenerator;
 import net.jimblackler.jsonschematypes.codegen.FileUtils;
+import net.jimblackler.jsonschematypes.codegen.JavaCodeGenerator;
+import net.jimblackler.jsonschematypes.codegen.MultiGenerator;
+import net.jimblackler.jsonschematypes.codegen.TypeScriptCodeGenerator;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.Project;
 import org.gradle.api.tasks.SourceSet;
@@ -27,6 +31,13 @@ public class GenerateJsonSchemaTypesJavaTask extends DefaultTask {
     Path codePath = Common.getCodePath(getProject());
 
     FileUtils.createOrEmpty(codePath);
-    new CodeGenerator(extension.getPackageOut()).build(codePath, resources.toUri().toURL());
+    JavaCodeGenerator javaCodeGenerator = new JavaCodeGenerator(extension.getPackageOut());
+    TypeScriptCodeGenerator typeScriptCodeGenerator = new TypeScriptCodeGenerator();
+    List<CodeGenerator> generators = new ArrayList<>();
+    generators.add(javaCodeGenerator);
+    generators.add(typeScriptCodeGenerator);
+    CodeGeneration.build(resources.toUri().toURL(), new MultiGenerator(generators));
+    javaCodeGenerator.output(codePath);
+    typeScriptCodeGenerator.output(codePath);
   }
 }
