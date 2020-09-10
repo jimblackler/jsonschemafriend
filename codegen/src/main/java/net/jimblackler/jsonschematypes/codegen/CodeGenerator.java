@@ -14,9 +14,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import net.jimblackler.jsonschemafriend.GenerationException;
-import net.jimblackler.jsonschemafriend.MissingPathException;
 import net.jimblackler.jsonschemafriend.Schema;
+import net.jimblackler.jsonschemafriend.SchemaException;
 import net.jimblackler.jsonschemafriend.SchemaStore;
 
 public class CodeGenerator {
@@ -32,12 +31,12 @@ public class CodeGenerator {
 
   public void build(Path outPath, URL url) throws CodeGenerationException {
     try {
-      List<Schema> schemas = getSchemas(url);
+      List<Schema> schemas = getSchemas(defaultMetaSchema, schemaStore, url);
       for (Schema schema : schemas) {
         getBuilder(schema);
       }
       build(outPath);
-    } catch (GenerationException | MissingPathException | IOException e) {
+    } catch (SchemaException | IOException e) {
       throw new CodeGenerationException(e);
     }
   }
@@ -46,7 +45,7 @@ public class CodeGenerator {
     try {
       getBuilder(schemaStore.loadSchema(uri, defaultMetaSchema));
       build(outPath);
-    } catch (GenerationException | MissingPathException | IOException e) {
+    } catch (SchemaException | IOException e) {
       throw new CodeGenerationException(e);
     }
   }
@@ -55,8 +54,8 @@ public class CodeGenerator {
     jCodeModel.build(outPath.toFile());
   }
 
-  private List<Schema> getSchemas(URL resource1)
-      throws IOException, GenerationException, MissingPathException {
+  private static List<Schema> getSchemas(URI defaultMetaSchema, SchemaStore schemaStore,
+      URL resource1) throws IOException, SchemaException {
     List<Schema> schemas = new ArrayList<>();
     try (InputStream stream = resource1.openStream()) {
       try (BufferedReader bufferedReader =
