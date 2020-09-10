@@ -15,6 +15,7 @@ public class ExampleTest {
     FileUtils.createOrEmpty(out);
 
     Path base = FILE_SYSTEM.getPath("/examples");
+    scan(out, "org.example.basic", base, "basic");
     scan(out, "org.example.fstab", base, "fstab");
     scan(out, "org.example.standard", base, ("standard/7-7-1-1"));
     scan(out, "org.example.misc", base, "misc");

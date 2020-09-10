@@ -441,13 +441,6 @@ public class Schema {
     return false;
   }
 
-  protected void setParent(Schema parent) {
-    if (this.parent != null) {
-      throw new IllegalStateException("Schemas may only have one parent");
-    }
-    this.parent = parent;
-  }
-
   public Collection<String> getNonProhibitedTypes() {
     if (explicitTypes == null) {
       return allTypes();
@@ -481,7 +474,7 @@ public class Schema {
 
   @Override
   public String toString() {
-    return schemaObject.toString();
+    return uri + " / " + schemaObject;
   }
 
   public boolean isUniqueItems() {
@@ -693,5 +686,12 @@ public class Schema {
 
   public Schema getParent() {
     return parent;
+  }
+
+  protected void setParent(Schema parent) {
+    if (this.parent != null) {
+      throw new IllegalStateException("Schemas may only have one parent");
+    }
+    this.parent = parent;
   }
 }

@@ -34,7 +34,9 @@ public class TypeScriptCodeGenerator implements CodeGenerator {
     try (PrintWriter printWriter = new PrintWriter(out.resolve("types.ts").toFile())) {
       for (Map.Entry<URI, TypeScriptBuilder> entry : builtClasses.entrySet()) {
         TypeScriptBuilder builder = entry.getValue();
-        builder.write(printWriter);
+        if (builder.getParent() == null) {
+          builder.write(printWriter, 0);
+        }
       }
     }
   }
