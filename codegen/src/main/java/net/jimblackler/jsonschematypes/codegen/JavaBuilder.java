@@ -76,7 +76,7 @@ public class JavaBuilder {
 
     Schema parentSchema = schema.getParent();
     JClassContainer classParent =
-        parentSchema == null ? jPackage : codeGenerator.getBuilder(parentSchema).getDefinedClass();
+        parentSchema == null ? jPackage : codeGenerator.build(parentSchema).getDefinedClass();
 
     String name = nameForSchema(schema);
     boolean isComplexObject =
@@ -121,7 +121,7 @@ public class JavaBuilder {
 
       for (Map.Entry<String, Schema> entry : schema.getProperties().entrySet()) {
         Schema propertySchema = entry.getValue();
-        JavaBuilder javaBuilder = codeGenerator.getBuilder(propertySchema);
+        JavaBuilder javaBuilder = codeGenerator.build(propertySchema);
         String propertyName = entry.getKey();
         javaBuilder.writePropertyGetters(schema.getRequiredProperties().contains(propertyName),
             expressionFromObject(propertySchema.getDefault()), jDefinedClass, dataField,
@@ -131,7 +131,7 @@ public class JavaBuilder {
       Collection<Schema> itemsTuple = schema.getItemsTuple();
       if (itemsTuple != null) {
         for (Schema itemsSchema : itemsTuple) {
-          JavaBuilder javaBuilder = codeGenerator.getBuilder(itemsSchema);
+          JavaBuilder javaBuilder = codeGenerator.build(itemsSchema);
           javaBuilder.writeItemGetters(
               jDefinedClass, expressionFromObject(itemsSchema.getDefault()), dataField);
         }
@@ -139,7 +139,7 @@ public class JavaBuilder {
 
       Schema _items = schema.getItems();
       if (_items != null) {
-        JavaBuilder javaBuilder = codeGenerator.getBuilder(_items);
+        JavaBuilder javaBuilder = codeGenerator.build(_items);
         javaBuilder.writeItemGetters(
             jDefinedClass, expressionFromObject(_items.getDefault()), dataField);
       }

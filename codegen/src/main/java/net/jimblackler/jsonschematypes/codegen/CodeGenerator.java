@@ -33,9 +33,9 @@ public class CodeGenerator {
     try {
       List<Schema> schemas = getSchemas(defaultMetaSchema, schemaStore, url);
       for (Schema schema : schemas) {
-        getBuilder(schema);
+        build(schema);
       }
-      build(outPath);
+      jCodeModel.build(outPath.toFile());
     } catch (SchemaException | IOException e) {
       throw new CodeGenerationException(e);
     }
@@ -43,15 +43,11 @@ public class CodeGenerator {
 
   public void build(Path outPath, URI uri) throws CodeGenerationException {
     try {
-      getBuilder(schemaStore.loadSchema(uri, defaultMetaSchema));
-      build(outPath);
+      build(schemaStore.loadSchema(uri, defaultMetaSchema));
+      jCodeModel.build(outPath.toFile());
     } catch (SchemaException | IOException e) {
       throw new CodeGenerationException(e);
     }
-  }
-
-  private void build(Path outPath) throws IOException {
-    jCodeModel.build(outPath.toFile());
   }
 
   private static List<Schema> getSchemas(URI defaultMetaSchema, SchemaStore schemaStore,
@@ -74,7 +70,7 @@ public class CodeGenerator {
     return schemas;
   }
 
-  JavaBuilder getBuilder(Schema schema1) {
+  JavaBuilder build(Schema schema1) {
     URI uri = schema1.getUri();
     if (builtClasses.containsKey(uri)) {
       return builtClasses.get(uri);
