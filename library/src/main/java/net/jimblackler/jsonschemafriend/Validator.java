@@ -118,6 +118,13 @@ public class Validator {
               errorConsumer.accept(new FormatError(uri, document, schema, e.getReason()));
             }
             break;
+          case "date":
+            try {
+              DateTimeFormatter.ISO_DATE.parse(string);
+            } catch (DateTimeParseException e) {
+              errorConsumer.accept(new FormatError(uri, document, schema, e.getMessage()));
+            }
+            break;
           case "time":
             try {
               DateTimeFormatter.ISO_TIME.parse(string);
