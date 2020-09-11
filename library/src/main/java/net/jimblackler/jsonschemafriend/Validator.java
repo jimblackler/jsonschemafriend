@@ -26,6 +26,7 @@ import javax.mail.internet.AddressException;
 import javax.mail.internet.InternetAddress;
 import org.apache.commons.validator.routines.DomainValidator;
 import org.apache.commons.validator.routines.EmailValidator;
+import org.apache.commons.validator.routines.InetAddressValidator;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -136,6 +137,12 @@ public class Validator {
             if (!DomainValidator.getInstance().isValid(string)) {
               errorConsumer.accept(
                   new FormatError(uri, document, schema, "Failed DomainValidator"));
+            }
+            break;
+          case "ipv4":
+            if (!InetAddressValidator.getInstance().isValid(string)) {
+              errorConsumer.accept(
+                  new FormatError(uri, document, schema, "Failed InetAddressValidator"));
             }
             break;
           case "date":
