@@ -5,10 +5,12 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.logging.Logger;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
 class IdRefMap {
+  private static final Logger LOG = Logger.getLogger(IdRefMap.class.getName());
   private final Map<URI, URI> idToPath = new HashMap<>();
   private final Map<URI, URI> refs = new HashMap<>();
   private final Collection<URI> mapped = new HashSet<>();
@@ -19,7 +21,11 @@ class IdRefMap {
       // schemas from libraries that cross-reference each other - so we use a little hack.
       URI converted = URI.create(base.toString().substring("jar:".length()));
       URI resolved = resolve(converted, child);
-      return URI.create("jar:" + resolved);
+      if ("file".equals(resolved.getScheme())) {
+        return URI.create("jar:" + resolved);
+      }
+      // If the destination URI is not a file, it's not going to be in the jar.
+      return resolved;
     }
     return base.resolve(child);
   }
@@ -83,13 +89,19 @@ class IdRefMap {
    * @param defaultMetaSchema The default meta-schema to use.
    * @return The final uri of the schema.
    */
-  public URI finalLocation(URI uri, DocumentSource documentSource, URI defaultMetaSchema)
-      throws MissingPathException {
+  public URI finalLocation(URI uri, DocumentSource documentSource, URI defaultMetaSchema) {
     while (true) {
       uri = normalize(uri);
       URI baseDocumentUri = PathUtils.baseDocumentFromUri(uri);
       if (mapped.add(baseDocumentUri)) {
-        Object baseDocumentObject = documentSource.fetchDocument(baseDocumentUri);
+        Object baseDocumentObject = null;
+        try {
+          baseDocumentObject = documentSource.fetchDocument(baseDocumentUri);
+        } catch (MissingPathException e) {
+          // Path can't be found but the uri is still returned as it will be used to identify the
+          // default schema.
+          return uri;
+        }
         // The document can be a single boolean, and still hold a legal schema. There's nothing to
         // do in this case.
         if (baseDocumentObject instanceof Boolean) {
@@ -99,8 +111,12 @@ class IdRefMap {
         URI metaSchemaUri = baseDocument.has("$schema")
             ? URI.create(baseDocument.getString("$schema"))
             : defaultMetaSchema;
-        map(baseDocument, baseDocumentUri, baseDocumentUri,
-            (JSONObject) documentSource.fetchDocument(metaSchemaUri));
+        try {
+          map(baseDocument, baseDocumentUri, baseDocumentUri,
+              (JSONObject) documentSource.fetchDocument(metaSchemaUri));
+        } catch (MissingPathException e) {
+          LOG.warning("Could not map " + uri + ". " + e.getMessage());
+        }
       }
       if (!refs.containsKey(uri)) {
         return uri;

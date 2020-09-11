@@ -39,7 +39,7 @@ public class JavaBuilder {
     JPackage jPackage = javaCodeGenerator.getJPackage();
     javaCodeGenerator.register(schema.getUri(), this);
 
-    Collection<String> types = schema.getTypes();
+    Collection<String> types = schema.getInferredTypes();
 
     if (types.size() == 1) {
       switch (types.iterator().next()) {

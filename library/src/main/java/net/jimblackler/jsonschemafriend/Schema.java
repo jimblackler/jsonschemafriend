@@ -12,6 +12,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.logging.Logger;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.json.JSONPointer;
@@ -21,6 +22,8 @@ import org.json.JSONPointer;
  * data it validates.
  */
 public class Schema {
+  private static final Logger LOG = Logger.getLogger(Schema.class.getName());
+
   private final Object schemaObject; // Kept for debugging only.
 
   private final SchemaStore schemaStore;
@@ -79,21 +82,45 @@ public class Schema {
   private Schema parent;
 
   public Schema(SchemaStore schemaStore, URI uri, URI defaultMetaSchema)
-      throws GenerationException, MissingPathException {
+      throws GenerationException {
     this.uri = uri;
     this.schemaStore = schemaStore;
     schemaStore.register(uri, this);
 
     URI baseDocumentUri = PathUtils.baseDocumentFromUri(uri);
-    Object base = schemaStore.getDocumentSource().fetchDocument(baseDocumentUri);
+    Object base;
+
+    try {
+      base = schemaStore.getDocumentSource().fetchDocument(baseDocumentUri);
+    } catch (MissingPathException e) {
+      // By design, if we can't find a schema definition, we log a warning but generate a default
+      // schema that permits everything.
+      LOG.warning("No document found at " + baseDocumentUri);
+      base = true;
+    }
     if (base instanceof JSONObject) {
       JSONObject baseDocument = (JSONObject) base;
-      schemaObject = PathUtils.fetchFromPath(baseDocument, uri.getRawFragment());
+      Object _schemaObject = null;
+      try {
+        _schemaObject = PathUtils.fetchFromPath(baseDocument, uri.getRawFragment());
+      } catch (MissingPathException e) {
+        LOG.warning(
+            "No match for path " + uri.getRawFragment() + " in document " + baseDocumentUri);
+      }
 
-      if (baseDocument == schemaObject && baseDocument.has("$schema")) {
-        metaSchemaUri = URI.create(baseDocument.getString("$schema"));
-      } else {
+      if (_schemaObject == null) {
+        // By design, if we can't find a schema definition, we log a warning but generate a default
+        // schema that permits everything.
         metaSchemaUri = defaultMetaSchema;
+        schemaObject = true;
+      } else {
+        schemaObject = _schemaObject;
+        Object _metaSchema = baseDocument.opt("$schema");
+        if (_metaSchema instanceof String) {
+          metaSchemaUri = URI.create((String) _metaSchema);
+        } else {
+          metaSchemaUri = defaultMetaSchema;
+        }
       }
     } else {
       metaSchemaUri = defaultMetaSchema;
@@ -102,21 +129,34 @@ public class Schema {
     // It would be more convenient to work with a fully-built Schema from the meta-schema, not just
     // its JSON representation. However that isn't possible when building a self-referencing schema
     // (all JSON schema meta-schemas as self-referencing).
-    JSONObject metaSchemaDocument =
-        (JSONObject) schemaStore.getDocumentSource().fetchDocument(metaSchemaUri);
+    JSONObject metaSchemaDocument;
 
-    // Create a new version of the object with only the properties that are explicitly in the
-    // metaschema. This means that features from other version of the metaschema from working when
-    // they shouldn't.
+    try {
+      metaSchemaDocument =
+          (JSONObject) schemaStore.getDocumentSource().fetchDocument(metaSchemaUri);
+    } catch (MissingPathException e) {
+      LOG.warning("Could not load metaschema " + metaSchemaUri);
+      metaSchemaDocument = null;
+    }
+
+    // If possible, create a new version of the object with only the properties that are explicitly
+    // in the metaschema. This means that features from other version of the metaschema from working
+    // when they shouldn't.
     JSONObject jsonObject = new JSONObject();
 
     if (schemaObject instanceof JSONObject) {
       JSONObject jsonObjectOriginal = (JSONObject) schemaObject;
-      JSONObject properties = metaSchemaDocument.optJSONObject("properties");
-      if (properties != null) {
-        for (String property : properties.keySet()) {
-          if (jsonObjectOriginal.has(property)) {
-            jsonObject.put(property, jsonObjectOriginal.get(property));
+      if (metaSchemaDocument == null) {
+        for (String property : jsonObjectOriginal.keySet()) {
+          jsonObject.put(property, jsonObjectOriginal.get(property));
+        }
+      } else {
+        JSONObject properties = metaSchemaDocument.optJSONObject("properties");
+        if (properties != null) {
+          for (String property : properties.keySet()) {
+            if (jsonObjectOriginal.has(property)) {
+              jsonObject.put(property, jsonObjectOriginal.get(property));
+            }
           }
         }
       }
@@ -156,7 +196,8 @@ public class Schema {
         contentMediaTypeObject instanceof String ? (String) contentMediaTypeObject : null;
 
     if (jsonObject.has("maxLength") || jsonObject.has("minLength") || jsonObject.has("pattern")
-        || jsonObject.has("format")) {
+        || jsonObject.has("format") || jsonObject.has("contentEncoding")
+        || jsonObject.has("contentMediaType")) {
       inferredTypes.add("string");
     }
     // array checks
@@ -432,7 +473,7 @@ public class Schema {
   }
 
   private Schema getSubSchema(JSONObject jsonObject, String name, URI uri)
-      throws GenerationException, MissingPathException {
+      throws GenerationException {
     Object object = jsonObject.opt(name);
     if (object instanceof JSONObject || object instanceof Boolean) {
       return getSubSchema(PathUtils.append(uri, name));
@@ -440,7 +481,7 @@ public class Schema {
     return null;
   }
 
-  private Schema getSubSchema(URI uri) throws GenerationException, MissingPathException {
+  private Schema getSubSchema(URI uri) throws GenerationException {
     Schema subSchema = schemaStore.getSchema(uri, metaSchemaUri);
     if (subSchema != null && subSchema.getUri().equals(uri)) {
       subSchema.setParent(this);
@@ -460,30 +501,6 @@ public class Schema {
       return allTypes();
     }
     return Collections.unmodifiableSet(explicitTypes);
-  }
-
-  public Collection<String> getTypes() {
-    if (explicitTypes != null) {
-      return Collections.unmodifiableSet(explicitTypes);
-    }
-    if (!allOf.isEmpty()) {
-      // For the allOf operator we return the union of the types (implied or explicit) of each
-      // subschema.
-      Set<String> union = null;
-      for (Schema subSchema : allOf) {
-        Collection<String> types = subSchema.getTypes();
-        if (union == null) {
-          union = new HashSet<>(types);
-        } else {
-          union.retainAll(types);
-        }
-      }
-      if (union.isEmpty()) {
-        return null;
-      }
-      return union;
-    }
-    return getInferredTypes();
   }
 
   @Override
@@ -655,6 +672,37 @@ public class Schema {
   }
 
   public Collection<String> getInferredTypes() {
+    // TODO: this could be made an external static method.
+    if (explicitTypes != null) {
+      return Collections.unmodifiableSet(explicitTypes);
+    }
+    if (anyOf != null && !anyOf.isEmpty()) {
+      // For the anyOf operator we return the intersection of the types (implied or explicit) of
+      // each subschema.
+      Collection<String> intersection = new HashSet<>();
+      for (Schema subSchema : anyOf) {
+        intersection.addAll(subSchema.getInferredTypes());
+      }
+      return intersection;
+    }
+    if (!allOf.isEmpty()) {
+      // For the allOf operator we return the union of the types (implied or explicit) of each
+      // subschema.
+      Set<String> union = null;
+      for (Schema subSchema : allOf) {
+        Collection<String> types = subSchema.getInferredTypes();
+        if (union == null) {
+          union = new HashSet<>(types);
+        } else {
+          union.retainAll(types);
+        }
+      }
+      if (union.isEmpty()) {
+        return null;
+      }
+      return union;
+    }
+
     if (inferredTypes.isEmpty()) {
       // If type inference found nothing, we don't want to imply no types are allowed.
       return allTypes();

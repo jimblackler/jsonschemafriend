@@ -96,11 +96,10 @@ public class SchemaStore {
     return getSchema(uri, defaultMetaSchema);
   }
 
-  Schema getSchema(URI uri, URI defaultMetaSchema)
-      throws GenerationException, MissingPathException {
+  Schema getSchema(URI uri, URI defaultMetaSchema) throws GenerationException {
     // The schema at an uri can be requested by a client that doesn't know that the uri is the
-    // beginning of a chain of $refs. We must find the end of the chain, where the actual schema is
-    // to be found.
+    // beginning of a chain of $refs. We must find the end of the chain, where the actual schema
+    // is to be found.
     uri = idRefMap.finalLocation(uri, documentSource, defaultMetaSchema);
 
     // Now we have the final path we can see if we've already built it.
@@ -108,12 +107,7 @@ public class SchemaStore {
       return builtSchemas.get(uri);
     }
 
-    try {
-      return new Schema(this, uri, defaultMetaSchema);
-    } catch (MissingPathException e) {
-      LOG.warning("No schema at " + uri + " : " + e.getMessage());
-      return null;
-    }
+    return new Schema(this, uri, defaultMetaSchema);
   }
 
   public void register(URI path, Schema schema) throws GenerationException {

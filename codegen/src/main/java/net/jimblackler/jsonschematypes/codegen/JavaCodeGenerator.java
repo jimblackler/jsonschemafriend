@@ -20,7 +20,7 @@ public class JavaCodeGenerator implements CodeGenerator {
 
   JavaBuilder get(Schema schema) throws CodeGenerationException {
     if (schema == null) {
-      throw new CodeGenerationException("Missing schema");
+      return null;
     }
     URI uri = schema.getUri();
     if (builtClasses.containsKey(uri)) {

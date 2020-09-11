@@ -33,7 +33,7 @@ public class TypeScriptBuilder {
       this.parent.addChild(this);
     }
 
-    types = schema.getTypes();
+    types = schema.getInferredTypes();
     baseClassName = nameForSchema(schema);
     if (this.parent == null) {
       fullClassName = baseClassName;
@@ -54,12 +54,11 @@ public class TypeScriptBuilder {
         types0.add("number");
       }
       for (String type : types0) {
-        if ("object".equals(type)) {
+        if (isClass()) {
           if (sb.length() > 0) {
             sb.append(" | ");
           }
           sb.append(fullClassName);
-
         } else if ("array".equals(type)) {
           if (sb.length() > 0) {
             sb.append(" | ");
@@ -106,7 +105,7 @@ public class TypeScriptBuilder {
   }
 
   private boolean isClass() {
-    return types.contains("object");
+    return !schema.getProperties().isEmpty();
   }
 
   void write(PrintWriter printWriter, int indentationLevel) {
