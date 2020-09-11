@@ -536,7 +536,6 @@ public class Validator {
     }
 
     Collection<String> explicitTypes = schema.getExplicitTypes();
-
     if (explicitTypes == null) {
       return;
     }
