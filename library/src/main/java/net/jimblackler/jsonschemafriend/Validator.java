@@ -7,6 +7,8 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
@@ -112,6 +114,14 @@ public class Validator {
             } catch (URISyntaxException e) {
               errorConsumer.accept(new FormatError(uri, document, schema, e.getReason()));
             }
+            break;
+          case "time":
+            try {
+              DateTimeFormatter.ISO_TIME.parse(string);
+            } catch (DateTimeParseException e) {
+              errorConsumer.accept(new FormatError(uri, document, schema, e.getMessage()));
+            }
+            break;
         }
       }
       typeCheck(schema, document, uri, setOf("string"), disallow, errorConsumer);
