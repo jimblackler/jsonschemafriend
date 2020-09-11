@@ -20,6 +20,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Consumer;
+import org.apache.commons.validator.routines.DomainValidator;
 import org.apache.commons.validator.routines.EmailValidator;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -119,6 +120,12 @@ public class Validator {
               errorConsumer.accept(new FormatError(uri, document, schema, e.getReason()));
             }
             break;
+          case "hostname":
+            if (!DomainValidator.getInstance().isValid(string)) {
+              errorConsumer.accept(
+                  new FormatError(uri, document, schema, "Failed DomainValidator"));
+            }
+            break;
           case "date":
             try {
               DateTimeFormatter.ISO_DATE.parse(string);
@@ -144,6 +151,7 @@ public class Validator {
             if (!EmailValidator.getInstance().isValid(string)) {
               errorConsumer.accept(new FormatError(uri, document, schema, "Did not match"));
             }
+            break;
         }
       }
       String stringToValidate = string;
