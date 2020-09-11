@@ -20,6 +20,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Consumer;
+import javax.mail.internet.AddressException;
+import javax.mail.internet.InternetAddress;
 import org.apache.commons.validator.routines.DomainValidator;
 import org.apache.commons.validator.routines.EmailValidator;
 import org.json.JSONArray;
@@ -150,6 +152,19 @@ public class Validator {
           case "email":
             if (!EmailValidator.getInstance().isValid(string)) {
               errorConsumer.accept(new FormatError(uri, document, schema, "Did not match"));
+            }
+            break;
+          case "idn-email":
+            try {
+              InternetAddress[] parsed = InternetAddress.parse(string);
+              if (parsed.length == 1) {
+                parsed[0].validate();
+              } else {
+                errorConsumer.accept(
+                    new FormatError(uri, document, schema, "Unexpected parse result"));
+              }
+            } catch (AddressException e) {
+              errorConsumer.accept(new FormatError(uri, document, schema, e.getMessage()));
             }
             break;
         }
