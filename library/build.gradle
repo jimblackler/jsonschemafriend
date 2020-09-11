@@ -26,8 +26,9 @@ afterEvaluate {
 }
 
 dependencies {
-    //implementation 'com.github.jimblackler:JSON-java:v0.0-alpha'
+    //implementation 'com.github.jimblackler:JSON-java:v0.2-alpha'
     implementation 'org.json:json:20200518'
+    implementation 'commons-validator:commons-validator:1.7'
     testImplementation 'com.github.everit-org.json-schema:org.everit.json.schema:1.12.1'
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.6.2'
 }

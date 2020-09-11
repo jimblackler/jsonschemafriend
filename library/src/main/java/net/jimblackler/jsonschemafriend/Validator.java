@@ -20,6 +20,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Consumer;
+import org.apache.commons.validator.routines.EmailValidator;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -132,6 +133,17 @@ public class Validator {
               errorConsumer.accept(new FormatError(uri, document, schema, e.getMessage()));
             }
             break;
+          case "date-time":
+            try {
+              DateTimeFormatter.ISO_DATE_TIME.parse(string);
+            } catch (DateTimeParseException e) {
+              errorConsumer.accept(new FormatError(uri, document, schema, e.getMessage()));
+            }
+            break;
+          case "email":
+            if (!EmailValidator.getInstance().isValid(string)) {
+              errorConsumer.accept(new FormatError(uri, document, schema, "Did not match"));
+            }
         }
       }
       String stringToValidate = string;
