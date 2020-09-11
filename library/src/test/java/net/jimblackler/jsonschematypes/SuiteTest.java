@@ -54,9 +54,7 @@ public class SuiteTest {
           allFileTests.add(
               jsonTestFile(testDir, remotes, resource, metaSchema, everit, schemaOnly));
         } else {
-          if (false) // hack to exclude 'optional'
-            dirScan(
-                testDir.resolve(resource), remotes, metaSchema, everit, schemaOnly, allFileTests);
+          dirScan(testDir.resolve(resource), remotes, metaSchema, everit, schemaOnly, allFileTests);
         }
       }
     } catch (IOException e) {

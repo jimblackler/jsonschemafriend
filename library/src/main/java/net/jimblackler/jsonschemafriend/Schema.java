@@ -37,6 +37,7 @@ public class Schema {
   private final Number maxLength;
   private final Number minLength;
   private final Ecma262Pattern pattern;
+  private final String format;
   // array checks
   private final Schema additionalItems;
   private final Schema _items;
@@ -141,10 +142,12 @@ public class Schema {
     } else {
       pattern = new Ecma262Pattern((String) patternObject);
     }
-    if (jsonObject.has("maxLength") || jsonObject.has("minLength") || jsonObject.has("pattern")) {
+    Object formatObject = jsonObject.opt("format");
+    format = formatObject instanceof String ? (String) formatObject : null;
+    if (jsonObject.has("maxLength") || jsonObject.has("minLength") || jsonObject.has("pattern")
+        || jsonObject.has("format")) {
       inferredTypes.add("string");
     }
-
     // array checks
     additionalItems = getSubSchema(jsonObject, "additionalItems", uri);
 
@@ -543,6 +546,10 @@ public class Schema {
 
   public Ecma262Pattern getPattern() {
     return pattern;
+  }
+
+  public String getFormat() {
+    return format;
   }
 
   public Schema getAdditionalItems() {

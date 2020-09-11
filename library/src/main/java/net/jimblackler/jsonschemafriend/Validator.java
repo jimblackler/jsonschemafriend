@@ -100,6 +100,20 @@ public class Validator {
       if (pattern != null && !pattern.matches(string)) {
         errorConsumer.accept(new PatternError(uri, document, schema));
       }
+      String format = schema.getFormat();
+      if (format != null) {
+        switch (format) {
+          case "uri":
+            try {
+              URI uri1 = new URI(string);
+              if (!uri1.isAbsolute()) {
+                errorConsumer.accept(new FormatError(uri, document, schema, "Not absolute"));
+              }
+            } catch (URISyntaxException e) {
+              errorConsumer.accept(new FormatError(uri, document, schema, e.getReason()));
+            }
+        }
+      }
       typeCheck(schema, document, uri, setOf("string"), disallow, errorConsumer);
     } else if (object instanceof Boolean) {
       typeCheck(schema, document, uri, setOf("boolean"), disallow, errorConsumer);
