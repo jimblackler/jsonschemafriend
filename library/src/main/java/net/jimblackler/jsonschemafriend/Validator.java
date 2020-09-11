@@ -140,7 +140,13 @@ public class Validator {
             }
             break;
           case "ipv4":
-            if (!InetAddressValidator.getInstance().isValid(string)) {
+            if (!InetAddressValidator.getInstance().isValidInet4Address(string)) {
+              errorConsumer.accept(
+                  new FormatError(uri, document, schema, "Failed InetAddressValidator"));
+            }
+            break;
+          case "ipv6":
+            if (!InetAddressValidator.getInstance().isValidInet6Address(string)) {
               errorConsumer.accept(
                   new FormatError(uri, document, schema, "Failed InetAddressValidator"));
             }
