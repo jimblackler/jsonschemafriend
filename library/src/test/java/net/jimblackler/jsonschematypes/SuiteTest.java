@@ -114,8 +114,7 @@ public class SuiteTest {
             URI local = new URI("memory", "local", null, null);
             documentSource.store(local, schema);
             SchemaStore schemaStore = new SchemaStore(documentSource);
-            net.jimblackler.jsonschemafriend.Schema schema1 = schemaStore.loadSchema(
-                local, URI.create("http://json-schema.org/draft-07/schema#"));
+            net.jimblackler.jsonschemafriend.Schema schema1 = schemaStore.loadSchema(local);
 
             System.out.println("Test:");
             System.out.println(test.toString(2));

@@ -1,5 +1,6 @@
 package net.jimblackler.jsonschemafriend;
 
+import static net.jimblackler.jsonschemafriend.SchemaDetector.detectSchema;
 import static net.jimblackler.jsonschemafriend.Utils.setOf;
 
 import java.net.URI;
@@ -28,7 +29,6 @@ public class Schema {
 
   private final SchemaStore schemaStore;
   private final URI uri;
-  private final URI metaSchemaUri;
   // number checks
   private final Number multipleOf;
   private final Number maximum;
@@ -81,56 +81,44 @@ public class Schema {
   private final boolean fullyBuilt;
   private Schema parent;
 
-  public Schema(SchemaStore schemaStore, URI uri, URI defaultMetaSchema)
-      throws GenerationException {
+  public Schema(SchemaStore schemaStore, URI uri) throws GenerationException {
+    Object _schemaObject;
     this.uri = uri;
     this.schemaStore = schemaStore;
     schemaStore.register(uri, this);
 
     URI baseDocumentUri = PathUtils.baseDocumentFromUri(uri);
-    Object base;
+    Object baseDocument;
 
     try {
-      base = schemaStore.getDocumentSource().fetchDocument(baseDocumentUri);
+      baseDocument = schemaStore.getDocumentSource().fetchDocument(baseDocumentUri);
     } catch (MissingPathException e) {
       // By design, if we can't find a schema definition, we log a warning but generate a default
       // schema that permits everything.
       LOG.warning("No document found at " + baseDocumentUri);
-      base = true;
+      baseDocument = true;
     }
-    if (base instanceof JSONObject) {
-      JSONObject baseDocument = (JSONObject) base;
-      Object _schemaObject = null;
+
+    if (baseDocument instanceof JSONObject) {
       try {
         _schemaObject = PathUtils.fetchFromPath(baseDocument, uri.getRawFragment());
       } catch (MissingPathException e) {
         LOG.warning(
             "No match for path " + uri.getRawFragment() + " in document " + baseDocumentUri);
-      }
-
-      if (_schemaObject == null) {
         // By design, if we can't find a schema definition, we log a warning but generate a default
         // schema that permits everything.
-        metaSchemaUri = defaultMetaSchema;
-        schemaObject = true;
-      } else {
-        schemaObject = _schemaObject;
-        Object _metaSchema = baseDocument.opt("$schema");
-        if (_metaSchema instanceof String) {
-          metaSchemaUri = URI.create((String) _metaSchema);
-        } else {
-          metaSchemaUri = defaultMetaSchema;
-        }
+        _schemaObject = true;
       }
+      schemaObject = _schemaObject;
     } else {
-      metaSchemaUri = defaultMetaSchema;
-      schemaObject = base;
+      schemaObject = baseDocument;
     }
+
     // It would be more convenient to work with a fully-built Schema from the meta-schema, not just
     // its JSON representation. However that isn't possible when building a self-referencing schema
     // (all JSON schema meta-schemas as self-referencing).
     JSONObject metaSchemaDocument;
-
+    URI metaSchemaUri = detectSchema(baseDocument);
     try {
       metaSchemaDocument =
           (JSONObject) schemaStore.getDocumentSource().fetchDocument(metaSchemaUri);
@@ -256,7 +244,8 @@ public class Schema {
         // inside the child schema ahead of the normal time (the child schema itself ignores the
         // 'required=true'). It's probably why this method of specifying required properties was
         // removed from Draft 4 onwards. It's only here for legacy support.
-        Object propertyObject = new JSONPointer("#" + propertyUri.getRawFragment()).queryFrom(base);
+        Object propertyObject =
+            new JSONPointer("#" + propertyUri.getRawFragment()).queryFrom(baseDocument);
         if (propertyObject instanceof JSONObject) {
           JSONObject propertyJsonObject = (JSONObject) propertyObject;
           Object required = propertyJsonObject.opt("required");
@@ -482,7 +471,7 @@ public class Schema {
   }
 
   private Schema getSubSchema(URI uri) throws GenerationException {
-    Schema subSchema = schemaStore.getSchema(uri, metaSchemaUri);
+    Schema subSchema = schemaStore.getSchema(uri);
     if (subSchema != null && subSchema.getUri().equals(uri)) {
       subSchema.setParent(this);
     }

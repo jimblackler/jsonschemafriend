@@ -86,10 +86,9 @@ class IdRefMap {
    *
    * @param uri               The id or uri.
    * @param documentSource    DocumentSource required to fetch any new documents found in the $refs.
-   * @param defaultMetaSchema The default meta-schema to use.
    * @return The final uri of the schema.
    */
-  public URI finalLocation(URI uri, DocumentSource documentSource, URI defaultMetaSchema) {
+  public URI finalLocation(URI uri, DocumentSource documentSource) {
     while (true) {
       uri = normalize(uri);
       URI baseDocumentUri = PathUtils.baseDocumentFromUri(uri);
@@ -108,9 +107,7 @@ class IdRefMap {
           return uri;
         }
         JSONObject baseDocument = (JSONObject) baseDocumentObject;
-        URI metaSchemaUri = baseDocument.has("$schema")
-            ? URI.create(baseDocument.getString("$schema"))
-            : defaultMetaSchema;
+        URI metaSchemaUri = SchemaDetector.detectSchema(baseDocument);
         try {
           map(baseDocument, baseDocumentUri, baseDocumentUri,
               (JSONObject) documentSource.fetchDocument(metaSchemaUri));

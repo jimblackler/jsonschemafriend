@@ -27,7 +27,7 @@ public class CodeGeneration {
               continue;
             }
             URI uri = URI.create(url + (url.toString().endsWith("/") ? "" : "/") + resource);
-            codeGenerator.build(schemaStore.loadSchema(uri, DEFAULT_METASCHEMA));
+            codeGenerator.build(schemaStore.loadSchema(uri));
           }
         }
       }
@@ -38,7 +38,7 @@ public class CodeGeneration {
 
   public static void build(URI uri, CodeGenerator codeGenerator) throws CodeGenerationException {
     try {
-      codeGenerator.build(new SchemaStore().loadSchema(uri, DEFAULT_METASCHEMA));
+      codeGenerator.build(new SchemaStore().loadSchema(uri));
     } catch (SchemaException e) {
       throw new CodeGenerationException(e);
     }

@@ -1,4 +1,6 @@
 [
+  "https://raw.githubusercontent.com/googleapis/google-api-go-client/master/testing/v1/testing-api.json#/schemas/AndroidModel",
+  "https://raw.githubusercontent.com/googleapis/google-api-go-client/master/toolresults/v1beta3/toolresults-api.json#/schemas/Step",
   "https://raw.githubusercontent.com/angular/angular-cli/master/packages/angular/cli/lib/config/schema.json",
   "https://json.schemastore.org/ansible-role-2.9",
   "https://json.schemastore.org/ansible-playbook",

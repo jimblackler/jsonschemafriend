@@ -1,5 +1,6 @@
 package net.jimblackler.jsonschemafriend;
 
+import static net.jimblackler.jsonschemafriend.SchemaDetector.detectSchema;
 import static net.jimblackler.jsonschemafriend.Validator.validate;
 
 import java.io.File;
@@ -69,45 +70,40 @@ public class SchemaStore {
   }
 
   public Schema loadSchema(URI uri) throws GenerationException, MissingPathException {
-    return loadSchema(uri, URI.create("http://json-schema.org/draft-07/schema#"));
-  }
-
-  public Schema loadSchema(URI uri, URI defaultMetaSchema)
-      throws GenerationException, MissingPathException {
     Object document = documentSource.fetchDocument(PathUtils.baseDocumentFromUri(uri));
     Object schemaObject = PathUtils.fetchFromPath(document, uri.getRawFragment());
     // If we can, we fetch and build the schema's meta-schema and validate the object against it,
     // before we attempt to build the Schema.
     // This can't be done inside the Schema builder because the schema's meta-schema might be in its
     // own graph, so the meta-schema won't be built in full when it's first available.
-    if (schemaObject instanceof JSONObject) {
-      String schemaValue = ((JSONObject) schemaObject).optString("$schema");
-      URI metaSchemaUri = schemaValue.isEmpty() ? defaultMetaSchema : URI.create(schemaValue);
-      Schema metaSchema = getSchema(metaSchemaUri, metaSchemaUri);
-      List<ValidationError> errors = new ArrayList<>();
-      validate(metaSchema, schemaObject, ROOT, errors::add);
-      if (!errors.isEmpty()) {
-        throw new GenerationException(errors.stream()
-                                          .map(Object::toString)
-                                          .collect(Collectors.joining(System.lineSeparator())));
+    if (false)
+      if (schemaObject instanceof JSONObject) {
+        URI metaSchemaUri = detectSchema((JSONObject) schemaObject);
+        Schema metaSchema = getSchema(metaSchemaUri);
+        List<ValidationError> errors = new ArrayList<>();
+        validate(metaSchema, schemaObject, ROOT, errors::add);
+        if (!errors.isEmpty()) {
+          throw new GenerationException(errors.stream()
+                                            .map(Object::toString)
+                                            .collect(Collectors.joining(System.lineSeparator())));
+        }
       }
-    }
 
-    return getSchema(uri, defaultMetaSchema);
+    return getSchema(uri);
   }
 
-  Schema getSchema(URI uri, URI defaultMetaSchema) throws GenerationException {
+  Schema getSchema(URI uri) throws GenerationException {
     // The schema at an uri can be requested by a client that doesn't know that the uri is the
     // beginning of a chain of $refs. We must find the end of the chain, where the actual schema
     // is to be found.
-    uri = idRefMap.finalLocation(uri, documentSource, defaultMetaSchema);
+    uri = idRefMap.finalLocation(uri, documentSource);
 
     // Now we have the final path we can see if we've already built it.
     if (builtSchemas.containsKey(uri)) {
       return builtSchemas.get(uri);
     }
 
-    return new Schema(this, uri, defaultMetaSchema);
+    return new Schema(this, uri);
   }
 
   public void register(URI path, Schema schema) throws GenerationException {
