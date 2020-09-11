@@ -126,6 +126,23 @@ public class Validator {
               errorConsumer.accept(new FormatError(uri, document, schema, e.getReason()));
             }
             break;
+          case "iri":
+            try {
+              URI uri1 = new URI(string);
+              if (!uri1.isAbsolute()) {
+                errorConsumer.accept(new FormatError(uri, document, schema, "Not absolute"));
+              }
+              String authority = uri1.getAuthority();
+              if (authority != null
+                  && InetAddressValidator.getInstance().isValidInet6Address(authority)) {
+                errorConsumer.accept(
+                    new FormatError(uri, document, schema, "ipv6 not valid as host in an IRI"));
+              }
+            } catch (URISyntaxException e) {
+              errorConsumer.accept(new FormatError(uri, document, schema, e.getReason()));
+            }
+            break;
+          case "iri-reference":
           case "uri-reference":
             try {
               new URI(string);
