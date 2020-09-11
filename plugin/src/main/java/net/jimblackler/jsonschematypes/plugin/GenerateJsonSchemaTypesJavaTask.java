@@ -1,5 +1,7 @@
 package net.jimblackler.jsonschematypes.plugin;
 
+import static net.jimblackler.jsonschematypes.codegen.CodeGeneration.build;
+
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
@@ -36,8 +38,12 @@ public class GenerateJsonSchemaTypesJavaTask extends DefaultTask {
     List<CodeGenerator> generators = new ArrayList<>();
     generators.add(javaCodeGenerator);
     generators.add(typeScriptCodeGenerator);
-    CodeGeneration.build(resources.toUri().toURL(), new MultiGenerator(generators));
-    javaCodeGenerator.output(codePath);
-    typeScriptCodeGenerator.output(codePath);
+    build(resources.toUri().toURL(), new MultiGenerator(generators));
+    Path java = codePath.resolve("java");
+    java.toFile().mkdir();
+    javaCodeGenerator.output(java);
+    Path typescript = codePath.resolve("typescript");
+    typescript.toFile().mkdir();
+    typeScriptCodeGenerator.output(typescript);
   }
 }

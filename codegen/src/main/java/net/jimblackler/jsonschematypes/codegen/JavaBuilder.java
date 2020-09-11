@@ -32,7 +32,8 @@ public class JavaBuilder {
   private final List<JEnumConstant> enumConstants = new ArrayList<>();
   private final Schema schema;
 
-  public JavaBuilder(JavaCodeGenerator javaCodeGenerator, Schema schema) {
+  public JavaBuilder(JavaCodeGenerator javaCodeGenerator, Schema schema)
+      throws CodeGenerationException {
     this.schema = schema;
     JCodeModel jCodeModel = javaCodeGenerator.getJCodeModel();
     JPackage jPackage = javaCodeGenerator.getJPackage();

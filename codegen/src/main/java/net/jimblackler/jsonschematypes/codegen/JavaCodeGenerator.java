@@ -18,7 +18,10 @@ public class JavaCodeGenerator implements CodeGenerator {
     jPackage = jCodeModel._package(packageName);
   }
 
-  JavaBuilder get(Schema schema) {
+  JavaBuilder get(Schema schema) throws CodeGenerationException {
+    if (schema == null) {
+      throw new CodeGenerationException("Missing schema");
+    }
     URI uri = schema.getUri();
     if (builtClasses.containsKey(uri)) {
       return builtClasses.get(uri);
@@ -44,7 +47,7 @@ public class JavaCodeGenerator implements CodeGenerator {
   }
 
   @Override
-  public void build(Schema schema) {
+  public void build(Schema schema) throws CodeGenerationException {
     get(schema);
   }
 }

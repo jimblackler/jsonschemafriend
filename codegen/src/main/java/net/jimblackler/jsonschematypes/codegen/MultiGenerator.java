@@ -10,7 +10,7 @@ public class MultiGenerator implements CodeGenerator {
   }
 
   @Override
-  public void build(Schema schema) {
+  public void build(Schema schema) throws CodeGenerationException {
     for (CodeGenerator generator : generators) {
       generator.build(schema);
     }
