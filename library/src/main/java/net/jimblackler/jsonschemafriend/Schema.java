@@ -38,6 +38,8 @@ public class Schema {
   private final Number minLength;
   private final Ecma262Pattern pattern;
   private final String format;
+  private final String contentEncoding;
+  private final String contentMediaType;
   // array checks
   private final Schema additionalItems;
   private final Schema _items;
@@ -144,6 +146,15 @@ public class Schema {
     }
     Object formatObject = jsonObject.opt("format");
     format = formatObject instanceof String ? (String) formatObject : null;
+
+    Object contentEncodingObject = jsonObject.opt("contentEncoding");
+    contentEncoding =
+        contentEncodingObject instanceof String ? (String) contentEncodingObject : null;
+
+    Object contentMediaTypeObject = jsonObject.opt("contentMediaType");
+    contentMediaType =
+        contentMediaTypeObject instanceof String ? (String) contentMediaTypeObject : null;
+
     if (jsonObject.has("maxLength") || jsonObject.has("minLength") || jsonObject.has("pattern")
         || jsonObject.has("format")) {
       inferredTypes.add("string");
@@ -550,6 +561,14 @@ public class Schema {
 
   public String getFormat() {
     return format;
+  }
+
+  public String getContentEncoding() {
+    return contentEncoding;
+  }
+
+  public String getContentMediaType() {
+    return contentMediaType;
   }
 
   public Schema getAdditionalItems() {

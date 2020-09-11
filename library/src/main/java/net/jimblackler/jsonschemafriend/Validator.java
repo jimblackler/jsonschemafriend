@@ -1,5 +1,6 @@
 package net.jimblackler.jsonschemafriend;
 
+import static java.util.Base64.getUrlDecoder;
 import static net.jimblackler.jsonschemafriend.ComparableMutable.makeComparable;
 import static net.jimblackler.jsonschemafriend.Utils.setOf;
 
@@ -7,9 +8,11 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.nio.charset.StandardCharsets;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -120,6 +123,43 @@ public class Validator {
               DateTimeFormatter.ISO_TIME.parse(string);
             } catch (DateTimeParseException e) {
               errorConsumer.accept(new FormatError(uri, document, schema, e.getMessage()));
+            }
+            break;
+        }
+      }
+      String stringToValidate = string;
+      String contentEncoding = schema.getContentEncoding();
+      if (contentEncoding != null) {
+        switch (contentEncoding) {
+          case "base64":
+            Base64.Decoder urlDecoder = getUrlDecoder();
+            byte[] decoded = null;
+            try {
+              decoded = urlDecoder.decode(string);
+            } catch (IllegalArgumentException e) {
+              errorConsumer.accept(new ContentEncodingError(uri, document, schema, e.getMessage()));
+            }
+            if (decoded != null) {
+              stringToValidate = new String(decoded, StandardCharsets.UTF_8);
+            }
+
+            break;
+        }
+      }
+
+      String contentMediaType = schema.getContentMediaType();
+      if (contentMediaType != null) {
+        switch (contentMediaType) {
+          case "application/json":
+            try {
+              new JSONArray(stringToValidate);
+            } catch (JSONException e) {
+              try {
+                new JSONObject(stringToValidate);
+              } catch (JSONException e2) {
+                errorConsumer.accept(
+                    new ContentEncodingError(uri, document, schema, e.getMessage()));
+              }
             }
             break;
         }
