@@ -20,6 +20,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Consumer;
+import java.util.regex.Pattern;
+import java.util.regex.PatternSyntaxException;
 import javax.mail.internet.AddressException;
 import javax.mail.internet.InternetAddress;
 import org.apache.commons.validator.routines.DomainValidator;
@@ -27,6 +29,7 @@ import org.apache.commons.validator.routines.EmailValidator;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.json.JSONPointer;
 
 public class Validator {
   public static void validate(Schema schema, Object document, URI uri,
@@ -122,6 +125,13 @@ public class Validator {
               errorConsumer.accept(new FormatError(uri, document, schema, e.getReason()));
             }
             break;
+          case "uri-reference":
+            try {
+              new URI(string);
+            } catch (URISyntaxException e) {
+              errorConsumer.accept(new FormatError(uri, document, schema, e.getReason()));
+            }
+            break;
           case "hostname":
             if (!DomainValidator.getInstance().isValid(string)) {
               errorConsumer.accept(
@@ -164,6 +174,26 @@ public class Validator {
                     new FormatError(uri, document, schema, "Unexpected parse result"));
               }
             } catch (AddressException e) {
+              errorConsumer.accept(new FormatError(uri, document, schema, e.getMessage()));
+            }
+            break;
+          case "regex":
+            try {
+              Pattern.compile(string);
+            } catch (PatternSyntaxException e) {
+              errorConsumer.accept(new FormatError(uri, document, schema, e.getMessage()));
+            }
+            break;
+
+          case "json-pointer":
+            try {
+              JSONPointer jsonPointer = new JSONPointer(string);
+              String readBack = jsonPointer.toString().replace("\\\\", "\\").replace("\\\"", "\"");
+              if (!readBack.equals(string)) {
+                errorConsumer.accept(
+                    new FormatError(uri, document, schema, "Not canonical: " + readBack));
+              }
+            } catch (IllegalArgumentException e) {
               errorConsumer.accept(new FormatError(uri, document, schema, e.getMessage()));
             }
             break;
