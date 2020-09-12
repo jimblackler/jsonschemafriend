@@ -8,6 +8,7 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import net.jimblackler.jsonschemafriend.CombinedSchema;
 import net.jimblackler.jsonschemafriend.Schema;
 
 public class TypeScriptBuilder {
@@ -33,7 +34,8 @@ public class TypeScriptBuilder {
       this.parent.addChild(this);
     }
 
-    types = schema.getInferredTypes();
+    CombinedSchema combinedSchema = new CombinedSchema(schema);
+    types = combinedSchema.getInferredTypes();
     baseClassName = nameForSchema(schema);
     if (this.parent == null) {
       fullClassName = baseClassName;
@@ -80,7 +82,7 @@ public class TypeScriptBuilder {
       typeName = sb.toString();
     }
 
-    for (Map.Entry<String, Schema> entry : schema.getProperties().entrySet()) {
+    for (Map.Entry<String, Schema> entry : combinedSchema.getProperties().entrySet()) {
       typeScriptCodeGenerator.build(entry.getValue());
     }
   }

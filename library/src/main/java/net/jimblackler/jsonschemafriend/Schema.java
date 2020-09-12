@@ -665,32 +665,6 @@ public class Schema {
     if (explicitTypes != null) {
       return Collections.unmodifiableSet(explicitTypes);
     }
-    if (anyOf != null && !anyOf.isEmpty()) {
-      // For the anyOf operator we return the intersection of the types (implied or explicit) of
-      // each subschema.
-      Collection<String> intersection = new HashSet<>();
-      for (Schema subSchema : anyOf) {
-        intersection.addAll(subSchema.getInferredTypes());
-      }
-      return intersection;
-    }
-    if (!allOf.isEmpty()) {
-      // For the allOf operator we return the union of the types (implied or explicit) of each
-      // subschema.
-      Set<String> union = null;
-      for (Schema subSchema : allOf) {
-        Collection<String> types = subSchema.getInferredTypes();
-        if (union == null) {
-          union = new HashSet<>(types);
-        } else {
-          union.retainAll(types);
-        }
-      }
-      if (union.isEmpty()) {
-        return null;
-      }
-      return union;
-    }
 
     if (inferredTypes.isEmpty()) {
       // If type inference found nothing, we don't want to imply no types are allowed.

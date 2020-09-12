@@ -21,6 +21,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import net.jimblackler.jsonschemafriend.CombinedSchema;
 import net.jimblackler.jsonschemafriend.Schema;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -35,11 +36,12 @@ public class JavaBuilder {
   public JavaBuilder(JavaCodeGenerator javaCodeGenerator, Schema schema)
       throws CodeGenerationException {
     this.schema = schema;
+    CombinedSchema combinedSchema = new CombinedSchema(schema);
     JCodeModel jCodeModel = javaCodeGenerator.getJCodeModel();
     JPackage jPackage = javaCodeGenerator.getJPackage();
     javaCodeGenerator.register(schema.getUri(), this);
 
-    Collection<String> types = schema.getInferredTypes();
+    Collection<String> types = combinedSchema.getInferredTypes();
 
     if (types.size() == 1) {
       switch (types.iterator().next()) {
@@ -78,8 +80,8 @@ public class JavaBuilder {
         parentSchema == null ? jPackage : javaCodeGenerator.get(parentSchema).getDefinedClass();
 
     String name = nameForSchema(schema);
-    boolean isComplexObject =
-        dataType.equals(jCodeModel.ref(JSONObject.class)) && !schema.getProperties().isEmpty();
+    boolean isComplexObject = dataType.equals(jCodeModel.ref(JSONObject.class))
+        && !combinedSchema.getProperties().isEmpty();
     if (isComplexObject || dataType.equals(jCodeModel.ref(Object.class))
         || dataType.equals(jCodeModel.ref(JSONArray.class))) {
       JDefinedClass _class = JavaDefinedClassMaker.makeClassForSchema(classParent, name,
@@ -96,7 +98,7 @@ public class JavaBuilder {
           .append(schema.getExplicitTypes())
           .append(System.lineSeparator());
       docs.append("Inferred types ")
-          .append(schema.getInferredTypes())
+          .append(combinedSchema.getInferredTypes())
           .append(System.lineSeparator());
       // docs.append("<pre>").append(schema.getSchemaJson().toString(2)).append("</pre>");
 
@@ -118,7 +120,7 @@ public class JavaBuilder {
           (dataType.equals(jCodeModel.BOOLEAN) ? "is" : "get") + dataType.name());
       getter.body()._return(dataField);
 
-      for (Map.Entry<String, Schema> entry : schema.getProperties().entrySet()) {
+      for (Map.Entry<String, Schema> entry : combinedSchema.getProperties().entrySet()) {
         Schema propertySchema = entry.getValue();
         JavaBuilder javaBuilder = javaCodeGenerator.get(propertySchema);
         String propertyName = entry.getKey();
@@ -129,10 +131,12 @@ public class JavaBuilder {
 
       Collection<Schema> itemsTuple = schema.getItemsTuple();
       if (itemsTuple != null) {
+        int idx = 0;
         for (Schema itemsSchema : itemsTuple) {
           JavaBuilder javaBuilder = javaCodeGenerator.get(itemsSchema);
-          javaBuilder.writeItemGetters(
-              jDefinedClass, expressionFromObject(itemsSchema.getDefault()), dataField, jCodeModel);
+          javaBuilder.writeItemGetters(jDefinedClass, idx, dataField, jCodeModel,
+              expressionFromObject(itemsSchema.getDefault()));
+          idx++;
         }
       }
 
@@ -140,7 +144,14 @@ public class JavaBuilder {
       if (_items != null) {
         JavaBuilder javaBuilder = javaCodeGenerator.get(_items);
         javaBuilder.writeItemGetters(
-            jDefinedClass, expressionFromObject(_items.getDefault()), dataField, jCodeModel);
+            jDefinedClass, -1, dataField, jCodeModel, expressionFromObject(_items.getDefault()));
+      }
+
+      Schema additionalItems = schema.getAdditionalItems();
+      if (additionalItems != null) {
+        JavaBuilder javaBuilder = javaCodeGenerator.get(additionalItems);
+        javaBuilder.writeItemGetters(jDefinedClass, -1, dataField, jCodeModel,
+            expressionFromObject(additionalItems.getDefault()));
       }
 
       if (types.contains("array")) {
@@ -280,8 +291,8 @@ public class JavaBuilder {
     }
   }
 
-  private void writeItemGetters(JDefinedClass holderClass, JExpression defaultValue,
-      JFieldVar dataField, JCodeModel jCodeModel) {
+  private void writeItemGetters(JDefinedClass holderClass, int fixedPosition, JFieldVar dataField,
+      JCodeModel jCodeModel, JExpression defaultValue) {
     JExpression asJsonArray = castIfNeeded(jCodeModel.ref(JSONArray.class), dataField);
     String nameForGetters = _name;
     JType returnType;
@@ -292,10 +303,16 @@ public class JavaBuilder {
     }
     JMethod getter = holderClass.method(JMod.PUBLIC, returnType,
         (returnType.equals(jCodeModel.BOOLEAN) ? "is" : "get") + nameForGetters);
-    JVar indexParam = getter.param(jCodeModel.INT, "index");
+    JExpression positionSource;
+    if (fixedPosition == -1) {
+      positionSource = getter.param(jCodeModel.INT, "index");
+    } else {
+      positionSource = JExpr.lit(fixedPosition);
+    }
+
     boolean isGet = defaultValue == null;
     JInvocation getObject =
-        JExpr.invoke(asJsonArray, getOptOrGet(isGet, dataType, jCodeModel)).arg(indexParam);
+        JExpr.invoke(asJsonArray, getOptOrGet(isGet, dataType, jCodeModel)).arg(positionSource);
     if (defaultValue != null && !defaultValue.equals(JExpr.lit(false))) {
       getObject.arg(defaultValue);
     }
