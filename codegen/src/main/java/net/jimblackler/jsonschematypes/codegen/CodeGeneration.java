@@ -11,9 +11,6 @@ import net.jimblackler.jsonschemafriend.SchemaException;
 import net.jimblackler.jsonschemafriend.SchemaStore;
 
 public class CodeGeneration {
-  private static final URI DEFAULT_METASCHEMA =
-      URI.create("http://json-schema.org/draft-07/schema#");
-
   public static void build(URL url, CodeGenerator codeGenerator) throws CodeGenerationException {
     SchemaStore schemaStore = new SchemaStore();
 
