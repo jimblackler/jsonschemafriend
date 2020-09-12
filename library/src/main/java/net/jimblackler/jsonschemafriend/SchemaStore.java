@@ -76,18 +76,17 @@ public class SchemaStore {
     // before we attempt to build the Schema.
     // This can't be done inside the Schema builder because the schema's meta-schema might be in its
     // own graph, so the meta-schema won't be built in full when it's first available.
-    if (false)
-      if (schemaObject instanceof JSONObject) {
-        URI metaSchemaUri = detectSchema((JSONObject) schemaObject);
-        Schema metaSchema = getSchema(metaSchemaUri);
-        List<ValidationError> errors = new ArrayList<>();
-        validate(metaSchema, schemaObject, ROOT, errors::add);
-        if (!errors.isEmpty()) {
-          throw new GenerationException(errors.stream()
-                                            .map(Object::toString)
-                                            .collect(Collectors.joining(System.lineSeparator())));
-        }
+    if (schemaObject instanceof JSONObject) {
+      URI metaSchemaUri = detectSchema((JSONObject) schemaObject);
+      Schema metaSchema = getSchema(metaSchemaUri);
+      List<ValidationError> errors = new ArrayList<>();
+      validate(metaSchema, schemaObject, ROOT, errors::add);
+      if (!errors.isEmpty()) {
+        throw new GenerationException(errors.stream()
+                                          .map(Object::toString)
+                                          .collect(Collectors.joining(System.lineSeparator())));
       }
+    }
 
     return getSchema(uri);
   }
