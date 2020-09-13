@@ -131,9 +131,9 @@ This example loads a schema in the `resources` folder and validates data in the
 }
 ```
 
-```java
-package demo2;
+### `Main.java`
 
+```java
 import java.io.IOException;
 import net.jimblackler.jsonschemafriend.Schema;
 import net.jimblackler.jsonschemafriend.SchemaException;
