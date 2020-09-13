@@ -40,6 +40,9 @@ public class SuiteTest {
 
   private static DynamicNode scan(Collection<Path> testDirs, Path remotes, URI metaSchema) {
     Collection<DynamicNode> allFileTests = new ArrayList<>();
+    URL resource1 = SuiteTest.class.getResource(remotes.toString());
+    UrlRewriter urlRewriter =
+        in -> URI.create(in.toString().replace("http://localhost:1234", resource1.toString()));
     for (Path testDir : testDirs) {
       try (InputStream inputStream = SuiteTest.class.getResourceAsStream(testDir.toString());
            BufferedReader bufferedReader =
@@ -62,10 +65,6 @@ public class SuiteTest {
               Collection<DynamicTest> everitTests = new ArrayList<>();
               Collection<DynamicTest> ownTests = new ArrayList<>();
               Object schema = testSet.get("schema");
-              URL resource1 = SuiteTest.class.getResource(remotes.toString());
-              UrlRewriter urlRewriter = in
-                  -> URI.create(
-                      in.toString().replace("http://localhost:1234", resource1.toString()));
               if (schema instanceof JSONObject) {
                 JSONObject schema1 = (JSONObject) schema;
                 schema1.put("$schema", metaSchema.toString());
@@ -158,29 +157,12 @@ public class SuiteTest {
                   }));
                 }
               }
-              ownTests.add(dynamicTest("schema", () -> {
-                System.out.println("Schema:");
-                if (schema instanceof JSONObject) {
-                  System.out.println(((JSONObject) schema).toString(2));
-                } else {
-                  System.out.println(schema);
-                }
-                System.out.println();
-
-                DocumentSource documentSource = new DocumentSource(List.of(urlRewriter));
-                SchemaStore schemaStore = new SchemaStore(documentSource);
-                URI local = new URI("memory", "local", null, null);
-                documentSource.store(local, schema);
-                schemaStore.loadSchema(local);
-              }));
-
               List<DynamicContainer> dynamicNodes = List.of(
                   dynamicContainer("everit", everitTests), dynamicContainer("own", ownTests));
               nodes.add(dynamicContainer(testSet.getString("description"), dynamicNodes));
             }
           }
-          DynamicNode e = dynamicContainer(resource, nodes);
-          allFileTests.add(e);
+          allFileTests.add(dynamicContainer(resource, nodes));
         }
       } catch (IOException e) {
         throw new IllegalStateException(e);
