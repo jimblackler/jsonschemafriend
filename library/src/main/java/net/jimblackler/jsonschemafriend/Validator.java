@@ -11,6 +11,7 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
@@ -38,10 +39,6 @@ import org.json.JSONPointer;
 public class Validator {
   public static void validate(Schema schema, Object document, URI uri,
       Consumer<ValidationError> errorConsumer) throws MissingPathException {
-    if (schema.isFalse()) {
-      errorConsumer.accept(new FalseSchemaError(uri, document, schema));
-      return;
-    }
     Object object;
     String query = uri.getQuery();
     if (query == null || query.isEmpty()) {
@@ -53,7 +50,12 @@ public class Validator {
       object = query;
     }
 
-    // object = rewriteObject(object);
+    if (schema.isFalse()) {
+      errorConsumer.accept(new FalseSchemaError(uri, document, schema));
+      return;
+    }
+
+    object = rewriteObject(object);
 
     Number multipleOf = schema.getMultipleOf();
     Number minimum = schema.getMinimum();
@@ -567,26 +569,58 @@ public class Validator {
   }
 
   public static void validate(Schema schema, InputStream inputStream,
-      Consumer<ValidationError> errorConsumer) throws MissingPathException, IOException {
+      Consumer<ValidationError> errorConsumer) throws IOException {
     validate(schema, loadJson(inputStream), errorConsumer);
   }
 
-  public static void validate(Schema schema, Object document) throws SchemaException {
+  public static void validate(Schema schema, URI uri) throws ValidationException, IOException {
+    Collection<ValidationError> errors = new ArrayList<>();
+    validate(schema, uri, errors::add);
+    if (!errors.isEmpty()) {
+      throw new ValidationException(errors);
+    }
+  }
+
+  public static void validate(Schema schema, URL url) throws ValidationException, IOException {
+    Collection<ValidationError> errors = new ArrayList<>();
+    validate(schema, url, errors::add);
+    if (!errors.isEmpty()) {
+      throw new ValidationException(errors);
+    }
+  }
+
+  public static void validate(Schema schema, Object document) throws ValidationException {
     Collection<ValidationError> errors = new ArrayList<>();
     validate(schema, document, errors::add);
     if (!errors.isEmpty()) {
-      throw new ValidationException(errors.toString());
+      throw new ValidationException(errors);
     }
   }
 
   public static void validate(Schema schema, InputStream inputStream)
-      throws SchemaException, IOException {
+      throws ValidationException, IOException {
     validate(schema, loadJson(inputStream));
   }
 
-  public static void validate(Schema schema, Object document,
-      Consumer<ValidationError> errorConsumer) throws MissingPathException {
-    validate(schema, document, URI.create(""), errorConsumer);
+  public static void validate(Schema schema, URL url, Consumer<ValidationError> errorConsumer)
+      throws IOException {
+    validate(schema, loadJson(url.openStream()), errorConsumer);
+  }
+
+  public static void validate(Schema schema, URI uri, Consumer<ValidationError> errorConsumer)
+      throws IOException {
+    validate(schema, uri.toURL(), errorConsumer);
+  }
+
+  public static void validate(
+      Schema schema, Object document, Consumer<ValidationError> errorConsumer) {
+    try {
+      validate(schema, document, URI.create(""), errorConsumer);
+    } catch (MissingPathException e) {
+      // MissingPathException is only checked where the URI was provided by the client. Here, we
+      // created it.
+      throw new IllegalStateException(e);
+    }
   }
 
   private static Object rewriteObject(Object object) {
