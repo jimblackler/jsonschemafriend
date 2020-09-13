@@ -66,6 +66,8 @@ dependencies {
 
 # Usage
 
+## Via a JSONObject.
+
 This is an example of loading a schema in a JSONObject.
 
 ```java
@@ -83,12 +85,76 @@ public class Main {
     schemaJson.put("type", "integer");
 
     try {
-      SchemaStore schemaStore = new SchemaStore();  // Initialize a SchemaStore.
+      SchemaStore schemaStore = new SchemaStore(); // Initialize a SchemaStore.
       Schema schema = schemaStore.loadSchema(schemaJson); // Load the schema.
-      Validator.validate(schema, 1);  // Will not throw an exception.
-      Validator.validate(schema, "x");  // Will throw a ValidationException.
+      Validator.validate(schema, 1); // Will not throw an exception.
+      Validator.validate(schema, "X"); // Will throw a ValidationException.
     } catch (SchemaException e) {
       // ...
+    }
+  }
+}
+```
+
+## Via Java Resources.
+
+This example loads a schema in the `resources` folder and validates data in the
+`resources` folder.
+
+### `schema.json`
+
+```json
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "properties": {
+    "name": {
+      "type": "string",
+      "minLength": 2
+    }
+  }
+}
+```
+
+### `data1.json`
+
+```json
+{
+  "name": "Bill"
+}
+```
+
+### `data2.json`
+
+```json
+{
+  "name": ""
+}
+```
+
+```java
+package demo2;
+
+import java.io.IOException;
+import net.jimblackler.jsonschemafriend.Schema;
+import net.jimblackler.jsonschemafriend.SchemaException;
+import net.jimblackler.jsonschemafriend.SchemaStore;
+import net.jimblackler.jsonschemafriend.Validator;
+
+public class Main {
+  public static void main(String[] args) {
+    try {
+      SchemaStore schemaStore = new SchemaStore(); // Initialize a SchemaStore.
+      // Load the schema.
+      Schema schema = schemaStore.loadSchema(Main.class.getResource("/schema.json"));
+
+      // Will not throw an exception.
+      Validator.validate(schema, Main.class.getResourceAsStream("/data1.json"));
+
+      // Will throw a ValidationException.
+      Validator.validate(schema, Main.class.getResourceAsStream("/data2.json"));
+    } catch (SchemaException | IOException e) {
+      // ...
+      e.printStackTrace();
     }
   }
 }
