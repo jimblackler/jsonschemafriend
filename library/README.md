@@ -196,5 +196,44 @@ public class Main {
 Both schemas and test data can be specified as a `java.io.File`. For example:
 
 ```json
+      Schema schema = schemaStore.loadSchema(new File("/tmp/schema.json"));
       Validator.validate(schema, new File("/tmp/test.json"));
+```
+
+## Custom validation handling.
+
+A custom `Consumer` can be passed to the validator to collect validation errors,
+rather than triggering a `ValidationException`.
+
+```java
+import java.net.URI;
+import net.jimblackler.jsonschemafriend.MissingPropertyError;
+import net.jimblackler.jsonschemafriend.Schema;
+import net.jimblackler.jsonschemafriend.SchemaException;
+import net.jimblackler.jsonschemafriend.SchemaStore;
+import net.jimblackler.jsonschemafriend.Validator;
+import org.json.JSONObject;
+
+public class Main {
+  public static void main(String[] args) {
+    try {
+      SchemaStore schemaStore = new SchemaStore(); // Initialize a SchemaStore.
+      // Load the schema.
+      Schema schema =
+          schemaStore.loadSchema(URI.create("https://json.schemastore.org/chrome-manifest"));
+
+      // Send an object that won't validate, and collect the validation errors.
+      // No ValidationException will be thrown in this form.
+      JSONObject document = new JSONObject();
+      Validator.validate(schema, document, validationError -> {
+        if (validationError instanceof MissingPropertyError) {
+          MissingPropertyError missingPropertyError = (MissingPropertyError) validationError;
+          System.out.println("A missing property was: " + missingPropertyError.getProperty());
+        }
+      });
+    } catch (SchemaException e) {
+      e.printStackTrace();
+    }
+  }
+}
 ```
