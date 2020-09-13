@@ -495,18 +495,18 @@ public class Validator {
 
     Collection<Schema> oneOf = schema.getOneOf();
     if (oneOf != null) {
-      int numberPassed = 0;
+      List<Schema> passed = new ArrayList<>();
       List<List<ValidationError>> allErrors = new ArrayList<>();
       for (Schema schema1 : oneOf) {
         List<ValidationError> errors = new ArrayList<>();
         validate(schema1, document, uri, errors::add);
         if (errors.isEmpty()) {
-          numberPassed++;
+          passed.add(schema1);
         }
         allErrors.add(errors);
       }
-      if (numberPassed != 1) {
-        errorConsumer.accept(new OneOfError(uri, document, numberPassed, allErrors, schema));
+      if (passed.size() != 1) {
+        errorConsumer.accept(new OneOfError(uri, document, passed, allErrors, schema));
       }
     }
 

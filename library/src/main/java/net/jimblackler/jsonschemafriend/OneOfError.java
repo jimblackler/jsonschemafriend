@@ -2,15 +2,16 @@ package net.jimblackler.jsonschemafriend;
 
 import java.net.URI;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class OneOfError extends ValidationError {
   private final List<List<ValidationError>> allErrors;
-  private final int numberPassed;
+  private final List<Schema> passed;
 
-  public OneOfError(URI uri, Object document, int numberPassed,
-      List<List<ValidationError>> allErrors, Schema schema) {
+  public OneOfError(URI uri, Object document, List<Schema> passed,
+                    List<List<ValidationError>> allErrors, Schema schema) {
     super(uri, document, schema);
-    this.numberPassed = numberPassed;
+    this.passed = passed;
     this.allErrors = allErrors;
   }
 
@@ -18,12 +19,19 @@ public class OneOfError extends ValidationError {
     return allErrors;
   }
 
-  public int getNumberPassed() {
-    return numberPassed;
+  public List<Schema> getPassed() {
+    return passed;
   }
 
   @Override
   String getMessage() {
-    return "oneOf: " + numberPassed + " passed, not 1";
+    if (passed.isEmpty()) {
+      return "No oneOf passed. Errors were: " + allErrors;
+    }
+
+    return "More than one oneOf passed: " + passed.stream()
+        .map(schema -> schema.getUri().toString())
+        .collect(Collectors.joining(", "));
+
   }
 }
