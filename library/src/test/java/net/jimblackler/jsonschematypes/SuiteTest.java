@@ -23,6 +23,7 @@ import java.util.List;
 import net.jimblackler.jsonschemafriend.DocumentSource;
 import net.jimblackler.jsonschemafriend.DocumentUtils;
 import net.jimblackler.jsonschemafriend.SchemaStore;
+import net.jimblackler.jsonschemafriend.UrlRewriter;
 import net.jimblackler.jsonschemafriend.ValidationError;
 import org.everit.json.schema.Schema;
 import org.everit.json.schema.ValidationException;
@@ -37,262 +38,196 @@ import org.junit.jupiter.api.TestFactory;
 public class SuiteTest {
   public static final FileSystem FILE_SYSTEM = FileSystems.getDefault();
 
-  private static DynamicNode scan(
-      Path testDir, Path remotes, URI metaSchema, boolean everit, boolean schemaOnly) {
+  private static DynamicNode scan(Path testDir, Path remotes, URI metaSchema, boolean everit) {
     Collection<DynamicNode> allFileTests = new ArrayList<>();
-    return dirScan(testDir, remotes, metaSchema, everit, schemaOnly, allFileTests);
+    dirScan(testDir, remotes, metaSchema, everit, allFileTests);
+    return dynamicContainer(testDir.toString(), allFileTests);
   }
 
-  private static DynamicNode dirScan(Path testDir, Path remotes, URI metaSchema, boolean everit,
-      boolean schemaOnly, Collection<DynamicNode> allFileTests) {
+  private static void dirScan(Path testDir, Path remotes, URI metaSchema, boolean everit,
+      Collection<DynamicNode> allFileTests) {
     try (InputStream inputStream = SuiteTest.class.getResourceAsStream(testDir.toString());
          BufferedReader bufferedReader =
              new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8))) {
       String resource;
       while ((resource = bufferedReader.readLine()) != null) {
-        if (resource.endsWith(".json")) {
-          allFileTests.add(
-              jsonTestFile(testDir, remotes, resource, metaSchema, everit, schemaOnly));
-        } else {
-          dirScan(testDir.resolve(resource), remotes, metaSchema, everit, schemaOnly, allFileTests);
+        if (!resource.endsWith(".json")) {
+          dirScan(testDir.resolve(resource), remotes, metaSchema, everit, allFileTests);
+          continue;
         }
+        Collection<DynamicNode> nodes = new ArrayList<>();
+        try (InputStream inputStream1 =
+                 SuiteTest.class.getResourceAsStream(testDir.resolve(resource).toString())) {
+          JSONArray data = (JSONArray) DocumentUtils.loadJson(inputStream1);
+          for (int idx = 0; idx != data.length(); idx++) {
+            JSONObject testSet = data.getJSONObject(idx);
+            if (!testSet.has("schema")) {
+              continue; // ever happens?
+            }
+
+            Collection<DynamicTest> everitTests = new ArrayList<>();
+            Collection<DynamicTest> ownTests = new ArrayList<>();
+            Object schema = testSet.get("schema");
+            URL resource1 = SuiteTest.class.getResource(remotes.toString());
+            UrlRewriter urlRewriter = in
+                -> URI.create(in.toString().replace("http://localhost:1234", resource1.toString()));
+            {
+              if (schema instanceof JSONObject) {
+                JSONObject schema1 = (JSONObject) schema;
+                schema1.put("$schema", metaSchema.toString());
+              }
+              JSONArray tests1 = testSet.getJSONArray("tests");
+              for (int idx2 = 0; idx2 != tests1.length(); idx2++) {
+                JSONObject test = tests1.getJSONObject(idx2);
+                Object data1 = test.get("data");
+                boolean valid = test.getBoolean("valid");
+                String description =
+                    test.optString("description", data1 + (valid ? " succeeds" : " fails"));
+
+                ownTests.add(dynamicTest(description, () -> {
+                  System.out.println("Schema:");
+                  if (schema instanceof JSONObject) {
+                    System.out.println(((JSONObject) schema).toString(2));
+                  } else {
+                    System.out.println(schema);
+                  }
+                  System.out.println();
+
+                  DocumentSource documentSource = new DocumentSource(List.of(urlRewriter));
+                  URI local = new URI("memory", "local", null, null);
+                  documentSource.store(local, schema);
+                  SchemaStore schemaStore = new SchemaStore(documentSource);
+                  net.jimblackler.jsonschemafriend.Schema schema1 = schemaStore.loadSchema(local);
+
+                  System.out.println("Test:");
+                  System.out.println(test.toString(2));
+                  System.out.println();
+
+                  List<ValidationError> errors = new ArrayList<>();
+                  validate(schema1, data1, URI.create(""), errors::add);
+
+                  System.out.print("Expected to " + (valid ? "pass" : "fail") + " ... ");
+                  if (errors.isEmpty()) {
+                    System.out.println("Passed");
+                  } else {
+                    System.out.println("Failures:");
+                    for (ValidationError error : errors) {
+                      System.out.println(error);
+                    }
+                    System.out.println();
+                  }
+
+                  assertEquals(errors.isEmpty(), valid);
+                }));
+                if (schema instanceof JSONObject) {
+                  everitTests.add(dynamicTest(description, () -> {
+                    JSONObject schema1 = (JSONObject) schema;
+                    System.out.println("Schema:");
+                    System.out.println(schema1.toString(2));
+                    System.out.println();
+
+                    Schema everitSchema = SchemaLoader.load(schema1, url -> {
+                      url = url.replace("http://localhost:1234", resource1.toString());
+                      try {
+                        return new URL(url).openStream();
+                      } catch (IOException e1) {
+                        throw new UncheckedIOException(e1);
+                      }
+                    });
+
+                    System.out.println("Test:");
+                    System.out.println(test.toString(2));
+                    System.out.println();
+
+                    List<String> failures = null;
+                    try {
+                      everitSchema.validate(data1);
+                    } catch (ValidationException ex) {
+                      System.out.println(ex.toJSON());
+                      failures = ex.getAllMessages();
+                    } catch (Exception e1) {
+                      fail(e1);
+                    }
+
+                    if (failures != null) {
+                      System.out.println("Failures:");
+                      for (String message : failures) {
+                        System.out.println(message);
+                      }
+                      System.out.println();
+                    }
+
+                    System.out.print("Expeced to " + (valid ? "pass" : "fail") + " ... ");
+                    System.out.println((failures == null ? "passed" : "failed"));
+
+                    assertEquals(failures == null, valid);
+                  }));
+                }
+              }
+            }
+            ownTests.add(dynamicTest("schema", () -> {
+              System.out.println("Schema:");
+              if (schema instanceof JSONObject) {
+                System.out.println(((JSONObject) schema).toString(2));
+              } else {
+                System.out.println(schema);
+              }
+              System.out.println();
+
+              DocumentSource documentSource = new DocumentSource(List.of(urlRewriter));
+              SchemaStore schemaStore = new SchemaStore(documentSource);
+              URI local = new URI("memory", "local", null, null);
+              documentSource.store(local, schema);
+              schemaStore.loadSchema(local);
+            }));
+
+            if (everit) {
+              List<DynamicContainer> dynamicNodes = List.of(
+                  dynamicContainer("everit", everitTests), dynamicContainer("own", ownTests));
+              nodes.add(dynamicContainer(testSet.getString("description"), dynamicNodes));
+            } else {
+              nodes.add(dynamicContainer(testSet.getString("description"), ownTests));
+            }
+          }
+        }
+        DynamicNode e = dynamicContainer(resource, nodes);
+        allFileTests.add(e);
       }
     } catch (IOException e) {
       throw new IllegalStateException(e);
-    }
-    return dynamicContainer(testDir.toString(), allFileTests);
-  }
-
-  private static DynamicNode jsonTestFile(Path testDir, Path remotes, String resource,
-      URI metaSchema, boolean everit, boolean schemaOnly) throws IOException {
-    Collection<DynamicNode> nodes = new ArrayList<>();
-    try (InputStream inputStream =
-             SuiteTest.class.getResourceAsStream(testDir.resolve(resource).toString())) {
-      JSONArray data = (JSONArray) DocumentUtils.loadJson(inputStream);
-      for (int idx = 0; idx != data.length(); idx++) {
-        JSONObject testSet = data.getJSONObject(idx);
-        if (!testSet.has("schema")) {
-          continue; // ever happens?
-        }
-        nodes.add(singleSchemaTest(testSet, remotes, metaSchema, everit, schemaOnly));
-      }
-    }
-    return dynamicContainer(resource, nodes);
-  }
-
-  private static DynamicNode singleSchemaTest(
-      JSONObject testSet, Path remotes, URI metaSchema, boolean everit, boolean schemaOnly) {
-    Collection<DynamicTest> everitTests = new ArrayList<>();
-    Collection<DynamicTest> ownTests = new ArrayList<>();
-    Object schema = testSet.get("schema");
-    URL resource = SuiteTest.class.getResource(remotes.toString());
-    {
-      if (schema instanceof JSONObject) {
-        JSONObject schema1 = (JSONObject) schema;
-        schema1.put("$schema", metaSchema.toString());
-      }
-      JSONArray tests1 = testSet.getJSONArray("tests");
-      for (int idx2 = 0; idx2 != tests1.length(); idx2++) {
-        JSONObject test = tests1.getJSONObject(idx2);
-        Object data = test.get("data");
-        boolean valid = test.getBoolean("valid");
-        String description = test.optString("description", data + (valid ? " succeeds" : " fails"));
-
-        if (!schemaOnly) {
-          ownTests.add(dynamicTest(description, () -> {
-            System.out.println("Schema:");
-            if (schema instanceof JSONObject) {
-              System.out.println(((JSONObject) schema).toString(2));
-            } else {
-              System.out.println(schema);
-            }
-            System.out.println();
-
-            DocumentSource documentSource = new DocumentSource(List.of(in
-                -> URI.create(
-                    in.toString().replace("http://localhost:1234", resource.toString()))));
-            URI local = new URI("memory", "local", null, null);
-            documentSource.store(local, schema);
-            SchemaStore schemaStore = new SchemaStore(documentSource);
-            net.jimblackler.jsonschemafriend.Schema schema1 = schemaStore.loadSchema(local);
-
-            System.out.println("Test:");
-            System.out.println(test.toString(2));
-            System.out.println();
-
-            List<ValidationError> errors = new ArrayList<>();
-            validate(schema1, data, URI.create(""), errors::add);
-
-            System.out.print("Expected to " + (valid ? "pass" : "fail") + " ... ");
-            if (errors.isEmpty()) {
-              System.out.println("Passed");
-            } else {
-              System.out.println("Failures:");
-              for (ValidationError error : errors) {
-                System.out.println(error);
-              }
-              System.out.println();
-            }
-
-            assertEquals(errors.isEmpty(), valid);
-          }));
-        }
-        if (schema instanceof JSONObject) {
-          if (everit) {
-            everitTests.add(dynamicTest(description, () -> {
-              JSONObject schema1 = (JSONObject) schema;
-              System.out.println("Schema:");
-              System.out.println(schema1.toString(2));
-              System.out.println();
-
-              Schema everitSchema = SchemaLoader.load(schema1, url -> {
-                url = url.replace("http://localhost:1234", resource.toString());
-                try {
-                  return new URL(url).openStream();
-                } catch (IOException e) {
-                  throw new UncheckedIOException(e);
-                }
-              });
-
-              System.out.println("Test:");
-              System.out.println(test.toString(2));
-              System.out.println();
-
-              List<String> failures = null;
-              try {
-                everitSchema.validate(data);
-              } catch (ValidationException ex) {
-                System.out.println(ex.toJSON());
-                failures = ex.getAllMessages();
-              } catch (Exception e) {
-                fail(e);
-              }
-
-              if (failures != null) {
-                System.out.println("Failures:");
-                for (String message : failures) {
-                  System.out.println(message);
-                }
-                System.out.println();
-              }
-
-              System.out.print("Expeced to " + (valid ? "pass" : "fail") + " ... ");
-              System.out.println((failures == null ? "passed" : "failed"));
-
-              assertEquals(failures == null, valid);
-            }));
-          }
-        }
-      }
-    }
-    if (schemaOnly) {
-      ownTests.add(dynamicTest("schema", () -> {
-        System.out.println("Schema:");
-        if (schema instanceof JSONObject) {
-          System.out.println(((JSONObject) schema).toString(2));
-        } else {
-          System.out.println(schema);
-        }
-        System.out.println();
-
-        DocumentSource documentSource = new DocumentSource(List.of(
-            in -> URI.create(in.toString().replace("http://localhost:1234", resource.toString()))));
-        SchemaStore schemaStore = new SchemaStore(documentSource);
-        URI local = new URI("memory", "local", null, null);
-        documentSource.store(local, schema);
-        schemaStore.loadSchema(local);
-      }));
-    }
-    if (everit) {
-      List<DynamicContainer> dynamicNodes =
-          List.of(dynamicContainer("everit", everitTests), dynamicContainer("own", ownTests));
-      return dynamicContainer(testSet.getString("description"), dynamicNodes);
-    } else {
-      return dynamicContainer(testSet.getString("description"), ownTests);
     }
   }
 
   @TestFactory
   DynamicNode own() {
     Path own = FILE_SYSTEM.getPath("/suites").resolve("own");
-    return scan(own, own.resolve("remotes"), URI.create("http://json-schema.org/draft-07/schema#"),
-        true, false);
+    return scan(
+        own, own.resolve("remotes"), URI.create("http://json-schema.org/draft-07/schema#"), true);
   }
 
   @TestFactory
-  DynamicNode draft3Own() {
-    Path jsts = FILE_SYSTEM.getPath("/suites").resolve("jsts");
-    return scan(jsts.resolve("tests").resolve("draft3"), jsts.resolve("remotes"),
-        URI.create("http://json-schema.org/draft-03/schema#"), false, false);
+  DynamicNode draft3() {
+    return test("draft3", "http://json-schema.org/draft-03/schema#");
   }
 
   @TestFactory
   DynamicNode draft4() {
-    Path jsts = FILE_SYSTEM.getPath("/suites").resolve("jsts");
-    return scan(jsts.resolve("tests").resolve("draft4"), jsts.resolve("remotes"),
-        URI.create("http://json-schema.org/draft-04/schema#"), true, false);
-  }
-
-  @TestFactory
-  DynamicNode draft4Own() {
-    Path jsts = FILE_SYSTEM.getPath("/suites").resolve("jsts");
-    return scan(jsts.resolve("tests").resolve("draft4"), jsts.resolve("remotes"),
-        URI.create("http://json-schema.org/draft-04/schema#"), false, false);
-  }
-
-  @TestFactory
-  DynamicNode forwardsCompatibilitySpecialTest() {
-    Path jsts = FILE_SYSTEM.getPath("/suites").resolve("jsts");
-    return scan(jsts.resolve("tests").resolve("draft7"), jsts.resolve("remotes"),
-        URI.create("http://json-schema.org/draft-06/schema#"), false, false);
+    return test("draft4", "http://json-schema.org/draft-04/schema#");
   }
 
   @TestFactory
   DynamicNode draft6() {
-    Path jsts = FILE_SYSTEM.getPath("/suites").resolve("jsts");
-    return scan(jsts.resolve("tests").resolve("draft6"), jsts.resolve("remotes"),
-        URI.create("http://json-schema.org/draft-06/schema#"), true, false);
-  }
-
-  @TestFactory
-  DynamicNode draft6Own() {
-    Path jsts = FILE_SYSTEM.getPath("/suites").resolve("jsts");
-    return scan(jsts.resolve("tests").resolve("draft6"), jsts.resolve("remotes"),
-        URI.create("http://json-schema.org/draft-06/schema#"), false, false);
+    return test("draft6", "http://json-schema.org/draft-06/schema#");
   }
 
   @TestFactory
   DynamicNode draft7() {
-    Path jsts = FILE_SYSTEM.getPath("/suites").resolve("jsts");
-    return scan(jsts.resolve("tests").resolve("draft7"), jsts.resolve("remotes"),
-        URI.create("http://json-schema.org/draft-07/schema#"), true, false);
+    return test("draft7", "http://json-schema.org/draft-07/schema#");
   }
 
-  @TestFactory
-  DynamicNode draft7Own() {
-    Path jsts = FILE_SYSTEM.getPath("/suites").resolve("jsts");
-    return scan(jsts.resolve("tests").resolve("draft7"), jsts.resolve("remotes"),
-        URI.create("http://json-schema.org/draft-07/schema#"), false, false);
-  }
-
-  @TestFactory
-  DynamicNode draft2019_09() {
-    Path jsts = FILE_SYSTEM.getPath("/suites").resolve("jsts");
-    return scan(jsts.resolve("tests").resolve("draft2019-09"), jsts.resolve("remotes"),
-        URI.create("https://json-schema.org/draft/2019-09/schema"), true, false);
-  }
-
-  @TestFactory
-  DynamicNode draft2019_09own() {
-    Path jsts = FILE_SYSTEM.getPath("/suites").resolve("jsts");
-    return scan(jsts.resolve("tests").resolve("draft2019-09"), jsts.resolve("remotes"),
-        URI.create("https://json-schema.org/draft/2019-09/schema"), false, false);
-  }
-
-  @TestFactory
-  DynamicNode draft7SchemaOnly() {
-    Path jsts = FILE_SYSTEM.getPath("/suites").resolve("jsts");
-    return scan(jsts.resolve("tests").resolve("draft7"), jsts.resolve("remotes"),
-        URI.create("http://json-schema.org/draft-07/schema#"), true, true);
+  public DynamicNode test(String set, String metaSchema) {
+    Path suite = FILE_SYSTEM.getPath("/suites").resolve("JSON-Schema-Test-Suite");
+    Path jsts = suite.resolve("tests");
+    return scan(jsts.resolve(set), suite.resolve("remotes"), URI.create(metaSchema), true);
   }
 }
