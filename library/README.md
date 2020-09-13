@@ -55,7 +55,7 @@ dependencies {
     <dependency>
         <groupId>com.github.jimblackler.jsonschematypes</groupId>
         <artifactId>codegen</artifactId>
-        <version>0.7.2</version>
+        <version>0.7.3</version>
     </dependency>
     <dependency>
         <groupId>org.json</groupId>
@@ -161,7 +161,7 @@ public class Main {
 
 ## From URIs or URLs.
 
-This example loads both the schema and the data to test from the internet, via
+This example loads both the schema, and the data to test from the internet, via
 URIs (URLs can also be use).
 
 ```java
@@ -179,9 +179,9 @@ public class Main {
       // Load the schema.
       Schema schema = schemaStore.loadSchema(URI.create("https://json.schemastore.org/resume"));
 
-      // Will not throw an exception; document passes the schema.
       URI resume = URI.create(
           "https://gist.githubusercontent.com/thomasdavis/c9dcfa1b37dec07fb2ee7f36d7278105/raw");
+      // Will not throw an exception; document passes the schema.
       Validator.validate(schema, resume);
 
     } catch (SchemaException | IOException e) {
@@ -189,4 +189,12 @@ public class Main {
     }
   }
 }
+```
+
+### From files.
+
+Both schemas and test data can be specified as a `java.io.File`. For example:
+
+```json
+      Validator.validate(schema, new File("/tmp/test.json"));
 ```

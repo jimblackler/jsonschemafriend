@@ -5,6 +5,7 @@ import static net.jimblackler.jsonschemafriend.ComparableMutable.makeComparable;
 import static net.jimblackler.jsonschemafriend.DocumentUtils.loadJson;
 import static net.jimblackler.jsonschemafriend.Utils.setOf;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.math.BigDecimal;
@@ -573,6 +574,14 @@ public class Validator {
     validate(schema, loadJson(inputStream), errorConsumer);
   }
 
+  public static void validate(Schema schema, File file) throws ValidationException, IOException {
+    Collection<ValidationError> errors = new ArrayList<>();
+    validate(schema, file, errors::add);
+    if (!errors.isEmpty()) {
+      throw new ValidationException(errors);
+    }
+  }
+
   public static void validate(Schema schema, URI uri) throws ValidationException, IOException {
     Collection<ValidationError> errors = new ArrayList<>();
     validate(schema, uri, errors::add);
@@ -610,6 +619,11 @@ public class Validator {
   public static void validate(Schema schema, URI uri, Consumer<ValidationError> errorConsumer)
       throws IOException {
     validate(schema, uri.toURL(), errorConsumer);
+  }
+
+  public static void validate(Schema schema, File file, Consumer<ValidationError> errorConsumer)
+      throws IOException {
+    validate(schema, file.toURI(), errorConsumer);
   }
 
   public static void validate(
