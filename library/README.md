@@ -55,7 +55,7 @@ dependencies {
     <dependency>
         <groupId>com.github.jimblackler.jsonschematypes</groupId>
         <artifactId>codegen</artifactId>
-        <version>0.7.1</version>
+        <version>0.7.2</version>
     </dependency>
     <dependency>
         <groupId>org.json</groupId>
@@ -90,7 +90,7 @@ public class Main {
       Validator.validate(schema, 1); // Will not throw an exception.
       Validator.validate(schema, "X"); // Will throw a ValidationException.
     } catch (SchemaException e) {
-      // ...
+      e.printStackTrace();
     }
   }
 }
@@ -153,7 +153,38 @@ public class Main {
       // Will throw a ValidationException.
       Validator.validate(schema, Main.class.getResourceAsStream("/data2.json"));
     } catch (SchemaException | IOException e) {
-      // ...
+      e.printStackTrace();
+    }
+  }
+}
+```
+
+## From URIs or URLs.
+
+This example loads both the schema and the data to test from the internet, via
+URIs (URLs can also be use).
+
+```java
+import java.io.IOException;
+import java.net.URI;
+import net.jimblackler.jsonschemafriend.Schema;
+import net.jimblackler.jsonschemafriend.SchemaException;
+import net.jimblackler.jsonschemafriend.SchemaStore;
+import net.jimblackler.jsonschemafriend.Validator;
+
+public class Main {
+  public static void main(String[] args) {
+    try {
+      SchemaStore schemaStore = new SchemaStore(); // Initialize a SchemaStore.
+      // Load the schema.
+      Schema schema = schemaStore.loadSchema(URI.create("https://json.schemastore.org/resume"));
+
+      // Will not throw an exception; document passes the schema.
+      URI resume = URI.create(
+          "https://gist.githubusercontent.com/thomasdavis/c9dcfa1b37dec07fb2ee7f36d7278105/raw");
+      Validator.validate(schema, resume);
+
+    } catch (SchemaException | IOException e) {
       e.printStackTrace();
     }
   }
