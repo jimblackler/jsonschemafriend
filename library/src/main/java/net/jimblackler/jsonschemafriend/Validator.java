@@ -2,8 +2,11 @@ package net.jimblackler.jsonschemafriend;
 
 import static java.util.Base64.getUrlDecoder;
 import static net.jimblackler.jsonschemafriend.ComparableMutable.makeComparable;
+import static net.jimblackler.jsonschemafriend.DocumentUtils.loadJson;
 import static net.jimblackler.jsonschemafriend.Utils.setOf;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.net.URI;
@@ -563,12 +566,22 @@ public class Validator {
     errorConsumer.accept(new TypeError(path, document, explicitTypes, types, schema));
   }
 
+  public static void validate(Schema schema, InputStream inputStream,
+      Consumer<ValidationError> errorConsumer) throws MissingPathException, IOException {
+    validate(schema, loadJson(inputStream), errorConsumer);
+  }
+
   public static void validate(Schema schema, Object document) throws SchemaException {
     Collection<ValidationError> errors = new ArrayList<>();
     validate(schema, document, errors::add);
     if (!errors.isEmpty()) {
       throw new ValidationException(errors.toString());
     }
+  }
+
+  public static void validate(Schema schema, InputStream inputStream)
+      throws SchemaException, IOException {
+    validate(schema, loadJson(inputStream));
   }
 
   public static void validate(Schema schema, Object document,

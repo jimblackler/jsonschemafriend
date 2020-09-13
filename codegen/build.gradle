@@ -17,7 +17,7 @@ afterEvaluate {
             release(MavenPublication) {
                 group = 'net.jimblackler'
                 artifactId = 'codegen'
-                version = '0.7'
+                version = '0.7.1'
                 artifact(sourceJar)
                 from components.java
             }
