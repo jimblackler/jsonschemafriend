@@ -82,7 +82,6 @@ public class Schema {
   private Schema parent;
 
   public Schema(SchemaStore schemaStore, URI uri) throws GenerationException {
-    Object _schemaObject;
     this.uri = uri;
     this.schemaStore = schemaStore;
     schemaStore.register(uri, this);
@@ -99,6 +98,7 @@ public class Schema {
       baseDocument = true;
     }
 
+    Object _schemaObject;
     if (baseDocument instanceof JSONObject) {
       try {
         _schemaObject = PathUtils.fetchFromPath(baseDocument, uri.getRawFragment());
