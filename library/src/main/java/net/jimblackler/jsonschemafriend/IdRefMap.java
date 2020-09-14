@@ -1,6 +1,7 @@
 package net.jimblackler.jsonschemafriend;
 
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -10,8 +11,11 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 class IdRefMap {
+  private static URI DRAFT_3 = URI.create("http://json-schema.org/draft-03/schema#");
+  private static URI DRAFT_4 = URI.create("http://json-schema.org/draft-04/schema#");
   private static final Logger LOG = Logger.getLogger(IdRefMap.class.getName());
   private final Map<URI, URI> idToPath = new HashMap<>();
+  private final Map<URI, URI> anchorToPath = new HashMap<>();
   private final Map<URI, URI> refs = new HashMap<>();
   private final Collection<URI> mapped = new HashSet<>();
 
@@ -42,10 +46,9 @@ class IdRefMap {
     return uri;
   }
 
-  void map(JSONObject baseDocument, URI uri, URI activeId, JSONObject metaSchemaDocument)
+  void map(JSONObject baseDocument, URI uri, URI activeId, URI metaSchema)
       throws MissingPathException {
-    JSONObject properties = metaSchemaDocument.optJSONObject("properties");
-    String idKey = properties == null || properties.has("$id") ? "$id" : "id";
+    String idKey = (DRAFT_3.equals(metaSchema) || DRAFT_4.equals(metaSchema)) ? "id" : "$id";
 
     Object object = PathUtils.fetchFromPath(baseDocument, uri.getRawFragment());
     if (object instanceof JSONObject) {
@@ -61,6 +64,18 @@ class IdRefMap {
         idToPath.put(newId, uri);
         activeId = newId;
       }
+      Object anchorObject = jsonObject.opt("$anchor");
+      if (anchorObject instanceof String) {
+        try {
+          URI anchor = new URI(null, null, null, (String) anchorObject);
+          if (activeId != null) {
+            anchor = resolve(activeId, anchor);
+          }
+          anchorToPath.put(anchor, uri);
+        } catch (URISyntaxException e) {
+          LOG.warning("Problem with $anchor: " + e.getMessage());
+        }
+      }
 
       Object refObject = jsonObject.opt("$ref");
       if (refObject instanceof String) {
@@ -71,12 +86,12 @@ class IdRefMap {
       }
 
       for (String key : jsonObject.keySet()) {
-        map(baseDocument, PathUtils.append(uri, key), activeId, metaSchemaDocument);
+        map(baseDocument, PathUtils.append(uri, key), activeId, metaSchema);
       }
     } else if (object instanceof JSONArray) {
       JSONArray jsonArray = (JSONArray) object;
       for (int idx = 0; idx != jsonArray.length(); idx++) {
-        map(baseDocument, PathUtils.append(uri, String.valueOf(idx)), activeId, metaSchemaDocument);
+        map(baseDocument, PathUtils.append(uri, String.valueOf(idx)), activeId, metaSchema);
       }
     }
   }
@@ -109,8 +124,7 @@ class IdRefMap {
         JSONObject baseDocument = (JSONObject) baseDocumentObject;
         URI metaSchemaUri = SchemaDetector.detectSchema(baseDocument);
         try {
-          map(baseDocument, baseDocumentUri, baseDocumentUri,
-              (JSONObject) documentSource.fetchDocument(metaSchemaUri));
+          map(baseDocument, baseDocumentUri, baseDocumentUri, metaSchemaUri);
         } catch (MissingPathException e) {
           LOG.warning("Could not map " + uri + ". " + e.getMessage());
         }
@@ -122,6 +136,9 @@ class IdRefMap {
       // This can be an $id, in which case we must convert it back to a path.
       if (idToPath.containsKey(uri)) {
         uri = idToPath.get(uri);
+      }
+      if (anchorToPath.containsKey(uri)) {
+        uri = anchorToPath.get(uri);
       }
     }
   }
