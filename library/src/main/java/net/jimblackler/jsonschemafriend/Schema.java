@@ -114,40 +114,11 @@ public class Schema {
       schemaObject = baseDocument;
     }
 
-    // It would be more convenient to work with a fully-built Schema from the meta-schema, not just
-    // its JSON representation. However that isn't possible when building a self-referencing schema
-    // (all JSON schema meta-schemas as self-referencing).
-    JSONObject metaSchemaDocument;
-    URI metaSchemaUri = detectSchema(baseDocument);
-    try {
-      metaSchemaDocument =
-          (JSONObject) schemaStore.getDocumentSource().fetchDocument(metaSchemaUri);
-    } catch (MissingPathException e) {
-      LOG.warning("Could not load metaschema " + metaSchemaUri);
-      metaSchemaDocument = null;
-    }
-
-    // If possible, create a new version of the object with only the properties that are explicitly
-    // in the metaschema. This means that features from other version of the metaschema from working
-    // when they shouldn't.
-    JSONObject jsonObject = new JSONObject();
-
+    JSONObject jsonObject;
     if (schemaObject instanceof JSONObject) {
-      JSONObject jsonObjectOriginal = (JSONObject) schemaObject;
-      if (metaSchemaDocument == null) {
-        for (String property : jsonObjectOriginal.keySet()) {
-          jsonObject.put(property, jsonObjectOriginal.get(property));
-        }
-      } else {
-        JSONObject properties = metaSchemaDocument.optJSONObject("properties");
-        if (properties != null) {
-          for (String property : properties.keySet()) {
-            if (jsonObjectOriginal.has(property)) {
-              jsonObject.put(property, jsonObjectOriginal.get(property));
-            }
-          }
-        }
-      }
+      jsonObject = (JSONObject) schemaObject;
+    } else {
+      jsonObject = new JSONObject();
     }
 
     // number checks
