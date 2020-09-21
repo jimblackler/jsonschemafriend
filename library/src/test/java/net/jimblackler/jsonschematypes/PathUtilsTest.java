@@ -10,7 +10,6 @@ import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Random;
-import net.jimblackler.jsonschemafriend.MissingPathException;
 import net.jimblackler.jsonschemafriend.PathUtils;
 import org.json.JSONObject;
 import org.junit.jupiter.api.DynamicTest;
@@ -33,7 +32,7 @@ public class PathUtilsTest {
     return allFileTests;
   }
 
-  private void test(Random random) throws MissingPathException {
+  private void test(Random random) {
     JSONObject jsonObject = new JSONObject();
     String str = randomString(random, random.nextInt(MAX_LENGTH) + 1);
     String testInsertion = "hello";
