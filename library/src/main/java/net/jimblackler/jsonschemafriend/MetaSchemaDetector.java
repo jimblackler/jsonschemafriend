@@ -1,12 +1,19 @@
 package net.jimblackler.jsonschemafriend;
 
+import static net.jimblackler.jsonschemafriend.MetaSchemaUris.DRAFT_4;
+import static net.jimblackler.jsonschemafriend.MetaSchemaUris.DRAFT_7;
+
 import java.net.URI;
 import java.util.function.Consumer;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-public class SchemaDetector {
-  static URI detectSchema(Object document) {
+public class MetaSchemaDetector {
+  static URI detectMetaSchema(Object document) {
+    if (document instanceof Boolean) {
+      return DRAFT_7;
+    }
+
     if (document instanceof JSONObject) {
       JSONObject jsonDocument = (JSONObject) document;
       if (jsonDocument.has("$schema")) {
@@ -24,9 +31,9 @@ public class SchemaDetector {
     });
 
     if (dollarIdCount[0] > idCount[0]) {
-      return URI.create("https://json-schema.org/draft-07/schema");
+      return DRAFT_7;
     }
-    return URI.create("https://json-schema.org/draft-04/schema");
+    return DRAFT_4;
   }
 
   private static void allKeys(Object document, Consumer<String> consumer) {

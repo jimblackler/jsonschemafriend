@@ -32,8 +32,12 @@ public class NameUtils {
     String lastPart = split[split.length - 1];
     String namePart = lastPart.split("\\.", 2)[0];
 
+    return makeJavaLegal(namePart);
+  }
+
+  static String makeJavaLegal(String namePart) {
     String converted = snakeToCamel(namePart);
-    if (!Character.isJavaIdentifierStart(converted.charAt(0))) {
+    if (converted.isEmpty() || !Character.isJavaIdentifierStart(converted.charAt(0))) {
       converted = "_" + converted;
     }
 
@@ -44,7 +48,6 @@ public class NameUtils {
         builder.append(chr);
       }
     }
-
     return builder.toString();
   }
 }

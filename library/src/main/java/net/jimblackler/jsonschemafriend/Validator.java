@@ -3,19 +3,17 @@ package net.jimblackler.jsonschemafriend;
 import static java.util.Base64.getUrlDecoder;
 import static net.jimblackler.jsonschemafriend.ComparableMutable.makeComparable;
 import static net.jimblackler.jsonschemafriend.DocumentUtils.loadJson;
+import static net.jimblackler.jsonschemafriend.MetaSchemaDetector.detectMetaSchema;
 import static net.jimblackler.jsonschemafriend.Utils.setOf;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.math.BigDecimal;
-import java.math.BigInteger;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
-import java.time.format.DateTimeFormatter;
-import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.Collection;
@@ -25,21 +23,24 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Consumer;
-import java.util.regex.Pattern;
-import java.util.regex.PatternSyntaxException;
-import javax.mail.internet.AddressException;
-import javax.mail.internet.InternetAddress;
-import org.apache.commons.validator.routines.DomainValidator;
-import org.apache.commons.validator.routines.EmailValidator;
-import org.apache.commons.validator.routines.InetAddressValidator;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.json.JSONPointer;
 
 public class Validator {
+  public static void validate(
+      Schema schema, Object document, URI uri, Consumer<ValidationError> errorConsumer) {
+    validate(schema, document, uri, errorConsumer, property -> {}, item -> {}, null);
+  }
+
   public static void validate(Schema schema, Object document, URI uri,
-      Consumer<ValidationError> errorConsumer) throws MissingPathException {
+      Consumer<ValidationError> errorConsumer, Schema recursiveRef) {
+    validate(schema, document, uri, errorConsumer, property -> {}, item -> {}, recursiveRef);
+  }
+
+  public static void validate(Schema schema, Object document, URI uri,
+      Consumer<ValidationError> errorConsumer, Consumer<String> propertyConsumer,
+      Consumer<Integer> itemConsumer, Schema recursiveRef) {
     Object object;
     String query = uri.getQuery();
     if (query == null || query.isEmpty()) {
@@ -56,15 +57,135 @@ public class Validator {
       return;
     }
 
-    object = rewriteObject(object);
+    Collection<String> evaluatedProperties = new HashSet<>();
+    Consumer<String> selfPropertyHandler = property -> {
+      propertyConsumer.accept(property);
+      evaluatedProperties.add(property);
+    };
+
+    Collection<Integer> evaluatedItems = new HashSet<>();
+    Consumer<Integer> selfItemHandler = property -> {
+      itemConsumer.accept(property);
+      evaluatedItems.add(property);
+    };
+
+    Schema recursiveRef1 = schema.getRecursiveRef();
+    if (recursiveRef1 != null) {
+      if (recursiveRef != null && recursiveRef1.isRecursiveAnchor()) {
+        validate(
+            recursiveRef, document, uri, errorConsumer, selfPropertyHandler, selfItemHandler, null);
+      } else {
+        validate(recursiveRef1, document, uri, errorConsumer, selfPropertyHandler, selfItemHandler,
+            null);
+      }
+    }
+
+    if (recursiveRef == null && schema.isRecursiveAnchor()) {
+      recursiveRef = schema;
+    }
+
+    Schema _if = schema.getIf();
+    Schema _then = schema.getThen();
+    Schema _else = schema.getElse();
+
+    if (_if != null) {
+      List<ValidationError> errors = new ArrayList<>();
+      Collection<String> unevaluatedProperties = new HashSet<>();
+      Collection<Integer> unevaluatedItems = new HashSet<>();
+      validate(_if, document, uri, errors::add, unevaluatedProperties::add, unevaluatedItems::add,
+          recursiveRef);
+      Schema useSchema;
+      if (errors.isEmpty()) {
+        useSchema = _then;
+        unevaluatedProperties.forEach(selfPropertyHandler);
+        unevaluatedItems.forEach(selfItemHandler);
+      } else {
+        useSchema = _else;
+      }
+      if (useSchema != null) {
+        validate(useSchema, document, uri, errorConsumer, selfPropertyHandler, selfItemHandler,
+            recursiveRef);
+      }
+    }
+
+    Schema ref = schema.getRef();
+    if (ref != null) {
+      validate(
+          ref, document, uri, errorConsumer, selfPropertyHandler, selfItemHandler, recursiveRef);
+    }
+
+    Collection<Schema> allOf = schema.getAllOf();
+    for (Schema schema1 : allOf) {
+      validate(schema1, document, uri, errorConsumer, selfPropertyHandler, selfItemHandler,
+          recursiveRef);
+    }
+
+    Collection<Schema> anyOf = schema.getAnyOf();
+    if (anyOf != null) {
+      int numberPassed = 0;
+      List<List<ValidationError>> allErrors = new ArrayList<>();
+      for (Schema schema1 : anyOf) {
+        List<ValidationError> errors = new ArrayList<>();
+        Collection<String> unevaluatedProperties = new HashSet<>();
+        Collection<Integer> unevaluatedItems = new HashSet<>();
+        validate(schema1, document, uri, errors::add, unevaluatedProperties::add,
+            unevaluatedItems::add, recursiveRef);
+        if (errors.isEmpty()) {
+          numberPassed++;
+          unevaluatedProperties.forEach(selfPropertyHandler);
+          unevaluatedItems.forEach(selfItemHandler);
+        }
+        allErrors.add(errors);
+      }
+      if (numberPassed == 0) {
+        errorConsumer.accept(new AnyOfError(uri, document, allErrors, schema));
+      }
+    }
+
+    Collection<Schema> oneOf = schema.getOneOf();
+    if (oneOf != null) {
+      List<Schema> passed = new ArrayList<>();
+      List<List<ValidationError>> allErrors = new ArrayList<>();
+      for (Schema schema1 : oneOf) {
+        List<ValidationError> errors = new ArrayList<>();
+        validate(schema1, document, uri, errors::add, selfPropertyHandler, selfItemHandler,
+            recursiveRef);
+        if (errors.isEmpty()) {
+          passed.add(schema1);
+        }
+        allErrors.add(errors);
+      }
+      if (passed.size() != 1) {
+        errorConsumer.accept(new OneOfError(uri, document, passed, allErrors, schema));
+      }
+    }
+
+    Schema not = schema.getNot();
+    if (not != null) {
+      List<ValidationError> errors = new ArrayList<>();
+      validate(not, document, uri, errors::add, recursiveRef);
+      if (errors.isEmpty()) {
+        errorConsumer.accept(new NotError(uri, document, schema));
+      }
+    }
+
+    Collection<Schema> disallowSchemas = schema.getDisallowSchemas();
+    for (Schema disallowSchema : disallowSchemas) {
+      List<ValidationError> errors = new ArrayList<>();
+      validate(disallowSchema, document, uri, errors::add, selfPropertyHandler, selfItemHandler,
+          recursiveRef);
+      if (errors.isEmpty()) {
+        errorConsumer.accept(new DisallowError(uri, document, schema));
+      }
+    }
 
     Number multipleOf = schema.getMultipleOf();
     Number minimum = schema.getMinimum();
     Number maximum = schema.getMaximum();
     Number exclusiveMinimum = schema.getExclusiveMinimum();
     Number exclusiveMaximum = schema.getExclusiveMaximum();
-    Boolean exclusiveMinimumBoolean = schema.getExclusiveMinimumBoolean();
-    Boolean exclusiveMaximumBoolean = schema.getExclusiveMaximumBoolean();
+    Boolean exclusiveMinimumBoolean = schema.isExclusiveMinimumBoolean();
+    Boolean exclusiveMaximumBoolean = schema.isExclusiveMaximumBoolean();
     Collection<String> disallow = schema.getDisallow();
 
     if (object instanceof Number) {
@@ -121,118 +242,10 @@ public class Validator {
       }
       String format = schema.getFormat();
       if (format != null) {
-        switch (format) {
-          case "uri":
-            try {
-              URI uri1 = new URI(string);
-              if (!uri1.isAbsolute()) {
-                errorConsumer.accept(new FormatError(uri, document, schema, "Not absolute"));
-              }
-            } catch (URISyntaxException e) {
-              errorConsumer.accept(new FormatError(uri, document, schema, e.getReason()));
-            }
-            break;
-          case "iri":
-            try {
-              URI uri1 = new URI(string);
-              if (!uri1.isAbsolute()) {
-                errorConsumer.accept(new FormatError(uri, document, schema, "Not absolute"));
-              }
-              String authority = uri1.getAuthority();
-              if (authority != null
-                  && InetAddressValidator.getInstance().isValidInet6Address(authority)) {
-                errorConsumer.accept(
-                    new FormatError(uri, document, schema, "ipv6 not valid as host in an IRI"));
-              }
-            } catch (URISyntaxException e) {
-              errorConsumer.accept(new FormatError(uri, document, schema, e.getReason()));
-            }
-            break;
-          case "iri-reference":
-          case "uri-reference":
-            try {
-              new URI(string);
-            } catch (URISyntaxException e) {
-              errorConsumer.accept(new FormatError(uri, document, schema, e.getReason()));
-            }
-            break;
-          case "hostname":
-            if (!DomainValidator.getInstance().isValid(string)) {
-              errorConsumer.accept(
-                  new FormatError(uri, document, schema, "Failed DomainValidator"));
-            }
-            break;
-          case "ipv4":
-            if (!InetAddressValidator.getInstance().isValidInet4Address(string)) {
-              errorConsumer.accept(
-                  new FormatError(uri, document, schema, "Failed InetAddressValidator"));
-            }
-            break;
-          case "ipv6":
-            if (!InetAddressValidator.getInstance().isValidInet6Address(string)) {
-              errorConsumer.accept(
-                  new FormatError(uri, document, schema, "Failed InetAddressValidator"));
-            }
-            break;
-          case "date":
-            try {
-              DateTimeFormatter.ISO_DATE.parse(string);
-            } catch (DateTimeParseException e) {
-              errorConsumer.accept(new FormatError(uri, document, schema, e.getMessage()));
-            }
-            break;
-          case "time":
-            try {
-              DateTimeFormatter.ISO_TIME.parse(string);
-            } catch (DateTimeParseException e) {
-              errorConsumer.accept(new FormatError(uri, document, schema, e.getMessage()));
-            }
-            break;
-          case "date-time":
-            try {
-              DateTimeFormatter.ISO_DATE_TIME.parse(string);
-            } catch (DateTimeParseException e) {
-              errorConsumer.accept(new FormatError(uri, document, schema, e.getMessage()));
-            }
-            break;
-          case "email":
-            if (!EmailValidator.getInstance().isValid(string)) {
-              errorConsumer.accept(new FormatError(uri, document, schema, "Did not match"));
-            }
-            break;
-          case "idn-email":
-            try {
-              InternetAddress[] parsed = InternetAddress.parse(string);
-              if (parsed.length == 1) {
-                parsed[0].validate();
-              } else {
-                errorConsumer.accept(
-                    new FormatError(uri, document, schema, "Unexpected parse result"));
-              }
-            } catch (AddressException e) {
-              errorConsumer.accept(new FormatError(uri, document, schema, e.getMessage()));
-            }
-            break;
-          case "regex":
-            try {
-              Pattern.compile(string);
-            } catch (PatternSyntaxException e) {
-              errorConsumer.accept(new FormatError(uri, document, schema, e.getMessage()));
-            }
-            break;
-
-          case "json-pointer":
-            try {
-              JSONPointer jsonPointer = new JSONPointer(string);
-              String readBack = jsonPointer.toString().replace("\\\\", "\\").replace("\\\"", "\"");
-              if (!readBack.equals(string)) {
-                errorConsumer.accept(
-                    new FormatError(uri, document, schema, "Not canonical: " + readBack));
-              }
-            } catch (IllegalArgumentException e) {
-              errorConsumer.accept(new FormatError(uri, document, schema, e.getMessage()));
-            }
-            break;
+        URI metaSchema = detectMetaSchema(document);
+        String message = FormatChecker.formatCheck(string, format, metaSchema);
+        if (message != null) {
+          errorConsumer.accept(new FormatError(uri, document, schema, message));
         }
       }
       String stringToValidate = string;
@@ -284,21 +297,36 @@ public class Validator {
         if (jsonArray.length() > itemsTuple.size() && additionalItems != null) {
           for (int idx = itemsTuple.size(); idx != jsonArray.length(); idx++) {
             validate(additionalItems, document, PathUtils.append(uri, String.valueOf(idx)),
-                errorConsumer);
+                errorConsumer, recursiveRef);
+            selfItemHandler.accept(idx);
           }
         }
 
         for (int idx = 0; idx != Math.min(itemsTuple.size(), jsonArray.length()); idx++) {
           validate(itemsTuple.get(idx), document, PathUtils.append(uri, String.valueOf(idx)),
-              errorConsumer);
+              errorConsumer, recursiveRef);
+          selfItemHandler.accept(idx);
         }
       }
 
       Schema _items = schema.getItems();
-
       if (_items != null) {
         for (int idx = 0; idx != jsonArray.length(); idx++) {
-          validate(_items, document, PathUtils.append(uri, String.valueOf(idx)), errorConsumer);
+          validate(_items, document, PathUtils.append(uri, String.valueOf(idx)), errorConsumer,
+              recursiveRef);
+          selfItemHandler.accept(idx);
+        }
+      }
+
+      Schema unevaluatedItems = schema.getUnevaluatedItems();
+      if (unevaluatedItems != null) {
+        for (int idx = 0; idx != jsonArray.length(); idx++) {
+          if (evaluatedItems.contains(idx)) {
+            continue;
+          }
+          validate(unevaluatedItems, document, PathUtils.append(uri, String.valueOf(idx)),
+              errorConsumer, recursiveRef);
+          selfItemHandler.accept(idx);
         }
       }
 
@@ -312,8 +340,7 @@ public class Validator {
         errorConsumer.accept(new MinItemsError(uri, document, schema));
       }
 
-      boolean uniqueItems = schema.getUniqueItems();
-      if (uniqueItems) {
+      if (schema.isUniqueItems()) {
         Collection<Object> items = new HashSet<>();
         for (int idx = 0; idx != jsonArray.length(); idx++) {
           if (!items.add(makeComparable(jsonArray.get(idx)))) {
@@ -324,17 +351,22 @@ public class Validator {
 
       Schema contains = schema.getContains();
       if (contains != null) {
-        boolean onePassed = false;
+        int numberPassed = 0;
         for (int idx = 0; idx != jsonArray.length(); idx++) {
           List<ValidationError> errors = new ArrayList<>();
-          validate(contains, document, PathUtils.append(uri, String.valueOf(idx)), errors::add);
+          validate(contains, document, PathUtils.append(uri, String.valueOf(idx)), errors::add,
+              recursiveRef);
           if (errors.isEmpty()) {
-            onePassed = true;
-            break;
+            numberPassed++;
           }
         }
-        if (!onePassed) {
-          errorConsumer.accept(new ContainsError(uri, document, schema));
+        Number minContains = schema.getMinContains();
+        if (numberPassed < (minContains == null ? 1 : minContains.intValue())) {
+          errorConsumer.accept(new MinContainsError(uri, document, schema));
+        }
+        Number maxContains = schema.getMaxContains();
+        if (maxContains != null && numberPassed > maxContains.intValue()) {
+          errorConsumer.accept(new MaxContainsError(uri, document, schema));
         }
       }
     } else if (object instanceof JSONObject) {
@@ -357,14 +389,25 @@ public class Validator {
       }
 
       Map<String, Schema> _properties = schema.getProperties();
+      for (Map.Entry<String, Schema> entry : _properties.entrySet()) {
+        if (!entry.getValue().isRequired()) {
+          continue;
+        }
+        String property = entry.getKey();
+        if (!jsonObject.has(property)) {
+          errorConsumer.accept(new MissingPropertyError(uri, document, property, schema));
+        }
+      }
+
       Collection<String> remainingProperties = new HashSet<>(jsonObject.keySet());
       Collection<Ecma262Pattern> patternPropertiesPatterns = schema.getPatternPropertiesPatterns();
       Collection<Schema> patternPropertiesSchema = schema.getPatternPropertiesSchema();
       for (String property : jsonObject.keySet()) {
         if (_properties.containsKey(property)) {
-          validate(
-              _properties.get(property), document, PathUtils.append(uri, property), errorConsumer);
+          validate(_properties.get(property), document, PathUtils.append(uri, property),
+              errorConsumer, recursiveRef);
           remainingProperties.remove(property);
+          selfPropertyHandler.accept(property);
         }
 
         Iterator<Ecma262Pattern> it0 = patternPropertiesPatterns.iterator();
@@ -373,8 +416,10 @@ public class Validator {
           Ecma262Pattern pattern1 = it0.next();
           Schema schema1 = it1.next();
           if (pattern1.matches(property)) {
-            validate(schema1, document, PathUtils.append(uri, property), errorConsumer);
+            validate(
+                schema1, document, PathUtils.append(uri, property), errorConsumer, recursiveRef);
             remainingProperties.remove(property);
+            selfPropertyHandler.accept(property);
           }
         }
         Schema propertyNames = schema.getPropertyNames();
@@ -390,28 +435,43 @@ public class Validator {
             // part of the URL to carry the property name into the child iteration of the validator.
             URI propertyPath = new URI(
                 uri.getScheme(), uri.getAuthority(), uri.getPath(), property, uri.getRawFragment());
-            validate(propertyNames, document, propertyPath, errorConsumer);
+            validate(propertyNames, document, propertyPath, errorConsumer, recursiveRef);
           } catch (URISyntaxException e) {
             throw new IllegalStateException(e);
           }
         }
       }
-      Map<String, Schema> schemaDependencies = schema.getSchemaDependencies();
+      Map<String, Schema> schemaDependencies = schema.getDependentSchemas();
       for (Map.Entry<String, Schema> entry : schemaDependencies.entrySet()) {
         String property = entry.getKey();
         if (!jsonObject.has(property)) {
           continue;
         }
-        validate(entry.getValue(), document, uri, errorConsumer);
+        validate(entry.getValue(), document, uri, errorConsumer, selfPropertyHandler,
+            selfItemHandler, recursiveRef);
       }
 
       Schema additionalProperties = schema.getAdditionalProperties();
       if (additionalProperties != null) {
         for (String property : remainingProperties) {
-          validate(additionalProperties, document, PathUtils.append(uri, property), errorConsumer);
+          validate(additionalProperties, document, PathUtils.append(uri, property), errorConsumer,
+              recursiveRef);
+          selfPropertyHandler.accept(property);
         }
       }
-      Map<String, Collection<String>> dependencies = schema.getDependencies();
+
+      Schema unevaluatedProperties = schema.getUnevaluatedProperties();
+      if (unevaluatedProperties != null) {
+        Collection<String> remainingProperties2 = new HashSet<>(jsonObject.keySet());
+        remainingProperties2.removeAll(evaluatedProperties);
+        for (String property : remainingProperties2) {
+          validate(unevaluatedProperties, document, PathUtils.append(uri, property), errorConsumer,
+              recursiveRef);
+          selfPropertyHandler.accept(property);
+        }
+      }
+
+      Map<String, Collection<String>> dependencies = schema.getDependentRequired();
       for (Map.Entry<String, Collection<String>> entry : dependencies.entrySet()) {
         String property = entry.getKey();
         if (!jsonObject.has(property)) {
@@ -454,87 +514,10 @@ public class Validator {
         errorConsumer.accept(new EnumError(uri, document, schema));
       }
     }
-
-    Schema _if = schema.getIf();
-    Schema _then = schema.getThen();
-    Schema _else = schema.getElse();
-
-    if (_if != null) {
-      List<ValidationError> errors = new ArrayList<>();
-      validate(_if, document, uri, errors::add);
-      Schema useSchema;
-      if (errors.isEmpty()) {
-        useSchema = _then;
-      } else {
-        useSchema = _else;
-      }
-      if (useSchema != null) {
-        validate(useSchema, document, uri, errorConsumer);
-      }
-    }
-
-    Collection<Schema> allOf = schema.getAllOf();
-    for (Schema schema1 : allOf) {
-      validate(schema1, document, uri, errorConsumer);
-    }
-
-    Collection<Schema> anyOf = schema.getAnyOf();
-    if (anyOf != null) {
-      boolean onePassed = false;
-      List<List<ValidationError>> allErrors = new ArrayList<>();
-      for (Schema schema1 : anyOf) {
-        List<ValidationError> errors = new ArrayList<>();
-        validate(schema1, document, uri, errors::add);
-        if (errors.isEmpty()) {
-          onePassed = true;
-          break;
-        }
-        allErrors.add(errors);
-      }
-      if (!onePassed) {
-        errorConsumer.accept(new AnyOfError(uri, document, allErrors, schema));
-      }
-    }
-
-    Collection<Schema> oneOf = schema.getOneOf();
-    if (oneOf != null) {
-      List<Schema> passed = new ArrayList<>();
-      List<List<ValidationError>> allErrors = new ArrayList<>();
-      for (Schema schema1 : oneOf) {
-        List<ValidationError> errors = new ArrayList<>();
-        validate(schema1, document, uri, errors::add);
-        if (errors.isEmpty()) {
-          passed.add(schema1);
-        }
-        allErrors.add(errors);
-      }
-      if (passed.size() != 1) {
-        errorConsumer.accept(new OneOfError(uri, document, passed, allErrors, schema));
-      }
-    }
-
-    Schema not = schema.getNot();
-    if (not != null) {
-      List<ValidationError> errors = new ArrayList<>();
-      validate(not, document, uri, errors::add);
-      if (errors.isEmpty()) {
-        errorConsumer.accept(new NotError(uri, document, schema));
-      }
-    }
-
-    Collection<Schema> disallowSchemas = schema.getDisallowSchemas();
-    for (Schema disallowSchema : disallowSchemas) {
-      List<ValidationError> errors = new ArrayList<>();
-      validate(disallowSchema, document, uri, errors::add);
-      if (errors.isEmpty()) {
-        errorConsumer.accept(new DisallowError(uri, document, schema));
-      }
-    }
   }
 
   private static void typeCheck(Schema schema, Object document, URI path, Set<String> types,
-      Collection<String> disallow, Consumer<ValidationError> errorConsumer)
-      throws MissingPathException {
+      Collection<String> disallow, Consumer<ValidationError> errorConsumer) {
     Collection<String> typesIn0 = new HashSet<>(types);
     typesIn0.retainAll(disallow);
     if (!typesIn0.isEmpty()) {
@@ -628,37 +611,6 @@ public class Validator {
 
   public static void validate(
       Schema schema, Object document, Consumer<ValidationError> errorConsumer) {
-    try {
-      validate(schema, document, URI.create(""), errorConsumer);
-    } catch (MissingPathException e) {
-      // MissingPathException is only checked where the URI was provided by the client. Here, we
-      // created it.
-      throw new IllegalStateException(e);
-    }
-  }
-
-  private static Object rewriteObject(Object object) {
-    if (!(object instanceof String)) {
-      return object;
-    }
-    String string = (String) object;
-    // Reverse what org.json does to long numbers (converts them into strings).
-    // Strings are rewritten as a number in the cases where a string would have been the only way to
-    // serialize the number.
-    // It would be better to have a JSON deserializer that used BigInteger where necessary.
-    // But this won't be added to org.json soon: https://github.com/stleary/JSON-java/issues/157
-    try {
-      JSONArray testObject = new JSONArray(String.format("[%s]", string));
-      if (testObject.get(0) instanceof String) {
-        BigInteger bigInteger = new BigInteger(string);
-        if (bigInteger.toString().equals(string)) {
-          return bigInteger;
-        }
-      }
-      return object;
-    } catch (NumberFormatException | JSONException e) {
-      // Doesn't look like a number after all.
-      return object;
-    }
+    validate(schema, document, URI.create(""), errorConsumer);
   }
 }

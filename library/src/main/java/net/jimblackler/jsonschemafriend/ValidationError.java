@@ -12,15 +12,8 @@ public abstract class ValidationError {
     this.uri = uri;
     this.document = document;
     this.schema = schema;
-    Object object = null;
-    try {
-      object = PathUtils.fetchFromPath(document, uri.getRawFragment());
-    } catch (MissingPathException e) {
-      // Ignored by design.
-    }
-    this.object = object;
+    object = PathUtils.fetchFromPath(document, uri.getRawFragment());
   }
-
 
   @Override
   public String toString() {

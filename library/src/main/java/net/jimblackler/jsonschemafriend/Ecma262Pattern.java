@@ -1,25 +1,29 @@
 package net.jimblackler.jsonschemafriend;
 
-import javax.script.ScriptException;
+import org.graalvm.polyglot.Context;
+import org.graalvm.polyglot.PolyglotException;
+import org.graalvm.polyglot.Value;
 
 public class Ecma262Pattern {
-  private static final javax.script.ScriptEngine SCRIPT_ENGINE =
-      new javax.script.ScriptEngineManager().getEngineByName("js");
+  private static final Context GRAALVM_CONTEXT = Context.create();
   private final String pattern;
+  private final Value function;
 
-  public Ecma262Pattern(String pattern) {
+  public Ecma262Pattern(String pattern) throws InvalidRegexException {
     this.pattern = pattern;
+    try {
+      function = GRAALVM_CONTEXT
+                     .eval("js",
+                         "pattern => {const regex = new RegExp(pattern, 'u');"
+                             + "return text => text.match(regex)}")
+                     .execute(pattern);
+    } catch (PolyglotException ex) {
+      throw new InvalidRegexException(ex);
+    }
   }
 
   public boolean matches(String text) {
-    SCRIPT_ENGINE.put("pattern", pattern);
-    SCRIPT_ENGINE.put("text", text);
-
-    try {
-      return SCRIPT_ENGINE.eval("text.match(pattern)") != null;
-    } catch (ScriptException e) {
-      throw new IllegalStateException(e);
-    }
+    return !function.execute(text).isNull();
   }
 
   @Override

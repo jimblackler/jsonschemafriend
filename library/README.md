@@ -12,6 +12,7 @@ It is compatible with the following metaschemas
 *   http://json-schema.org/draft-04/schema#
 *   http://json-schema.org/draft-06/schema#
 *   http://json-schema.org/draft-07/schema#
+*   https://json-schema.org/draft/2019-09/schema
 
 # Including in a project
 
@@ -34,7 +35,7 @@ requires the `org.json` library.
 
 ```groovy
 dependencies {
-    implementation 'com.github.jimblackler.jsonschematypes:jsonschemafriend:0.7'
+    implementation 'com.github.jimblackler.jsonschematypes:jsonschemafriend:0.7.4'
     implementation 'org.json:json:20200518'
     // ...
 }
@@ -55,7 +56,7 @@ dependencies {
     <dependency>
         <groupId>com.github.jimblackler.jsonschematypes</groupId>
         <artifactId>codegen</artifactId>
-        <version>0.7.3</version>
+        <version>0.7.4</version>
     </dependency>
     <dependency>
         <groupId>org.json</groupId>

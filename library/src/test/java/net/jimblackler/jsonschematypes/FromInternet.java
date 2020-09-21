@@ -1,6 +1,6 @@
 package net.jimblackler.jsonschematypes;
 
-import static net.jimblackler.jsonschemafriend.DocumentUtils.streamToString;
+import static net.jimblackler.jsonschemafriend.StreamUtils.streamToString;
 
 import java.io.IOException;
 import java.io.InputStream;

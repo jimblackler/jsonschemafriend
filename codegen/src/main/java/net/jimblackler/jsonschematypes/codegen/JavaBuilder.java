@@ -1,5 +1,6 @@
 package net.jimblackler.jsonschematypes.codegen;
 
+import static net.jimblackler.jsonschematypes.codegen.NameUtils.makeJavaLegal;
 import static net.jimblackler.jsonschematypes.codegen.NameUtils.nameForSchema;
 
 import com.sun.codemodel.JClass;
@@ -171,8 +172,8 @@ public class JavaBuilder {
       _name = _enum.name();
 
       for (Object value : enums) {
-        JEnumConstant enumConstant =
-            _enum.enumConstant(NameUtils.camelToSnake((String) value).toUpperCase());
+        String name1 = makeJavaLegal(NameUtils.camelToSnake(value.toString()).toUpperCase());
+        JEnumConstant enumConstant = _enum.enumConstant(name1);
         enumConstants.add(enumConstant);
       }
 
@@ -277,8 +278,7 @@ public class JavaBuilder {
       List<Object> enums = schema.getEnums();
       JSwitch jSwitch = getter.body()._switch(value);
       for (int idx = 0; idx != enums.size(); idx++) {
-        String enumString = (String) enums.get(idx);
-        jSwitch._case(JExpr.lit(enumString)).body()._return(enumConstants.get(idx));
+        jSwitch._case(expressionFromObject(enums.get(idx))).body()._return(enumConstants.get(idx));
       }
 
       getter.body()._throw(JExpr._new(jCodeModel.ref(IllegalStateException.class))
