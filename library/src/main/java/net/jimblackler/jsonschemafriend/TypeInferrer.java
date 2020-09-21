@@ -52,7 +52,7 @@ public class TypeInferrer {
     return types;
   }
 
-  static Collection<String> inferTypes(Schema schema) {
+  public static Collection<String> inferTypes(Schema schema) {
     Collection<String> inferredTypes = new HashSet<>();
 
     Collection<String> explicitTypes = schema.getExplicitTypes();
@@ -106,7 +106,7 @@ public class TypeInferrer {
     return inferredTypes;
   }
 
-  public Collection<String> getNonProhibitedTypes(Schema schema) {
+  public static Collection<String> getNonProhibitedTypes(Schema schema) {
     Collection<String> explicitTypes = schema.getExplicitTypes();
     if (explicitTypes == null) {
       return allTypes();
