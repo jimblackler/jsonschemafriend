@@ -1,5 +1,7 @@
 package net.jimblackler.jsonschemafriend;
 
+import static java.util.Collections.unmodifiableCollection;
+import static java.util.Collections.unmodifiableMap;
 import static net.jimblackler.jsonschemafriend.PathUtils.append;
 import static net.jimblackler.jsonschemafriend.PathUtils.fixUnescaped;
 import static net.jimblackler.jsonschemafriend.PathUtils.resolve;
@@ -125,15 +127,17 @@ public class Schema {
     maxLength = (Number) jsonObject.opt("maxLength");
     minLength = (Number) jsonObject.opt("minLength");
     Object patternObject = jsonObject.opt("pattern");
-    if (patternObject == null) {
-      pattern = null;
-    } else {
+
+    Ecma262Pattern _pattern = null;
+    if (patternObject != null) {
       try {
-        pattern = new Ecma262Pattern((String) patternObject);
+        _pattern = new Ecma262Pattern((String) patternObject);
       } catch (InvalidRegexException e) {
-        throw new GenerationException(e);
+        LOG.warning("Invalid regex: " + e.getMessage());
       }
     }
+    pattern = _pattern;
+
     Object formatObject = jsonObject.opt("format");
     format = formatObject instanceof String ? (String) formatObject : null;
 
@@ -181,12 +185,10 @@ public class Schema {
         requiredProperties.add(array.getString(idx));
       }
     }
+    required = requiredObject instanceof Boolean && (Boolean) requiredObject;
 
     additionalProperties = getSubSchema(jsonObject, "additionalProperties", uri);
     unevaluatedProperties = getSubSchema(jsonObject, "unevaluatedProperties", uri);
-
-    Object required = jsonObject.opt("required");
-    this.required = required instanceof Boolean && (Boolean) required;
 
     Object propertiesObject = jsonObject.opt("properties");
     if (propertiesObject instanceof JSONObject) {
@@ -543,7 +545,7 @@ public class Schema {
   }
 
   public Collection<String> getRequiredProperties() {
-    return Collections.unmodifiableCollection(requiredProperties);
+    return unmodifiableCollection(requiredProperties);
   }
 
   public boolean isRequired() {
@@ -559,23 +561,23 @@ public class Schema {
   }
 
   public Map<String, Schema> getProperties() {
-    return Collections.unmodifiableMap(_properties);
+    return unmodifiableMap(_properties);
   }
 
   public Collection<Ecma262Pattern> getPatternPropertiesPatterns() {
-    return Collections.unmodifiableCollection(patternPropertiesPatterns);
+    return unmodifiableCollection(patternPropertiesPatterns);
   }
 
   public Collection<Schema> getPatternPropertiesSchema() {
-    return Collections.unmodifiableCollection(patternPropertiesSchemas);
+    return unmodifiableCollection(patternPropertiesSchemas);
   }
 
   public Map<String, Collection<String>> getDependentRequired() {
-    return dependentRequired;
+    return unmodifiableMap(dependentRequired);
   }
 
   public Map<String, Schema> getDependentSchemas() {
-    return dependentSchemas;
+    return unmodifiableMap(dependentSchemas);
   }
 
   public Schema getPropertyNames() {
@@ -598,7 +600,7 @@ public class Schema {
   }
 
   public Collection<Schema> getTypesSchema() {
-    return Collections.unmodifiableCollection(typesSchema);
+    return unmodifiableCollection(typesSchema);
   }
 
   public Schema getIf() {
@@ -614,15 +616,15 @@ public class Schema {
   }
 
   public Collection<Schema> getAllOf() {
-    return Collections.unmodifiableCollection(allOf);
+    return unmodifiableCollection(allOf);
   }
 
   public Collection<Schema> getAnyOf() {
-    return anyOf == null ? null : Collections.unmodifiableCollection(anyOf);
+    return anyOf == null ? null : unmodifiableCollection(anyOf);
   }
 
   public Collection<Schema> getOneOf() {
-    return oneOf == null ? null : Collections.unmodifiableCollection(oneOf);
+    return oneOf == null ? null : unmodifiableCollection(oneOf);
   }
 
   public Schema getNot() {
@@ -642,19 +644,15 @@ public class Schema {
   }
 
   public Collection<String> getDisallow() {
-    return disallow;
+    return unmodifiableCollection(disallow);
   }
 
   public Collection<Schema> getDisallowSchemas() {
-    return disallowSchemas;
+    return unmodifiableCollection(disallowSchemas);
   }
 
   public Object getDefault() {
     return defaultValue;
-  }
-
-  public boolean isFullyBuilt() {
-    return fullyBuilt;
   }
 
   public Schema getParent() {
