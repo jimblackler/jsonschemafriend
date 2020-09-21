@@ -1,6 +1,7 @@
 package net.jimblackler.jsonschemafriend;
 
 import java.net.URI;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -11,8 +12,8 @@ public class OneOfError extends ValidationError {
   public OneOfError(URI uri, Object document, List<Schema> passed,
       List<List<ValidationError>> allErrors, Schema schema) {
     super(uri, document, schema);
-    this.passed = passed;
-    this.allErrors = allErrors;
+    this.passed = Collections.unmodifiableList(passed);
+    this.allErrors = Collections.unmodifiableList(allErrors);
   }
 
   public List<List<ValidationError>> getAllErrors() {

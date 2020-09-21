@@ -1,5 +1,7 @@
 package net.jimblackler.jsonschemafriend;
 
+import static java.util.Collections.unmodifiableCollection;
+
 import java.net.URI;
 import java.util.Collection;
 
@@ -11,8 +13,8 @@ public class TypeError extends ValidationError {
       Schema schema) {
     super(path, document, schema);
 
-    expectedTypes = expected;
-    foundTypes = found;
+    expectedTypes = unmodifiableCollection(expected);
+    foundTypes = unmodifiableCollection(found);
   }
 
   public Collection<String> getExpectedTypes() {

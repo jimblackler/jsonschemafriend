@@ -10,11 +10,11 @@ public class AnyOfError extends ValidationError {
   public AnyOfError(
       URI uri, Object document, List<List<ValidationError>> allErrors, Schema schema) {
     super(uri, document, schema);
-    this.allErrors = allErrors;
+    this.allErrors = Collections.unmodifiableList(allErrors);
   }
 
   public List<List<ValidationError>> getAllErrors() {
-    return Collections.unmodifiableList(allErrors);
+    return allErrors;
   }
 
   @Override
