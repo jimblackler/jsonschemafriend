@@ -88,7 +88,7 @@ public class SchemaStore {
         // We don't know this canonical URL, so we treat it as a resource URL and try to fetch
         // it.
         URI documentUri = baseDocumentFromUri(uri);
-        LOG.info("Loading: " + documentUri + System.lineSeparator() + "To resolve: " + uri);
+        LOG.fine("Loading: " + documentUri + " to resolve: " + uri);
 
         try {
           String content;
