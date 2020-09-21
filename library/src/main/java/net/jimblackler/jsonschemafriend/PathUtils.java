@@ -154,13 +154,6 @@ public class PathUtils {
     return token.replace("~1", "/").replace("~0", "~").replace("\\\"", "\"").replace("\\\\", "\\");
   }
 
-  public static String refPathEscape(String value) {
-    // These characters have been seen in paths.
-    value = value.replace("<", "%3C");
-    value = value.replace(">", "%3E");
-    return value;
-  }
-
   public static URI getParent(URI uri) {
     String pointer = uri.getRawFragment();
     if (pointer == null) {
