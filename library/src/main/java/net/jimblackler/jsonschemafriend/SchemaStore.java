@@ -35,6 +35,7 @@ public class SchemaStore {
   private final Map<URI, Object> canonicalUriToObject = new HashMap<>();
   private final Map<URI, Object> canonicalUriToBaseObject = new HashMap<>();
   private final Map<URI, URI> validUriToCanonicalUri = new HashMap<>();
+  private final Map<URI, URI> canonicalUriToResourceApi = new HashMap<>();
   private final Map<URI, Schema> builtSchemas = new HashMap<>();
   private final Collection<URI> mapped = new HashSet<>();
   private final UrlRewriter urlRewriter;
@@ -87,6 +88,7 @@ public class SchemaStore {
         // We don't know this canonical URL, so we treat it as a resource URL and try to fetch
         // it.
         URI documentUri = baseDocumentFromUri(uri);
+        LOG.info("Loading: " + documentUri + System.lineSeparator() + "To resolve: " + uri);
 
         try {
           String content;
@@ -160,15 +162,16 @@ public class SchemaStore {
     if (!mapped.add(uri)) {
       throw new IllegalStateException("Double mapped");
     }
-    return map(object, object, uri, uri, detectMetaSchema(object));
+    return map(object, object, uri, uri, detectMetaSchema(object), true);
   }
 
-  URI map(Object object, Object baseObject, URI validUri, URI canonicaBaselUri, URI metaSchema) {
+  URI map(Object object, Object baseObject, URI validUri, URI canonicalBaseUri, URI metaSchema,
+      boolean isResource) {
     String idKey =
         (MetaSchemaUris.DRAFT_3.equals(metaSchema) || MetaSchemaUris.DRAFT_4.equals(metaSchema))
         ? "id"
         : "$id";
-    URI canonicalUri = canonicaBaselUri;
+    URI canonicalUri = canonicalBaseUri;
     if (object instanceof JSONObject) {
       JSONObject jsonObject = (JSONObject) object;
       Object idObject = jsonObject.opt(idKey);
@@ -190,45 +193,50 @@ public class SchemaStore {
           LOG.warning("Problem with $anchor: " + e.getMessage());
         }
       }
+    }
 
+    if (isResource) {
+      URI was = canonicalUriToResourceApi.put(canonicalUri, validUri);
+      if (was != null) {
+        LOG.warning("Attempt to map from at least two locations: " + canonicalUri
+            + System.lineSeparator() + validUri + System.lineSeparator() + was);
+        return canonicalUri;
+      }
+      if (canonicalUriToObject.put(canonicalUri, object) != null) {
+        throw new IllegalStateException(
+            "Different content with same IDs found mapping " + canonicalUri);
+      }
+
+      if (canonicalUriToBaseObject.put(canonicalUri, baseObject) != null) {
+        throw new IllegalStateException(
+            "Different content with same IDs found mapping " + canonicalUri);
+      }
+    }
+    if (!canonicalBaseUri.equals(canonicalUri)) {
+      validUriToCanonicalUri.put(canonicalBaseUri, canonicalUri);
+    }
+    if (!validUri.equals(canonicalUri)) {
+      validUriToCanonicalUri.put(validUri, canonicalUri);
+    }
+
+    if (object instanceof JSONObject) {
+      JSONObject jsonObject = (JSONObject) object;
       for (String key : jsonObject.keySet()) {
         map(jsonObject.get(key), baseObject, append(validUri, key), append(canonicalUri, key),
-            metaSchema);
-        if (!canonicaBaselUri.equals(canonicalUri) && !canonicaBaselUri.equals(validUri)) {
-          map(jsonObject.get(key), baseObject, append(canonicaBaselUri, key),
-              append(canonicalUri, key), metaSchema);
+            metaSchema, isResource);
+        if (!canonicalBaseUri.equals(canonicalUri) && !canonicalBaseUri.equals(validUri)) {
+          map(jsonObject.get(key), baseObject, append(canonicalBaseUri, key),
+              append(canonicalUri, key), metaSchema, false);
         }
       }
     } else if (object instanceof JSONArray) {
       JSONArray jsonArray = (JSONArray) object;
       for (int idx = 0; idx != jsonArray.length(); idx++) {
         map(jsonArray.get(idx), baseObject, append(validUri, String.valueOf(idx)),
-            append(canonicalUri, String.valueOf(idx)), metaSchema);
+            append(canonicalUri, String.valueOf(idx)), metaSchema, isResource);
       }
     }
 
-    {
-      Object oldValue = canonicalUriToObject.put(canonicalUri, object);
-      if (oldValue != null && oldValue != object) {
-        throw new IllegalStateException(
-            "Different content with same IDs found mapping " + canonicalUri);
-      }
-    }
-
-    {
-      Object oldValue = canonicalUriToBaseObject.put(canonicalUri, baseObject);
-      if (oldValue != null && oldValue != baseObject) {
-        throw new IllegalStateException(
-            "Different content with same IDs found mapping " + canonicalUri);
-      }
-    }
-
-    if (!canonicaBaselUri.equals(canonicalUri)) {
-      validUriToCanonicalUri.put(canonicaBaselUri, canonicalUri);
-    }
-    if (!validUri.equals(canonicalUri)) {
-      validUriToCanonicalUri.put(validUri, canonicalUri);
-    }
     return canonicalUri;
   }
 
