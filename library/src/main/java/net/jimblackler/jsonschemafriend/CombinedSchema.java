@@ -21,7 +21,6 @@ public class CombinedSchema {
     if (anyOf != null && !anyOf.isEmpty()) {
       // For the anyOf operator we return the intersection of the types (implied or explicit) of
       // each subschema.
-      Collection<String> intersection = new HashSet<>();
       for (Schema subSchema : anyOf) {
         allTypes.addAll(inferTypes(subSchema));
       }
