@@ -1,6 +1,7 @@
 package net.jimblackler.jsonschemafriend;
 
 import java.net.URI;
+import java.util.Collections;
 import java.util.List;
 
 public class AnyOfError extends ValidationError {
@@ -13,7 +14,7 @@ public class AnyOfError extends ValidationError {
   }
 
   public List<List<ValidationError>> getAllErrors() {
-    return allErrors;
+    return Collections.unmodifiableList(allErrors);
   }
 
   @Override
