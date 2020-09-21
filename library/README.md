@@ -44,28 +44,31 @@ dependencies {
 ## Maven
 
 ```xml
-    <repositories>
-        <repository>
-            <id>jitpack.io</id>
-            <url>https://jitpack.io</url>
-        </repository>
-    </repositories>
+<repositories>
+    <repository>
+        <id>jitpack.io</id>
+        <url>https://jitpack.io</url>
+    </repository>
+</repositories>
 ```
 
 ```xml
-    <dependency>
-        <groupId>com.github.jimblackler.jsonschematypes</groupId>
-        <artifactId>codegen</artifactId>
-        <version>0.7.5</version>
-    </dependency>
-    <dependency>
-        <groupId>org.json</groupId>
-        <artifactId>json</artifactId>
-        <version>20200518</version>
-    </dependency>
+<dependency>
+    <groupId>com.github.jimblackler.jsonschematypes</groupId>
+    <artifactId>codegen</artifactId>
+    <version>0.7.5</version>
+</dependency>
+<dependency>
+    <groupId>org.json</groupId>
+    <artifactId>json</artifactId>
+    <version>20200518</version>
+</dependency>
 ```
 
 # Usage
+
+Javadocs can be found
+[here](https://javadoc.jitpack.io/com/github/jimblackler /jsonschematypes/jsonschemafriend/0.7.5/javadoc/net/jimblackler /jsonschemafriend/package-summary.html).
 
 ## Via a JSONObject.
 
@@ -197,8 +200,8 @@ public class Main {
 Both schemas and test data can be specified as a `java.io.File`. For example:
 
 ```json
-      Schema schema = schemaStore.loadSchema(new File("/tmp/schema.json"));
-      Validator.validate(schema, new File("/tmp/test.json"));
+Schema schema = schemaStore.loadSchema(new File("/tmp/schema.json"));
+Validator.validate(schema, new File("/tmp/test.json"));
 ```
 
 ## Custom validation handling.
