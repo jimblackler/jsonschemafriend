@@ -17,7 +17,7 @@ public class TypeScriptBuilder {
   private final Collection<String> types;
   private final Schema schema;
   private final TypeScriptBuilder parent;
-  private final List<TypeScriptBuilder> children = new ArrayList<>();
+  private final Collection<TypeScriptBuilder> children = new ArrayList<>();
   private final String typeName;
   private final TypeScriptCodeGenerator typeScriptCodeGenerator;
 
