@@ -89,7 +89,6 @@ public class Schema {
   private final Schema ref;
   private final Schema recursiveRef;
   private final boolean recursiveAnchor;
-  private final boolean fullyBuilt;
   // Own
   private Schema parent;
 
@@ -387,8 +386,6 @@ public class Schema {
     }
 
     defaultValue = jsonObject.opt("default");
-
-    fullyBuilt = true;
   }
 
   private Schema getSubSchema(JSONObject jsonObject, String name, URI uri)
