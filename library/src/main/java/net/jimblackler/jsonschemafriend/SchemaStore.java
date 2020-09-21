@@ -210,14 +210,16 @@ public class SchemaStore {
     {
       Object oldValue = canonicalUriToObject.put(canonicalUri, object);
       if (oldValue != null && oldValue != object) {
-        throw new IllegalStateException("Different content with same IDs found mapping " + canonicalUri);
+        throw new IllegalStateException(
+            "Different content with same IDs found mapping " + canonicalUri);
       }
     }
 
     {
       Object oldValue = canonicalUriToBaseObject.put(canonicalUri, baseObject);
       if (oldValue != null && oldValue != baseObject) {
-        throw new IllegalStateException("Different content with same IDs found mapping " + canonicalUri);
+        throw new IllegalStateException(
+            "Different content with same IDs found mapping " + canonicalUri);
       }
     }
 
