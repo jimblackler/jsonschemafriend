@@ -61,7 +61,7 @@
       },
       "properties": {
         "someProperty": {
-          "$ref": "#/hello%20world"
+          "$ref": "#/hello world"
         }
       }
     },
@@ -115,7 +115,7 @@
       },
       "properties": {
         "someProperty": {
-          "$ref": "#/hello~world"
+          "$ref": "#/hello~0world"
         }
       }
     },

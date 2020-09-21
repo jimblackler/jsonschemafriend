@@ -72,7 +72,6 @@ public class Schema {
   private final Object _const;
   private final List<Object> enums;
   private final Set<String> explicitTypes;
-  private final Set<String> inferredTypes = new HashSet<>();
   private final Collection<Schema> typesSchema = new HashSet<>();
   private final Collection<String> disallow = new HashSet<>();
   private final Collection<Schema> disallowSchemas = new HashSet<>();
@@ -121,11 +120,6 @@ public class Schema {
     minimum = (Number) jsonObject.opt("minimum");
     exclusiveMinimum = jsonObject.opt("exclusiveMinimum");
     divisibleBy = (Number) jsonObject.opt("divisibleBy");
-    if (jsonObject.has("multipleOf") || jsonObject.has("maximum")
-        || jsonObject.has("exclusiveMaximum") || jsonObject.has("minimum")
-        || jsonObject.has("exclusiveMinimum") || jsonObject.has("multdivisibleBy")) {
-      inferredTypes.add("number");
-    }
 
     // string checks
     maxLength = (Number) jsonObject.opt("maxLength");
@@ -151,11 +145,6 @@ public class Schema {
     contentMediaType =
         contentMediaTypeObject instanceof String ? (String) contentMediaTypeObject : null;
 
-    if (jsonObject.has("maxLength") || jsonObject.has("minLength") || jsonObject.has("pattern")
-        || jsonObject.has("format") || jsonObject.has("contentEncoding")
-        || jsonObject.has("contentMediaType")) {
-      inferredTypes.add("string");
-    }
     // array checks
     additionalItems = getSubSchema(jsonObject, "additionalItems", uri);
     unevaluatedItems = getSubSchema(jsonObject, "unevaluatedItems", uri);
@@ -180,12 +169,6 @@ public class Schema {
     contains = getSubSchema(jsonObject, "contains", uri);
     minContains = (Number) jsonObject.opt("minContains");
     maxContains = (Number) jsonObject.opt("maxContains");
-
-    if (jsonObject.has("additionalItems") || jsonObject.has("items") || jsonObject.has("maxItems")
-        || jsonObject.has("minItems") || jsonObject.has("uniqueItems")
-        || jsonObject.has("contains")) {
-      inferredTypes.add("array");
-    }
 
     // object checks
     maxProperties = (Number) jsonObject.opt("maxProperties");
@@ -278,13 +261,6 @@ public class Schema {
 
     propertyNames = getSubSchema(jsonObject, "propertyNames", uri);
 
-    if (jsonObject.has("maxProperties") || jsonObject.has("minProperties")
-        || jsonObject.has("required") || jsonObject.has("additionalProperties")
-        || jsonObject.has("properties") || jsonObject.has("patternProperties")
-        || jsonObject.has("dependencies") || jsonObject.has("propertyNames")) {
-      inferredTypes.add("object");
-    }
-
     // all types checks
     _const = jsonObject.opt("const");
 
@@ -296,7 +272,6 @@ public class Schema {
       for (int idx = 0; idx != enumArray.length(); idx++) {
         Object enumObject = enumArray.get(idx);
         enums.add(enumObject);
-        inferredTypes.add(javaToSchemaType(enumObject));
       }
     }
 
@@ -410,57 +385,8 @@ public class Schema {
     }
 
     defaultValue = jsonObject.opt("default");
-    if (defaultValue != null) {
-      inferredTypes.add(javaToSchemaType(defaultValue));
-    }
+
     fullyBuilt = true;
-  }
-
-  private static String javaToSchemaType(Object object) {
-    if (object.getClass().isArray()) {
-      return "array";
-    }
-    if (object instanceof Integer) {
-      return "integer";
-    }
-
-    if (object instanceof Long) {
-      return "integer";
-    }
-
-    if (object instanceof Short) {
-      return "integer";
-    }
-
-    if (object instanceof Byte) {
-      return "integer";
-    }
-
-    if (object instanceof Number) {
-      return "number";
-    }
-
-    if (object instanceof String) {
-      return "string";
-    }
-
-    if (object instanceof Boolean) {
-      return "boolean";
-    }
-
-    return "object";
-  }
-
-  private static Collection<String> allTypes() {
-    Collection<String> types = new HashSet<>();
-    types.add("array");
-    types.add("boolean");
-    types.add("integer");
-    types.add("null");
-    types.add("number");
-    types.add("object");
-    types.add("string");
-    return types;
   }
 
   private Schema getSubSchema(JSONObject jsonObject, String name, URI uri)
@@ -485,13 +411,6 @@ public class Schema {
       return !(Boolean) schemaObject;
     }
     return false;
-  }
-
-  public Collection<String> getNonProhibitedTypes() {
-    if (explicitTypes == null) {
-      return allTypes();
-    }
-    return Collections.unmodifiableSet(explicitTypes);
   }
 
   @Override
@@ -676,19 +595,6 @@ public class Schema {
       return null;
     }
     return Collections.unmodifiableSet(explicitTypes);
-  }
-
-  public Collection<String> getInferredTypes() {
-    // TODO: this could be made an external static method.
-    if (explicitTypes != null) {
-      return Collections.unmodifiableSet(explicitTypes);
-    }
-
-    if (inferredTypes.isEmpty()) {
-      // If type inference found nothing, we don't want to imply no types are allowed.
-      return allTypes();
-    }
-    return Collections.unmodifiableSet(inferredTypes);
   }
 
   public Collection<Schema> getTypesSchema() {

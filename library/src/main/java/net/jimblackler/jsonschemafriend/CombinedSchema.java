@@ -1,5 +1,7 @@
 package net.jimblackler.jsonschemafriend;
 
+import static net.jimblackler.jsonschemafriend.TypeInferrer.inferTypes;
+
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -13,7 +15,7 @@ public class CombinedSchema {
   }
 
   public Collection<String> getInferredTypes() {
-    Collection<String> allTypes = new HashSet<>(schema.getInferredTypes());
+    Collection<String> allTypes = inferTypes(schema);
 
     Collection<Schema> anyOf = schema.getAnyOf();
     if (anyOf != null && !anyOf.isEmpty()) {
@@ -21,7 +23,7 @@ public class CombinedSchema {
       // each subschema.
       Collection<String> intersection = new HashSet<>();
       for (Schema subSchema : anyOf) {
-        allTypes.addAll(subSchema.getInferredTypes());
+        allTypes.addAll(inferTypes(subSchema));
       }
     }
 
@@ -30,7 +32,7 @@ public class CombinedSchema {
       // For the allOf operator we return the union of the types (implied or explicit) of each
       // subschema.
       for (Schema subSchema : allOf) {
-        Collection<String> types = subSchema.getInferredTypes();
+        Collection<String> types = inferTypes(subSchema);
         allTypes.retainAll(types);
       }
     }
