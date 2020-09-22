@@ -87,10 +87,10 @@ public class TypeInferrer {
     }
 
     if (schema.getMaxProperties() != null || schema.getMinProperties() != null
-        || !schema.getRequiredProperties().isEmpty() || !schema.getRequiredProperties().isEmpty()
-        || schema.getAdditionalProperties() != null || schema.getProperties() != null
-        || !schema.getPatternPropertiesPatterns().isEmpty() || schema.getDependentSchemas() != null
-        || schema.getPropertyNames() != null) {
+        || !schema.getRequiredProperties().isEmpty() || schema.isRequired()
+        || schema.getAdditionalProperties() != null || !schema.getProperties().isEmpty()
+        || !schema.getPatternPropertiesPatterns().isEmpty()
+        || !schema.getDependentSchemas().isEmpty() || schema.getPropertyNames() != null) {
       inferredTypes.add("object");
     }
 
