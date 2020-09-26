@@ -7,7 +7,6 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
-import net.jimblackler.jsonschematypes.codegen.CodeGeneration;
 import net.jimblackler.jsonschematypes.codegen.CodeGenerationException;
 import net.jimblackler.jsonschematypes.codegen.CodeGenerator;
 import net.jimblackler.jsonschematypes.codegen.FileUtils;
