@@ -6,7 +6,6 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import net.jimblackler.jsonschemafriend.CombinedSchema;
 import net.jimblackler.jsonschemafriend.Schema;
@@ -14,7 +13,6 @@ import net.jimblackler.jsonschemafriend.Schema;
 public class TypeScriptBuilder {
   private final String baseClassName;
   private final String fullClassName;
-  private final Collection<String> types;
   private final Schema schema;
   private final TypeScriptBuilder parent;
   private final Collection<TypeScriptBuilder> children = new ArrayList<>();
@@ -35,7 +33,7 @@ public class TypeScriptBuilder {
     }
 
     CombinedSchema combinedSchema = new CombinedSchema(schema);
-    types = combinedSchema.getInferredTypes();
+    Collection<String> types = combinedSchema.getInferredTypes();
     baseClassName = nameForSchema(schema);
     if (this.parent == null) {
       fullClassName = baseClassName;
