@@ -273,14 +273,9 @@ public class Validator {
         switch (contentMediaType) {
           case "application/json":
             try {
-              new JSONArray(stringToValidate);
+              new JSONArray("[" + stringToValidate + "]");
             } catch (JSONException e) {
-              try {
-                new JSONObject(stringToValidate);
-              } catch (JSONException e2) {
-                errorConsumer.accept(
-                    new ContentEncodingError(uri, document, schema, e.getMessage()));
-              }
+              errorConsumer.accept(new ContentEncodingError(uri, document, schema, e.getMessage()));
             }
             break;
         }
