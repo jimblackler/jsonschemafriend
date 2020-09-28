@@ -89,6 +89,9 @@ public class Schema {
   private final Schema ref;
   private final Schema recursiveRef;
   private final boolean recursiveAnchor;
+
+  private final Object example;
+
   // Own
   private Schema parent;
 
@@ -211,7 +214,7 @@ public class Schema {
         try {
           patternPropertiesPatterns.add(new Ecma262Pattern(propertyPattern));
         } catch (InvalidRegexException ex) {
-          throw new GenerationException(ex);
+          LOG.warning("Invalid regular expression: " + propertyPattern);
         }
         URI patternPointer = append(propertiesPointer, propertyPattern);
         patternPropertiesSchemas.add(getSubSchema(patternPointer));
@@ -386,6 +389,7 @@ public class Schema {
     }
 
     defaultValue = jsonObject.opt("default");
+    example = jsonObject.opt("example");
   }
 
   private Schema getSubSchema(JSONObject jsonObject, String name, URI uri)
@@ -650,6 +654,10 @@ public class Schema {
 
   public Object getDefault() {
     return defaultValue;
+  }
+
+  public Object getExample() {
+    return example;
   }
 
   public Schema getParent() {
