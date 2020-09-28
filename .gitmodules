@@ -1,4 +1,7 @@
 [submodule "library/src/test/resources/suites/JSON-Schema-Test-Suite"]
 	path = library/src/test/resources/suites/JSON-Schema-Test-Suite
 	url = https://github.com/json-schema-org/JSON-Schema-Test-Suite
-	branch = master #ether/recursiveRef
+	branch = master
+[submodule "library/src/test/resources/SchemaStore"]
+	path = library/src/test/resources/SchemaStore
+	url = https://github.com/SchemaStore/schemastore
