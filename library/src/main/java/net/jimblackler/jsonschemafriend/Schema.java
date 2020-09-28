@@ -42,7 +42,7 @@ public class Schema {
   // string checks
   private final Number maxLength;
   private final Number minLength;
-  private final Ecma262Pattern pattern;
+  private final RegExPattern pattern;
   private final String format;
   private final String contentEncoding;
   private final String contentMediaType;
@@ -65,7 +65,7 @@ public class Schema {
   private final Schema additionalProperties;
   private final Schema unevaluatedProperties;
   private final Map<String, Schema> _properties = new HashMap<>();
-  private final Collection<Ecma262Pattern> patternPropertiesPatterns = new ArrayList<>();
+  private final Collection<RegExPattern> patternPropertiesPatterns = new ArrayList<>();
   private final Collection<Schema> patternPropertiesSchemas = new ArrayList<>();
   private final Map<String, Collection<String>> dependentRequired = new HashMap<>();
   private final Map<String, Schema> dependentSchemas = new HashMap<>();
@@ -91,12 +91,15 @@ public class Schema {
   private final boolean recursiveAnchor;
 
   private final Object example;
+  private final RegExPatternSupplier regExPatternSupplier;
 
   // Own
   private Schema parent;
 
-  Schema(SchemaStore schemaStore, URI uri) throws GenerationException {
+  Schema(SchemaStore schemaStore, URI uri, RegExPatternSupplier regExPatternSupplier)
+      throws GenerationException {
     this.schemaStore = schemaStore;
+    this.regExPatternSupplier = regExPatternSupplier;
     this.uri = uri;
 
     schemaStore.register(uri, this);
@@ -130,10 +133,10 @@ public class Schema {
     minLength = (Number) jsonObject.opt("minLength");
     Object patternObject = jsonObject.opt("pattern");
 
-    Ecma262Pattern _pattern = null;
+    RegExPattern _pattern = null;
     if (patternObject != null) {
       try {
-        _pattern = new Ecma262Pattern((String) patternObject);
+        _pattern = regExPatternSupplier.newPattern((String) patternObject);
       } catch (InvalidRegexException e) {
         LOG.warning("Invalid regex: " + e.getMessage());
       }
@@ -212,7 +215,7 @@ public class Schema {
       while (it.hasNext()) {
         String propertyPattern = it.next();
         try {
-          patternPropertiesPatterns.add(new Ecma262Pattern(propertyPattern));
+          patternPropertiesPatterns.add(regExPatternSupplier.newPattern(propertyPattern));
         } catch (InvalidRegexException ex) {
           LOG.warning("Invalid regular expression: " + propertyPattern);
         }
@@ -481,7 +484,7 @@ public class Schema {
     return minLength;
   }
 
-  public Ecma262Pattern getPattern() {
+  public RegExPattern getPattern() {
     return pattern;
   }
 
@@ -565,7 +568,7 @@ public class Schema {
     return unmodifiableMap(_properties);
   }
 
-  public Collection<Ecma262Pattern> getPatternPropertiesPatterns() {
+  public Collection<RegExPattern> getPatternPropertiesPatterns() {
     return unmodifiableCollection(patternPropertiesPatterns);
   }
 
@@ -669,5 +672,9 @@ public class Schema {
       throw new IllegalStateException("Schemas may only have one parent");
     }
     this.parent = parent;
+  }
+
+  public RegExPatternSupplier getRegExPatternSupplier() {
+    return regExPatternSupplier;
   }
 }

@@ -44,7 +44,8 @@ public class FormatChecker {
     IDNA_DISALLOWED = set;
   }
 
-  static String formatCheck(String string, String format, URI metaSchema) {
+  static String formatCheck(
+      String string, String format, URI metaSchema, RegExPatternSupplier regExPatternSupplier) {
     switch (format) {
       case "uri":
         try {
@@ -163,7 +164,7 @@ public class FormatChecker {
         break;
       case "regex":
         try {
-          new Ecma262Pattern(string);
+          regExPatternSupplier.newPattern(string);
         } catch (InvalidRegexException ex) {
           return ex.getMessage();
         }

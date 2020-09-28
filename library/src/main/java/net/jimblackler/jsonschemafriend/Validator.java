@@ -236,14 +236,15 @@ public class Validator {
       if (minLength != null && unicodeCompliantLength < minLength.intValue()) {
         errorConsumer.accept(new MinLengthError(uri, document, schema));
       }
-      Ecma262Pattern pattern = schema.getPattern();
+      RegExPattern pattern = schema.getPattern();
       if (pattern != null && !pattern.matches(string)) {
         errorConsumer.accept(new PatternError(uri, document, schema));
       }
       String format = schema.getFormat();
       if (format != null) {
         URI metaSchema = detectMetaSchema(document);
-        String message = FormatChecker.formatCheck(string, format, metaSchema);
+        String message =
+            FormatChecker.formatCheck(string, format, metaSchema, schema.getRegExPatternSupplier());
         if (message != null) {
           errorConsumer.accept(new FormatError(uri, document, schema, message));
         }
@@ -395,7 +396,7 @@ public class Validator {
       }
 
       Collection<String> remainingProperties = new HashSet<>(jsonObject.keySet());
-      Collection<Ecma262Pattern> patternPropertiesPatterns = schema.getPatternPropertiesPatterns();
+      Collection<RegExPattern> patternPropertiesPatterns = schema.getPatternPropertiesPatterns();
       Collection<Schema> patternPropertiesSchema = schema.getPatternPropertiesSchema();
       for (String property : jsonObject.keySet()) {
         if (_properties.containsKey(property)) {
@@ -405,10 +406,10 @@ public class Validator {
           selfPropertyHandler.accept(property);
         }
 
-        Iterator<Ecma262Pattern> it0 = patternPropertiesPatterns.iterator();
+        Iterator<RegExPattern> it0 = patternPropertiesPatterns.iterator();
         Iterator<Schema> it1 = patternPropertiesSchema.iterator();
         while (it0.hasNext()) {
-          Ecma262Pattern pattern1 = it0.next();
+          RegExPattern pattern1 = it0.next();
           Schema schema1 = it1.next();
           if (pattern1.matches(property)) {
             validate(

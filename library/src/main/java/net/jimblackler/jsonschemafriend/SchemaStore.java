@@ -40,12 +40,20 @@ public class SchemaStore {
   private final Collection<URI> mapped = new HashSet<>();
   private final UrlRewriter urlRewriter;
   private int memorySchemaNumber;
+  private final RegExPatternSupplier regExPatternSupplier;
 
   public SchemaStore() {
     urlRewriter = null;
+    regExPatternSupplier = Ecma262Pattern::new;
+  }
+
+  public SchemaStore(RegExPatternSupplier regExPatternSupplier, UrlRewriter urlRewriter) {
+    this.regExPatternSupplier = regExPatternSupplier;
+    this.urlRewriter = urlRewriter;
   }
 
   public SchemaStore(UrlRewriter urlRewriter) {
+    regExPatternSupplier = Ecma262Pattern::new;
     this.urlRewriter = urlRewriter;
   }
 
@@ -155,7 +163,7 @@ public class SchemaStore {
       }
     }
 
-    return new Schema(this, uri);
+    return new Schema(this, uri, this.regExPatternSupplier);
   }
 
   public void register(URI path, Schema schema) throws GenerationException {

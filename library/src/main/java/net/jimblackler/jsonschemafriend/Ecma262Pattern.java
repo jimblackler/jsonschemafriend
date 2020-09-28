@@ -4,7 +4,7 @@ import org.graalvm.polyglot.Context;
 import org.graalvm.polyglot.PolyglotException;
 import org.graalvm.polyglot.Value;
 
-public class Ecma262Pattern {
+public class Ecma262Pattern implements RegExPattern {
   private static final Context GRAALVM_CONTEXT = Context.create();
   private final String pattern;
   private final Value function;
@@ -22,6 +22,7 @@ public class Ecma262Pattern {
     }
   }
 
+  @Override
   public boolean matches(String text) {
     return !function.execute(text).isNull();
   }
