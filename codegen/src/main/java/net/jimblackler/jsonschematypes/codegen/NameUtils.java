@@ -32,7 +32,24 @@ public class NameUtils {
     String lastPart = split[split.length - 1];
     String namePart = lastPart.split("\\.", 2)[0];
 
-    return makeJavaLegal(namePart);
+    String name = makeJavaLegal(namePart);
+    Schema parentSchema = schema.getParent();
+    if (parentSchema != null
+        && (parentSchema.getItems() == schema || parentSchema.getAdditionalItems() == schema
+            || (parentSchema.getItemsTuple() != null
+                && parentSchema.getItemsTuple().contains(schema)))) {
+      if ("items".equals(name)) {
+        String parentName = nameForSchema(parentSchema);
+        if (parentName.endsWith("s")) {
+          name = parentName;
+        }
+      }
+
+      if (schema.getParent() != null && name.endsWith("s")) {
+        name = name.substring(0, name.length() - "s".length());
+      }
+    }
+    return name;
   }
 
   static String makeJavaLegal(String namePart) {
