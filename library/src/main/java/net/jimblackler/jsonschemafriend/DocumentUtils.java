@@ -15,14 +15,16 @@ public class DocumentUtils {
 
   public static Object parseJson(String content) {
     content = content.replaceAll("[\uFEFF-\uFFFF]", ""); // Strip the dreaded FEFF.
-    content = content.trim();
-    char firstChar = content.charAt(0);
-    if (firstChar == '[') {
-      return new JSONArray(content);
-    } else if (firstChar == '{') {
-      return new JSONObject(content);
-    } else {
-      throw new JSONException("Doesn't look like JSON.");
+    return new JSONArray("[" + content + "]").get(0);
+  }
+
+  public static String toString(Object object) {
+    if (object instanceof JSONObject) {
+      return ((JSONObject) object).toString(2);
     }
+    if (object instanceof JSONArray) {
+      return ((JSONArray) object).toString(2);
+    }
+    return object.toString();
   }
 }
