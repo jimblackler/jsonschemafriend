@@ -113,4 +113,8 @@ public class TypeInferrer {
     }
     return explicitTypes;
   }
+
+  public static Collection<String> getNonProhibitedTypes(CombinedSchema schema) {
+    return schema.getNonProhibitedTypes();
+  }
 }
