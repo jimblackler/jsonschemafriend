@@ -139,7 +139,13 @@ public class SchemaStore {
           Schema metaSchema = loadSchema(metaSchemaUri, false);
           List<ValidationError> errors = new ArrayList<>();
 
-          validate(metaSchema, schemaObject, ROOT, errors::add);
+          validate(metaSchema, schemaObject, ROOT, validationError -> {
+            if (validationError instanceof FormatError) {
+              LOG.warning(validationError.getMessage());
+              return;
+            }
+            errors.add(validationError);
+          });
           if (!errors.isEmpty()) {
             throw new GenerationException(errors.stream()
                                               .map(Object::toString)
