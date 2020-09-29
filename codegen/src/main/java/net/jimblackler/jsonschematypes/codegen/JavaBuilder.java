@@ -94,6 +94,10 @@ public class JavaBuilder {
       _name = _class.name();
 
       StringBuilder docs = new StringBuilder();
+      String description = schema.getDescription();
+      if (description != null) {
+        docs.append(description).append(System.lineSeparator()).append(System.lineSeparator());
+      }
       docs.append("Created from ").append(schema.getUri()).append(System.lineSeparator());
       docs.append("Explicit types ")
           .append(schema.getExplicitTypes())

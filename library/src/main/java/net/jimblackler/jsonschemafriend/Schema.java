@@ -91,6 +91,9 @@ public class Schema {
   private final boolean recursiveAnchor;
 
   private final Object example;
+  private final String title;
+  private final String description;
+
   private final RegExPatternSupplier regExPatternSupplier;
 
   // Own
@@ -392,6 +395,8 @@ public class Schema {
     }
 
     defaultValue = jsonObject.opt("default");
+    title = jsonObject.optString("title");
+    description = jsonObject.optString("description");
     example = jsonObject.opt("example");
   }
 
@@ -661,6 +666,14 @@ public class Schema {
 
   public Object getExample() {
     return example;
+  }
+
+  public String getTitle() {
+    return title;
+  }
+
+  public String getDescription() {
+    return description;
   }
 
   public Schema getParent() {
