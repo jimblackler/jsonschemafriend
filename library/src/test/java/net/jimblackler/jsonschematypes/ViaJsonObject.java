@@ -30,7 +30,7 @@ public class ViaJsonObject {
       JSONObject myObject = new JSONObject();
       myObject.put("myValue", "x");
       List<ValidationError> errors = new ArrayList<>();
-      validate(schema, myObject, errors::add);
+      validate(schema, myObject, validationError -> true, errors::add);
       assertFalse(errors.isEmpty());
     }
 
@@ -38,7 +38,7 @@ public class ViaJsonObject {
       JSONObject myObject = new JSONObject();
       myObject.put("myValue", 1);
       List<ValidationError> errors = new ArrayList<>();
-      validate(schema, myObject, errors::add);
+      validate(schema, myObject, validationError -> true, errors::add);
       assertTrue(errors.isEmpty());
     }
   }

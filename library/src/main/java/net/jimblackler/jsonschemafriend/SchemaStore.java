@@ -146,14 +146,8 @@ public class SchemaStore {
         if (!normalize(metaSchemaUri).equals(uri)) {
           Schema metaSchema = loadSchema(metaSchemaUri, false);
           List<ValidationError> errors = new ArrayList<>();
-
-          validate(metaSchema, schemaObject, ROOT, validationError -> {
-            if (validationError instanceof FormatError) {
-              LOG.warning(validationError.getMessage());
-              return;
-            }
-            errors.add(validationError);
-          });
+          validate(metaSchema, schemaObject, ROOT,
+              validationError -> !(validationError instanceof FormatError), errors::add);
           if (!errors.isEmpty()) {
             throw new GenerationException(errors.stream()
                                               .map(Object::toString)

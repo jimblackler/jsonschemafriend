@@ -20,6 +20,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import net.jimblackler.jsonschemafriend.DocumentUtils;
+import net.jimblackler.jsonschemafriend.FormatError;
 import net.jimblackler.jsonschemafriend.SchemaStore;
 import net.jimblackler.jsonschemafriend.UrlRewriter;
 import net.jimblackler.jsonschemafriend.ValidationError;
@@ -91,7 +92,8 @@ public class SuiteTest {
                   System.out.println();
 
                   List<ValidationError> errors = new ArrayList<>();
-                  validate(schema1, data1, URI.create(""), errors::add);
+                  validate(schema1, data1, URI.create(""),
+                      validationError -> !(validationError instanceof FormatError), errors::add);
 
                   System.out.print("Expected to " + (valid ? "pass" : "fail") + " ... ");
                   if (errors.isEmpty()) {
