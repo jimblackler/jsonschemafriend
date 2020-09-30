@@ -96,7 +96,9 @@ public class JavaBuilder {
       StringBuilder docs = new StringBuilder();
       String description = schema.getDescription();
       if (description != null) {
-        docs.append(description).append(System.lineSeparator()).append(System.lineSeparator());
+        docs.append(htmlEscape(description))
+            .append(System.lineSeparator())
+            .append(System.lineSeparator());
       }
       docs.append("Created from ").append(schema.getUri()).append(System.lineSeparator());
       docs.append("Explicit types ")
@@ -186,6 +188,10 @@ public class JavaBuilder {
       jDefinedClass = null;
       _name = name;
     }
+  }
+
+  private static String htmlEscape(String description) {
+    return description.replace("<", "&lt;").replace(">", "&gt;").replace("&", "&amp;");
   }
 
   private static JExpression expressionFromObject(Object object) {
