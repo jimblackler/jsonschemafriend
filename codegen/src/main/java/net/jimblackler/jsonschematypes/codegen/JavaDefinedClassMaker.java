@@ -1,15 +1,16 @@
 package net.jimblackler.jsonschematypes.codegen;
 
-import com.sun.codemodel.JClassAlreadyExistsException;
-import com.sun.codemodel.JClassContainer;
-import com.sun.codemodel.JDefinedClass;
+import com.helger.jcodemodel.IJClassContainer;
+import com.helger.jcodemodel.JCodeModelException;
+import com.helger.jcodemodel.JDefinedClass;
 
 class JavaDefinedClassMaker {
-  static JDefinedClass makeClassForSchema(JClassContainer classParent, String name, Client client) {
+  static JDefinedClass makeClassForSchema(
+      IJClassContainer<JDefinedClass> classParent, String name, Client client) {
     /* Ensure no direct ancestor has the same name */
     while (true) {
       boolean changed = false;
-      for (JClassContainer container = classParent; container instanceof JDefinedClass;
+      for (IJClassContainer<?> container = classParent; container instanceof JDefinedClass;
            container = container.parentContainer()) {
         JDefinedClass classContainer = (JDefinedClass) container;
         if (classContainer.name().equals(name)) {
@@ -28,7 +29,7 @@ class JavaDefinedClassMaker {
       try {
         _class = client.getClass(name);
         break;
-      } catch (JClassAlreadyExistsException e) {
+      } catch (JCodeModelException e) {
         name = varyName(name);
       }
     }
@@ -48,6 +49,6 @@ class JavaDefinedClassMaker {
   }
 
   interface Client {
-    JDefinedClass getClass(String name) throws JClassAlreadyExistsException;
+    JDefinedClass getClass(String name) throws JCodeModelException;
   }
 }

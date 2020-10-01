@@ -4,21 +4,21 @@ import static net.jimblackler.jsonschematypes.codegen.JavaDefinedClassMaker.make
 import static net.jimblackler.jsonschematypes.codegen.NameUtils.makeJavaLegal;
 import static net.jimblackler.jsonschematypes.codegen.NameUtils.nameForSchema;
 
-import com.sun.codemodel.JClass;
-import com.sun.codemodel.JClassContainer;
-import com.sun.codemodel.JCodeModel;
-import com.sun.codemodel.JDefinedClass;
-import com.sun.codemodel.JEnumConstant;
-import com.sun.codemodel.JExpr;
-import com.sun.codemodel.JExpression;
-import com.sun.codemodel.JFieldVar;
-import com.sun.codemodel.JInvocation;
-import com.sun.codemodel.JMethod;
-import com.sun.codemodel.JMod;
-import com.sun.codemodel.JPackage;
-import com.sun.codemodel.JSwitch;
-import com.sun.codemodel.JType;
-import com.sun.codemodel.JVar;
+import com.helger.jcodemodel.AbstractJClass;
+import com.helger.jcodemodel.AbstractJType;
+import com.helger.jcodemodel.IJClassContainer;
+import com.helger.jcodemodel.IJExpression;
+import com.helger.jcodemodel.JCodeModel;
+import com.helger.jcodemodel.JDefinedClass;
+import com.helger.jcodemodel.JEnumConstant;
+import com.helger.jcodemodel.JExpr;
+import com.helger.jcodemodel.JFieldVar;
+import com.helger.jcodemodel.JInvocation;
+import com.helger.jcodemodel.JMethod;
+import com.helger.jcodemodel.JMod;
+import com.helger.jcodemodel.JPackage;
+import com.helger.jcodemodel.JSwitch;
+import com.helger.jcodemodel.JVar;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
@@ -32,7 +32,7 @@ import org.json.JSONObject;
 public class JavaBuilder {
   private final JDefinedClass jDefinedClass;
   private final String _name;
-  private final JType dataType;
+  private final AbstractJType dataType;
   private final List<JEnumConstant> enumConstants = new ArrayList<>();
   private final Schema schema;
 
@@ -79,7 +79,7 @@ public class JavaBuilder {
     }
 
     Schema parentSchema = schema.getParent();
-    JClassContainer classParent =
+    IJClassContainer<JDefinedClass> classParent =
         parentSchema == null ? jPackage : javaCodeGenerator.get(parentSchema).getDefinedClass();
 
     String name = nameForSchema(schema);
@@ -172,9 +172,7 @@ public class JavaBuilder {
       List<Object> enums = schema.getEnums();
       JDefinedClass _enum = makeClassForSchema(classParent, name, classParent::_enum);
 
-      StringBuilder docs = new StringBuilder();
-      docs.append("Created from ").append(schema.getUri()).append(System.lineSeparator());
-      _enum.javadoc().add(docs.toString());
+      _enum.javadoc().add("Created from " + schema.getUri() + System.lineSeparator());
 
       _name = _enum.name();
 
@@ -195,7 +193,7 @@ public class JavaBuilder {
     return description.replace("<", "&lt;").replace(">", "&gt;").replace("&", "&amp;");
   }
 
-  private static JExpression expressionFromObject(Object object) {
+  private static IJExpression expressionFromObject(Object object) {
     if (object instanceof Integer) {
       return JExpr.lit((Integer) object);
     }
@@ -227,11 +225,11 @@ public class JavaBuilder {
     return null;
   }
 
-  private static JExpression castIfNeeded(JClass _class, JFieldVar field) {
+  private static IJExpression castIfNeeded(AbstractJClass _class, JFieldVar field) {
     return field.type().equals(_class) ? field : JExpr.cast(_class, field);
   }
 
-  private static String getOptOrGet(boolean get, JType dataType, JCodeModel jCodeModel) {
+  private static String getOptOrGet(boolean get, AbstractJType dataType, JCodeModel jCodeModel) {
     String kind = get ? "get" : "opt";
     if (dataType.equals(jCodeModel.ref(JSONObject.class))) {
       return kind + "JSONObject";
@@ -262,11 +260,11 @@ public class JavaBuilder {
     return jDefinedClass;
   }
 
-  private void writePropertyGetters(boolean requiredProperty, JExpression defaultValue,
+  private void writePropertyGetters(boolean requiredProperty, IJExpression defaultValue,
       JDefinedClass holderClass, JFieldVar dataField, String propertyName, JCodeModel jCodeModel) {
-    JExpression asJsonObject = castIfNeeded(jCodeModel.ref(JSONObject.class), dataField);
+    IJExpression asJsonObject = castIfNeeded(jCodeModel.ref(JSONObject.class), dataField);
     String nameForGetters = NameUtils.snakeToCamel(propertyName);
-    JType returnType;
+    AbstractJType returnType;
     if (jDefinedClass == null) {
       returnType = dataType;
     } else {
@@ -303,10 +301,10 @@ public class JavaBuilder {
   }
 
   private void writeItemGetters(JDefinedClass holderClass, int fixedPosition, JFieldVar dataField,
-      JCodeModel jCodeModel, JExpression defaultValue) {
-    JExpression asJsonArray = castIfNeeded(jCodeModel.ref(JSONArray.class), dataField);
+      JCodeModel jCodeModel, IJExpression defaultValue) {
+    IJExpression asJsonArray = castIfNeeded(jCodeModel.ref(JSONArray.class), dataField);
     String nameForGetters = _name;
-    JType returnType;
+    AbstractJType returnType;
     if (jDefinedClass == null) {
       returnType = dataType;
     } else {
@@ -314,7 +312,7 @@ public class JavaBuilder {
     }
     JMethod getter = holderClass.method(JMod.PUBLIC, returnType,
         (returnType.equals(jCodeModel.BOOLEAN) ? "is" : "get") + nameForGetters);
-    JExpression positionSource;
+    IJExpression positionSource;
     if (fixedPosition == -1) {
       positionSource = getter.param(jCodeModel.INT, "index");
     } else {
@@ -333,7 +331,7 @@ public class JavaBuilder {
       getter.body()._return(JExpr._new(jDefinedClass).arg(getObject));
 
       holderClass._implements(jCodeModel.ref(Iterable.class).narrow(jDefinedClass));
-      JClass iteratorType = jCodeModel.ref(Iterator.class).narrow(jDefinedClass);
+      AbstractJClass iteratorType = jCodeModel.ref(Iterator.class).narrow(jDefinedClass);
       JMethod iteratorMethod = holderClass.method(JMod.PUBLIC, iteratorType, "iterator");
 
       JDefinedClass iteratorAnonClass = jCodeModel.anonymousClass(iteratorType);

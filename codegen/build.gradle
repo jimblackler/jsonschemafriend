@@ -22,7 +22,7 @@ afterEvaluate {
             release(MavenPublication) {
                 group = 'net.jimblackler'
                 artifactId = 'codegen'
-                version = '0.7.6'
+                version = '0.7.7'
                 artifact(sourceJar)
                 artifact(javadocJar)
                 from components.java
@@ -34,6 +34,6 @@ afterEvaluate {
 dependencies {
     implementation project(':library')
     implementation 'org.json:json:20200518'
-    implementation 'com.sun.codemodel:codemodel:2.6'
+    implementation 'com.helger:jcodemodel:3.4.0'
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.6.2'
 }

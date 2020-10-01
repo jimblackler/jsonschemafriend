@@ -1,7 +1,8 @@
 package net.jimblackler.jsonschematypes.codegen;
 
-import com.sun.codemodel.JCodeModel;
-import com.sun.codemodel.JPackage;
+import com.helger.jcodemodel.JCodeModel;
+import com.helger.jcodemodel.JPackage;
+import com.helger.jcodemodel.writer.JCMWriter;
 import java.io.IOException;
 import java.net.URI;
 import java.nio.file.Path;
@@ -35,7 +36,9 @@ public class JavaCodeGenerator implements CodeGenerator {
   }
 
   public void output(Path path) throws IOException {
-    jCodeModel.build(path.toFile());
+    JCMWriter jcmWriter = new JCMWriter(jCodeModel);
+    jcmWriter.setIndentString("  ");
+    jcmWriter.build(path.toFile());
   }
 
   public JCodeModel getJCodeModel() {
