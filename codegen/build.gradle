@@ -11,14 +11,20 @@ task sourceJar(type: Jar) {
     classifier 'sources'
 }
 
+task javadocJar(type: Jar, dependsOn: javadoc) {
+    from javadoc.destinationDir
+    classifier 'javadoc'
+}
+
 afterEvaluate {
     publishing {
         publications {
             release(MavenPublication) {
                 group = 'net.jimblackler'
                 artifactId = 'codegen'
-                version = '0.7.5'
+                version = '0.7.6'
                 artifact(sourceJar)
+                artifact(javadocJar)
                 from components.java
             }
         }
