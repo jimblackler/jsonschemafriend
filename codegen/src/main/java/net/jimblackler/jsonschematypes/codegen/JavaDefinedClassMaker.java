@@ -26,7 +26,7 @@ class JavaDefinedClassMaker {
     JDefinedClass _class;
     while (true) {
       try {
-        _class = client.getaClass(name);
+        _class = client.getClass(name);
         break;
       } catch (JClassAlreadyExistsException e) {
         name = varyName(name);
@@ -48,6 +48,6 @@ class JavaDefinedClassMaker {
   }
 
   interface Client {
-    JDefinedClass getaClass(String name) throws JClassAlreadyExistsException;
+    JDefinedClass getClass(String name) throws JClassAlreadyExistsException;
   }
 }

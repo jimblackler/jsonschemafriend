@@ -1,5 +1,6 @@
 package net.jimblackler.jsonschematypes.codegen;
 
+import static net.jimblackler.jsonschematypes.codegen.JavaDefinedClassMaker.makeClassForSchema;
 import static net.jimblackler.jsonschematypes.codegen.NameUtils.makeJavaLegal;
 import static net.jimblackler.jsonschematypes.codegen.NameUtils.nameForSchema;
 
@@ -20,6 +21,7 @@ import com.sun.codemodel.JType;
 import com.sun.codemodel.JVar;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import net.jimblackler.jsonschemafriend.CombinedSchema;
@@ -83,13 +85,12 @@ public class JavaBuilder {
     String name = nameForSchema(schema);
     boolean isComplexObject = dataType.equals(jCodeModel.ref(JSONObject.class))
         && !combinedSchema.getProperties().isEmpty();
-    if (isComplexObject || dataType.equals(jCodeModel.ref(Object.class))
-        || dataType.equals(jCodeModel.ref(JSONArray.class))) {
-      JDefinedClass _class = JavaDefinedClassMaker.makeClassForSchema(classParent, name,
+    boolean isArray = dataType.equals(jCodeModel.ref(JSONArray.class));
+    if (isComplexObject || dataType.equals(jCodeModel.ref(Object.class)) || isArray) {
+      JDefinedClass _class = makeClassForSchema(classParent, name,
           (name12)
               -> classParent._class(
                   parentSchema == null ? JMod.PUBLIC : JMod.STATIC | JMod.PUBLIC, name12));
-
       jDefinedClass = _class;
       _name = _class.name();
 
@@ -162,14 +163,14 @@ public class JavaBuilder {
       }
 
       if (types.contains("array")) {
-        JMethod sizeMethod = jDefinedClass.method(JMod.PUBLIC, jCodeModel.INT, "size");
-        JExpression asJsonArray = castIfNeeded(jCodeModel.ref(JSONArray.class), dataField);
-        sizeMethod.body()._return(JExpr.invoke(asJsonArray, "length"));
+        jDefinedClass.method(JMod.PUBLIC, jCodeModel.INT, "size")
+            .body()
+            ._return(
+                JExpr.invoke(castIfNeeded(jCodeModel.ref(JSONArray.class), dataField), "length"));
       }
     } else if (schema.getEnums() != null && dataType.equals(jCodeModel.ref(String.class))) {
       List<Object> enums = schema.getEnums();
-      JDefinedClass _enum =
-          JavaDefinedClassMaker.makeClassForSchema(classParent, name, classParent::_enum);
+      JDefinedClass _enum = makeClassForSchema(classParent, name, classParent::_enum);
 
       StringBuilder docs = new StringBuilder();
       docs.append("Created from ").append(schema.getUri()).append(System.lineSeparator());
@@ -330,6 +331,25 @@ public class JavaBuilder {
       getter.body()._return(getObject);
     } else {
       getter.body()._return(JExpr._new(jDefinedClass).arg(getObject));
+
+      holderClass._implements(jCodeModel.ref(Iterable.class).narrow(jDefinedClass));
+      JClass iteratorType = jCodeModel.ref(Iterator.class).narrow(jDefinedClass);
+      JMethod iteratorMethod = holderClass.method(JMod.PUBLIC, iteratorType, "iterator");
+
+      JDefinedClass iteratorAnonClass = jCodeModel.anonymousClass(iteratorType);
+      JVar nativeIterator =
+          iteratorMethod.body().decl(jCodeModel.ref(Iterator.class).narrow(Object.class),
+              "iterator", JExpr.invoke(asJsonArray, "iterator"));
+      iteratorAnonClass.method(JMod.PUBLIC, jCodeModel.BOOLEAN, "hasNext")
+          .body()
+          ._return(JExpr.invoke(nativeIterator, "hasNext"));
+
+      iteratorAnonClass.method(JMod.PUBLIC, jDefinedClass, "next")
+          .body()
+          ._return(JExpr._new(jDefinedClass)
+                       .arg(JExpr.cast(dataType, JExpr.invoke(nativeIterator, "next"))));
+
+      iteratorMethod.body()._return(JExpr._new(iteratorAnonClass));
     }
   }
 }
