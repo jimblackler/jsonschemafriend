@@ -1,7 +1,7 @@
 package net.jimblackler.jsonschematypes.codegen;
 
 import static net.jimblackler.jsonschematypes.codegen.JavaDefinedClassMaker.makeClassForSchema;
-import static net.jimblackler.jsonschematypes.codegen.NameUtils.makeJavaLegal;
+import static net.jimblackler.jsonschematypes.codegen.NameUtils.makeJavaStyleIdentifier;
 import static net.jimblackler.jsonschematypes.codegen.NameUtils.nameForSchema;
 
 import com.helger.jcodemodel.AbstractJClass;
@@ -79,15 +79,20 @@ public class JavaBuilder {
     }
 
     Schema parentSchema = schema.getParent();
-    IJClassContainer<JDefinedClass> classParent =
-        parentSchema == null ? jPackage : javaCodeGenerator.get(parentSchema).getDefinedClass();
+    final IJClassContainer<JDefinedClass> classParent;
+    if (parentSchema == null) {
+      classParent = jPackage;
+    } else {
+      JDefinedClass definedClass = javaCodeGenerator.get(parentSchema).getDefinedClass();
+      classParent = definedClass == null ? jPackage : definedClass;
+    }
 
     String name = nameForSchema(schema);
     boolean isComplexObject = dataType.equals(jCodeModel.ref(JSONObject.class))
         && !combinedSchema.getProperties().isEmpty();
     boolean isArray = dataType.equals(jCodeModel.ref(JSONArray.class));
     if (isComplexObject || dataType.equals(jCodeModel.ref(Object.class)) || isArray) {
-      JDefinedClass _class = makeClassForSchema(classParent, name,
+      JDefinedClass _class = makeClassForSchema(name,
           (name12)
               -> classParent._class(
                   parentSchema == null ? JMod.PUBLIC : JMod.STATIC | JMod.PUBLIC, name12));
@@ -170,14 +175,15 @@ public class JavaBuilder {
       }
     } else if (schema.getEnums() != null && dataType.equals(jCodeModel.ref(String.class))) {
       List<Object> enums = schema.getEnums();
-      JDefinedClass _enum = makeClassForSchema(classParent, name, classParent::_enum);
+      JDefinedClass _enum = makeClassForSchema(name, classParent::_enum);
 
       _enum.javadoc().add("Created from " + schema.getUri() + System.lineSeparator());
 
       _name = _enum.name();
 
       for (Object value : enums) {
-        String name1 = makeJavaLegal(NameUtils.camelToSnake(value.toString()).toUpperCase());
+        String name1 =
+            makeJavaStyleIdentifier(NameUtils.camelToSnake(value.toString()).toUpperCase());
         JEnumConstant enumConstant = _enum.enumConstant(name1);
         enumConstants.add(enumConstant);
       }
