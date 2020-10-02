@@ -295,7 +295,7 @@ public class JavaBuilder {
         toReturn = source;
       } else if (returnType.equals(jCodeModel.LONG)) {
         toReturn =
-            jCodeModel.ref(Long.class).staticInvoke("valueOf").arg(source.invoke("toString"));
+            castIfNeeded(jCodeModel.ref(Number.class), sourceType, source).invoke("longValue");
       } else {
         toReturn = source.castTo(returnType);
       }
