@@ -1,7 +1,8 @@
 package net.jimblackler.jsonschematypes.codegen;
 
 import static net.jimblackler.jsonschematypes.codegen.JavaDefinedClassMaker.makeClassForSchema;
-import static net.jimblackler.jsonschematypes.codegen.NameUtils.makeJavaStyleIdentifier;
+import static net.jimblackler.jsonschematypes.codegen.NameUtils.camelToSnake;
+import static net.jimblackler.jsonschematypes.codegen.NameUtils.makeJavaLegal;
 import static net.jimblackler.jsonschematypes.codegen.NameUtils.nameForSchema;
 
 import com.helger.jcodemodel.AbstractJClass;
@@ -177,18 +178,12 @@ public class JavaBuilder {
     } else if (schema.getEnums() != null && dataType.equals(jCodeModel.ref(String.class))) {
       List<Object> enums = schema.getEnums();
       JDefinedClass _enum = makeClassForSchema(name, classParent::_enum);
-
       _enum.javadoc().add("Created from " + schema.getUri() + System.lineSeparator());
-
       _name = _enum.name();
-
       for (Object value : enums) {
-        String name1 =
-            makeJavaStyleIdentifier(NameUtils.camelToSnake(value.toString()).toUpperCase());
-        JEnumConstant enumConstant = _enum.enumConstant(name1);
-        enumConstants.add(enumConstant);
+        enumConstants.add(
+            _enum.enumConstant(makeJavaLegal(camelToSnake(value.toString()).toUpperCase())));
       }
-
       jDefinedClass = _enum;
     } else {
       jDefinedClass = null;
