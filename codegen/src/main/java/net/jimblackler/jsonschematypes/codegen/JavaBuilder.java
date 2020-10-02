@@ -229,10 +229,7 @@ public class JavaBuilder {
 
   private static IJExpression castIfNeeded(
       AbstractJType requiredType, AbstractJType sourceType, IJExpression source) {
-    if (sourceType.equals(requiredType)) {
-      return source;
-    }
-    return JExpr.cast(requiredType, source);
+    return sourceType.equals(requiredType) ? source : source.castTo(requiredType);
   }
 
   private static String getOptOrGet(boolean get, AbstractJType dataType, JCodeModel jCodeModel) {
@@ -293,7 +290,16 @@ public class JavaBuilder {
       JCodeModel jCodeModel, AbstractJType sourceType, JInvocation source, JBlock body) {
     AbstractJType returnType = jDefinedClass == null ? dataType : jDefinedClass;
     if (jDefinedClass == null) {
-      body._return(castIfNeeded(returnType, sourceType, source));
+      IJExpression toReturn;
+      if (sourceType.equals(returnType)) {
+        toReturn = source;
+      } else if (returnType.equals(jCodeModel.LONG)) {
+        toReturn =
+            jCodeModel.ref(Long.class).staticInvoke("valueOf").arg(source.invoke("toString"));
+      } else {
+        toReturn = source.castTo(returnType);
+      }
+      body._return(toReturn);
     } else if (enumConstants.isEmpty()) {
       IJExpression value = castIfNeeded(dataType, sourceType, source);
       body._return(JExpr._new(jDefinedClass).arg(value));
