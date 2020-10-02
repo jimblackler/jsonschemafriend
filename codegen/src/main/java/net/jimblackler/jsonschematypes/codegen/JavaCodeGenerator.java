@@ -1,5 +1,7 @@
 package net.jimblackler.jsonschematypes.codegen;
 
+import static net.jimblackler.jsonschematypes.codegen.NameUtils.makeJavaLegalPackage;
+
 import com.helger.jcodemodel.JCodeModel;
 import com.helger.jcodemodel.JPackage;
 import com.helger.jcodemodel.writer.JCMWriter;
@@ -16,7 +18,7 @@ public class JavaCodeGenerator implements CodeGenerator {
   private final JPackage jPackage;
 
   public JavaCodeGenerator(String packageName) {
-    jPackage = jCodeModel._package(packageName);
+    jPackage = jCodeModel._package(makeJavaLegalPackage(packageName));
   }
 
   JavaBuilder get(Schema schema) throws CodeGenerationException {
