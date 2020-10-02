@@ -55,8 +55,7 @@ public class NameUtils {
   }
 
   static String makeJavaStyleIdentifier(String namePart) {
-    String converted = snakeToCamel(namePart);
-    return makeJavaLegal(converted);
+    return makeJavaLegal(snakeToCamel(namePart));
   }
 
   static String makeJavaLegalPackage(String _package) {
