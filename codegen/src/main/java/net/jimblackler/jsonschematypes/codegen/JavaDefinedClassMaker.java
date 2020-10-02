@@ -1,29 +1,10 @@
 package net.jimblackler.jsonschematypes.codegen;
 
-import com.helger.jcodemodel.IJClassContainer;
 import com.helger.jcodemodel.JCodeModelException;
 import com.helger.jcodemodel.JDefinedClass;
 
 class JavaDefinedClassMaker {
-  static JDefinedClass makeClassForSchema(
-      IJClassContainer<JDefinedClass> classParent, String name, Client client) {
-    /* Ensure no direct ancestor has the same name */
-    while (true) {
-      boolean changed = false;
-      for (IJClassContainer<?> container = classParent; container instanceof JDefinedClass;
-           container = container.parentContainer()) {
-        JDefinedClass classContainer = (JDefinedClass) container;
-        if (classContainer.name().equals(name)) {
-          name = varyName(name);
-          changed = true;
-          break;
-        }
-      }
-      if (!changed) {
-        break;
-      }
-    }
-
+  static JDefinedClass makeClassForSchema(String name, Client client) {
     JDefinedClass _class;
     while (true) {
       try {
