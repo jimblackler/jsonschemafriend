@@ -8,6 +8,7 @@ import com.helger.jcodemodel.AbstractJClass;
 import com.helger.jcodemodel.AbstractJType;
 import com.helger.jcodemodel.IJClassContainer;
 import com.helger.jcodemodel.IJExpression;
+import com.helger.jcodemodel.JBlock;
 import com.helger.jcodemodel.JCodeModel;
 import com.helger.jcodemodel.JDefinedClass;
 import com.helger.jcodemodel.JEnumConstant;
@@ -124,7 +125,6 @@ public class JavaBuilder {
 
       /* Constructor */
       JMethod constructor = jDefinedClass.constructor(JMod.PUBLIC);
-
       JVar objectParam = constructor.param(dataType, dataObjectName);
       constructor.body().assign(JExpr._this().ref(dataField), objectParam);
 
@@ -170,8 +170,9 @@ public class JavaBuilder {
       if (types.contains("array")) {
         jDefinedClass.method(JMod.PUBLIC, jCodeModel.INT, "size")
             .body()
-            ._return(
-                JExpr.invoke(castIfNeeded(jCodeModel.ref(JSONArray.class), dataField), "length"));
+            ._return(JExpr.invoke(
+                castIfNeeded(jCodeModel.ref(JSONArray.class), dataField.type(), dataField),
+                "length"));
       }
     } else if (schema.getEnums() != null && dataType.equals(jCodeModel.ref(String.class))) {
       List<Object> enums = schema.getEnums();
@@ -231,8 +232,12 @@ public class JavaBuilder {
     return null;
   }
 
-  private static IJExpression castIfNeeded(AbstractJClass _class, JFieldVar field) {
-    return field.type().equals(_class) ? field : JExpr.cast(_class, field);
+  private static IJExpression castIfNeeded(
+      AbstractJType requiredType, AbstractJType sourceType, IJExpression source) {
+    if (sourceType.equals(requiredType)) {
+      return source;
+    }
+    return JExpr.cast(requiredType, source);
   }
 
   private static String getOptOrGet(boolean get, AbstractJType dataType, JCodeModel jCodeModel) {
@@ -268,14 +273,10 @@ public class JavaBuilder {
 
   private void writePropertyGetters(boolean requiredProperty, IJExpression defaultValue,
       JDefinedClass holderClass, JFieldVar dataField, String propertyName, JCodeModel jCodeModel) {
-    IJExpression asJsonObject = castIfNeeded(jCodeModel.ref(JSONObject.class), dataField);
+    IJExpression asJsonObject =
+        castIfNeeded(jCodeModel.ref(JSONObject.class), dataField.type(), dataField);
     String nameForGetters = NameUtils.snakeToCamel(propertyName);
-    AbstractJType returnType;
-    if (jDefinedClass == null) {
-      returnType = dataType;
-    } else {
-      returnType = jDefinedClass;
-    }
+    AbstractJType returnType = jDefinedClass == null ? dataType : jDefinedClass;
     JMethod getter = holderClass.method(JMod.PUBLIC, returnType,
         (returnType.equals(jCodeModel.BOOLEAN) ? "is" : "get") + nameForGetters);
     boolean isGet = defaultValue == null;
@@ -284,21 +285,8 @@ public class JavaBuilder {
     if (defaultValue != null && !defaultValue.equals(JExpr.lit(false))) {
       getObject.arg(defaultValue);
     }
-    if (jDefinedClass == null) {
-      getter.body()._return(getObject);
-    } else if (enumConstants.isEmpty()) {
-      getter.body()._return(JExpr._new(jDefinedClass).arg(getObject));
-    } else {
-      JVar value = getter.body().decl(jCodeModel.ref(String.class), "value").init(getObject);
-      List<Object> enums = schema.getEnums();
-      JSwitch jSwitch = getter.body()._switch(value);
-      for (int idx = 0; idx != enums.size(); idx++) {
-        jSwitch._case(expressionFromObject(enums.get(idx))).body()._return(enumConstants.get(idx));
-      }
-
-      getter.body()._throw(JExpr._new(jCodeModel.ref(IllegalStateException.class))
-                               .arg(JExpr.lit("Unexpected enum ").plus(value)));
-    }
+    JBlock body = getter.body();
+    makeReturn(jCodeModel, dataType, getObject, body);
 
     if (!requiredProperty && isGet) {
       JMethod has = holderClass.method(JMod.PUBLIC, jCodeModel.BOOLEAN, "has" + nameForGetters);
@@ -306,16 +294,32 @@ public class JavaBuilder {
     }
   }
 
+  private void makeReturn(
+      JCodeModel jCodeModel, AbstractJType sourceType, JInvocation source, JBlock body) {
+    AbstractJType returnType = jDefinedClass == null ? dataType : jDefinedClass;
+    if (jDefinedClass == null) {
+      body._return(castIfNeeded(returnType, sourceType, source));
+    } else if (enumConstants.isEmpty()) {
+      IJExpression value = castIfNeeded(dataType, sourceType, source);
+      body._return(JExpr._new(jDefinedClass).arg(value));
+    } else {
+      JVar value = body.decl(jCodeModel.ref(String.class), "value").init(source);
+      List<Object> enums = schema.getEnums();
+      JSwitch jSwitch = body._switch(value);
+      for (int idx = 0; idx != enums.size(); idx++) {
+        jSwitch._case(expressionFromObject(enums.get(idx))).body()._return(enumConstants.get(idx));
+      }
+      body._throw(JExpr._new(jCodeModel.ref(IllegalStateException.class))
+                      .arg(JExpr.lit("Unexpected enum ").plus(value)));
+    }
+  }
+
   private void writeItemGetters(JDefinedClass holderClass, int fixedPosition, JFieldVar dataField,
       JCodeModel jCodeModel, IJExpression defaultValue) {
-    IJExpression asJsonArray = castIfNeeded(jCodeModel.ref(JSONArray.class), dataField);
+    IJExpression asJsonArray =
+        castIfNeeded(jCodeModel.ref(JSONArray.class), dataField.type(), dataField);
     String nameForGetters = _name;
-    AbstractJType returnType;
-    if (jDefinedClass == null) {
-      returnType = dataType;
-    } else {
-      returnType = jDefinedClass;
-    }
+    AbstractJType returnType = jDefinedClass == null ? dataType : jDefinedClass;
     JMethod getter = holderClass.method(JMod.PUBLIC, returnType,
         (returnType.equals(jCodeModel.BOOLEAN) ? "is" : "get") + nameForGetters);
     IJExpression positionSource;
@@ -335,25 +339,21 @@ public class JavaBuilder {
       getter.body()._return(getObject);
     } else {
       getter.body()._return(JExpr._new(jDefinedClass).arg(getObject));
-
-      holderClass._implements(jCodeModel.ref(Iterable.class).narrow(jDefinedClass));
-      AbstractJClass iteratorType = jCodeModel.ref(Iterator.class).narrow(jDefinedClass);
-      JMethod iteratorMethod = holderClass.method(JMod.PUBLIC, iteratorType, "iterator");
-
-      JDefinedClass iteratorAnonClass = jCodeModel.anonymousClass(iteratorType);
-      JVar nativeIterator =
-          iteratorMethod.body().decl(jCodeModel.ref(Iterator.class).narrow(Object.class),
-              "iterator", JExpr.invoke(asJsonArray, "iterator"));
-      iteratorAnonClass.method(JMod.PUBLIC, jCodeModel.BOOLEAN, "hasNext")
-          .body()
-          ._return(JExpr.invoke(nativeIterator, "hasNext"));
-
-      iteratorAnonClass.method(JMod.PUBLIC, jDefinedClass, "next")
-          .body()
-          ._return(JExpr._new(jDefinedClass)
-                       .arg(JExpr.cast(dataType, JExpr.invoke(nativeIterator, "next"))));
-
-      iteratorMethod.body()._return(JExpr._new(iteratorAnonClass));
     }
+
+    holderClass._implements(jCodeModel.ref(Iterable.class).narrow(returnType));
+    AbstractJClass iteratorType = jCodeModel.ref(Iterator.class).narrow(returnType);
+    JMethod iteratorMethod = holderClass.method(JMod.PUBLIC, iteratorType, "iterator");
+    JDefinedClass iteratorAnonClass = jCodeModel.anonymousClass(iteratorType);
+    JVar nativeIterator =
+        iteratorMethod.body().decl(jCodeModel.ref(Iterator.class).narrow(Object.class), "iterator",
+            JExpr.invoke(asJsonArray, "iterator"));
+    iteratorAnonClass.method(JMod.PUBLIC, jCodeModel.BOOLEAN, "hasNext")
+        .body()
+        ._return(JExpr.invoke(nativeIterator, "hasNext"));
+
+    makeReturn(jCodeModel, jCodeModel.ref(Object.class), JExpr.invoke(nativeIterator, "next"),
+        iteratorAnonClass.method(JMod.PUBLIC, returnType.boxify(), "next").body());
+    iteratorMethod.body()._return(JExpr._new(iteratorAnonClass));
   }
 }
