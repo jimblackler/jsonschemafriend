@@ -1,5 +1,7 @@
 package net.jimblackler.jsonschematypes.codegen;
 
+import java.util.Arrays;
+import java.util.stream.Collectors;
 import net.jimblackler.jsonschemafriend.Schema;
 
 public class NameUtils {
@@ -32,7 +34,7 @@ public class NameUtils {
     String lastPart = split[split.length - 1];
     String namePart = lastPart.split("\\.", 2)[0];
 
-    String name = makeJavaLegal(namePart);
+    String name = makeJavaStyleIdentifier(namePart);
     Schema parentSchema = schema.getParent();
     if (parentSchema != null
         && (parentSchema.getItems() == schema || parentSchema.getAdditionalItems() == schema
@@ -52,8 +54,18 @@ public class NameUtils {
     return name;
   }
 
-  static String makeJavaLegal(String namePart) {
+  static String makeJavaStyleIdentifier(String namePart) {
     String converted = snakeToCamel(namePart);
+    return makeJavaLegal(converted);
+  }
+
+  static String makeJavaLegalPackage(String _package) {
+    return Arrays.stream(_package.split("\\."))
+        .map(NameUtils::makeJavaLegal)
+        .collect(Collectors.joining("."));
+  }
+
+  static String makeJavaLegal(String converted) {
     if (converted.isEmpty() || !Character.isJavaIdentifierStart(converted.charAt(0))) {
       converted = "_" + converted;
     }
