@@ -57,9 +57,17 @@ public class JavaBuilder {
           dataType = jCodeModel.BOOLEAN;
           break;
         case "integer":
-          // JSON Schema's definition of an integer is not the same as Java's.
-          // Specifically, values over 2^32 are supported. We use a Java Long.
-          dataType = jCodeModel.LONG;
+          Number minimumObject = schema.getMinimum();
+          long minimum = minimumObject == null ? Long.MIN_VALUE : minimumObject.longValue();
+          Number maximumObject = schema.getMinimum();
+          long maximum = maximumObject == null ? Long.MAX_VALUE : maximumObject.longValue();
+          if (minimum >= Integer.MIN_VALUE && maximum <= Integer.MAX_VALUE) {
+            dataType = jCodeModel.INT;
+          } else {
+            // JSON Schema's definition of an integer is not the same as Java's.
+            // Specifically, values over 2^32 are supported. We use a Java Long.
+            dataType = jCodeModel.LONG;
+          }
           break;
         case "null":
           dataType = jCodeModel.NULL;
@@ -296,6 +304,9 @@ public class JavaBuilder {
       } else if (returnType.equals(jCodeModel.LONG)) {
         toReturn =
             castIfNeeded(jCodeModel.ref(Number.class), sourceType, source).invoke("longValue");
+      } else if (returnType.equals(jCodeModel.INT)) {
+        toReturn =
+            castIfNeeded(jCodeModel.ref(Number.class), sourceType, source).invoke("intValue");
       } else {
         toReturn = source.castTo(returnType);
       }
