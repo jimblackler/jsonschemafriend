@@ -300,10 +300,7 @@ public class JavaBuilder {
         toReturn = source.castTo(returnType);
       }
       body._return(toReturn);
-    } else if (enumConstants.isEmpty()) {
-      IJExpression value = castIfNeeded(dataType, sourceType, source);
-      body._return(JExpr._new(jDefinedClass).arg(value));
-    } else {
+    } else if (!enumConstants.isEmpty()) {
       JVar value = body.decl(jCodeModel.ref(String.class), "value").init(source);
       List<Object> enums = schema.getEnums();
       JSwitch jSwitch = body._switch(value);
@@ -312,6 +309,8 @@ public class JavaBuilder {
       }
       body._throw(JExpr._new(jCodeModel.ref(IllegalStateException.class))
                       .arg(JExpr.lit("Unexpected enum ").plus(value)));
+    } else {
+      body._return(JExpr._new(jDefinedClass).arg(castIfNeeded(dataType, sourceType, source)));
     }
   }
 
