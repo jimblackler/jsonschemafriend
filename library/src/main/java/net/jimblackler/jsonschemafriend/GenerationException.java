@@ -1,6 +1,10 @@
 package net.jimblackler.jsonschemafriend;
 
 public class GenerationException extends SchemaException {
+  public GenerationException() {
+    super();
+  }
+
   public GenerationException(String message) {
     super(message);
   }

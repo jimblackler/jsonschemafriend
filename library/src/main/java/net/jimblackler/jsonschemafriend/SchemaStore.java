@@ -34,7 +34,7 @@ public class SchemaStore {
   private final Map<URI, Object> canonicalUriToObject = new HashMap<>();
   private final Map<URI, Object> canonicalUriToBaseObject = new HashMap<>();
   private final Map<URI, URI> validUriToCanonicalUri = new HashMap<>();
-  private final Map<URI, URI> canonicalUriToResourceApi = new HashMap<>();
+  private final Map<URI, URI> canonicalUriToResourceUri = new HashMap<>();
   private final Map<URI, Schema> builtSchemas = new HashMap<>();
   private final Collection<URI> mapped = new HashSet<>();
   private final UrlRewriter urlRewriter;
@@ -49,10 +49,10 @@ public class SchemaStore {
   }
 
   public Schema loadSchema(Object object) throws GenerationException {
-    // Every document needs a default canonical URI. We generate a nice short one. If the client
-    // needs it, it can be obtained via schema.getUri();
-
-    URI canonicalUri = store(URI.create("ram://" + memorySchemaNumber++), object);
+    // Every document needs a unique, default canonical URI.
+    URI uri = URI.create(memorySchemaNumber == 0 ? "" : "" + memorySchemaNumber);
+    memorySchemaNumber++;
+    URI canonicalUri = store(uri, object);
     return loadSchema(canonicalUri);
   }
 
@@ -136,12 +136,10 @@ public class SchemaStore {
         URI metaSchemaUri = detectMetaSchema(canonicalUriToBaseObject.get(uri));
         if (!normalize(metaSchemaUri).equals(uri)) {
           Schema metaSchema = loadSchema(metaSchemaUri, false);
-          List<ValidationError> errors = new ArrayList<>();
-          new Validator().validate(metaSchema, schemaObject, ROOT, errors::add);
-          if (!errors.isEmpty()) {
-            throw new GenerationException(errors.stream()
-                                              .map(Object::toString)
-                                              .collect(Collectors.joining(System.lineSeparator())));
+          JSONObject validation =
+              new Validator().validateWithOutput(this, metaSchema, schemaObject);
+          if (!validation.getBoolean("valid")) {
+            throw new StandardGenerationException(validation);
           }
         }
       }
@@ -194,7 +192,7 @@ public class SchemaStore {
     }
 
     if (isResource) {
-      URI was = canonicalUriToResourceApi.put(canonicalUri, validUri);
+      URI was = canonicalUriToResourceUri.put(canonicalUri, validUri);
       if (was != null) {
         LOG.warning("Attempt to map from at least two locations: " + canonicalUri
             + System.lineSeparator() + validUri + System.lineSeparator() + was);
@@ -250,5 +248,9 @@ public class SchemaStore {
 
   public Object getBaseObject(URI uri) {
     return canonicalUriToBaseObject.get(uri);
+  }
+
+  public URI canonicalUriToResourceUri(URI uri) {
+    return canonicalUriToResourceUri.get(uri);
   }
 }

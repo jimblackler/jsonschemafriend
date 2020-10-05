@@ -590,7 +590,7 @@ public class Validator {
     Collection<ValidationError> errors = new ArrayList<>();
     validate(schema, file, errors::add);
     if (!errors.isEmpty()) {
-      throw new ValidationException(errors);
+      throw new ListValidationException(errors);
     }
   }
 
@@ -598,7 +598,7 @@ public class Validator {
     Collection<ValidationError> errors = new ArrayList<>();
     validate(schema, uri, errors::add);
     if (!errors.isEmpty()) {
-      throw new ValidationException(errors);
+      throw new ListValidationException(errors);
     }
   }
 
@@ -606,7 +606,7 @@ public class Validator {
     Collection<ValidationError> errors = new ArrayList<>();
     validate(schema, url, errors::add);
     if (!errors.isEmpty()) {
-      throw new ValidationException(errors);
+      throw new ListValidationException(errors);
     }
   }
 
@@ -614,7 +614,7 @@ public class Validator {
     Collection<ValidationError> errors = new ArrayList<>();
     validate(schema, document, errors::add);
     if (!errors.isEmpty()) {
-      throw new ValidationException(errors);
+      throw new ListValidationException(errors);
     }
   }
 
@@ -640,5 +640,34 @@ public class Validator {
 
   public void validate(Schema schema, Object document, Consumer<ValidationError> errorConsumer) {
     validate(schema, document, URI.create(""), errorConsumer);
+  }
+
+  public JSONObject validateWithOutput(SchemaStore schemaStore, Schema schema, Object document)
+      throws GenerationException {
+    JSONObject output = new JSONObject();
+    output.put("valid", true);
+    validate(schema, document, validationError -> {
+      output.put("valid", false);
+      JSONObject error = new JSONObject();
+      error.put("error", validationError.getMessage());
+      error.put("keywordLocation", validationError.getSchema().getUri());
+      error.put("absoluteKeywordLocation",
+          schemaStore.canonicalUriToResourceUri(validationError.getSchema().getUri()));
+      String rawFragment = validationError.getUri().getRawFragment();
+      error.put("instanceLocation", "#" + (rawFragment == null ? "" : rawFragment));
+      if (!output.has("errors")) {
+        output.put("errors", new JSONArray());
+      }
+      output.getJSONArray("errors").put(error);
+    });
+    Schema metaSchema = schemaStore.loadSchema(
+        URI.create("https://json-schema.org/draft/2019-09/output/schema"), false);
+
+    try {
+      new Validator().validate(metaSchema, output);
+    } catch (ValidationException e) {
+      throw new GenerationException(e);
+    }
+    return output;
   }
 }

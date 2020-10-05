@@ -14,7 +14,11 @@ public class DocumentUtils {
 
   public static Object parseJson(String content) {
     content = content.replaceAll("[\uFEFF-\uFFFF]", ""); // Strip the dreaded FEFF.
-    return new JSONArray("[" + content + "]").get(0);
+    JSONArray objects = new JSONArray("[" + content + "]");
+    if (objects.isEmpty()) {
+      return null;
+    }
+    return objects.get(0);
   }
 
   public static String toString(Object object) {

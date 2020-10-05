@@ -12,13 +12,13 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.logging.Logger;
-import net.jimblackler.jsonschemafriend.Ecma262Pattern;
-import net.jimblackler.jsonschemafriend.FormatError;
 import net.jimblackler.jsonschemafriend.Schema;
 import net.jimblackler.jsonschemafriend.SchemaStore;
+import net.jimblackler.jsonschemafriend.StandardValidationException;
 import net.jimblackler.jsonschemafriend.ValidationError;
 import net.jimblackler.jsonschemafriend.ValidationException;
 import net.jimblackler.jsonschemafriend.Validator;
+import org.json.JSONObject;
 import org.junit.jupiter.api.DynamicContainer;
 import org.junit.jupiter.api.DynamicNode;
 import org.junit.jupiter.api.DynamicTest;
@@ -56,11 +56,13 @@ public class SchemaStoreTest {
             try {
               tests.add(DynamicTest.dynamicTest(testFileName, testDataUrl.toURI(), () -> {
                 Object o = loadJson(SchemaStoreTest.class.getResourceAsStream(testFile.toString()));
-                Schema schema = new SchemaStore(null).loadSchema(resource1);
-                Collection<ValidationError> errors = new ArrayList<>();
-                validator.validate(schema, o, errors::add);
-                if (!errors.isEmpty()) {
-                  throw new ValidationException(errors);
+                SchemaStore schemaStore = new SchemaStore();
+                Schema schema = schemaStore.loadSchema(resource1);
+
+                JSONObject output = validator.validateWithOutput(schemaStore, schema, o);
+
+                if (!output.getBoolean("valid")) {
+                  throw new StandardValidationException(output);
                 }
               }));
             } catch (URISyntaxException e) {
