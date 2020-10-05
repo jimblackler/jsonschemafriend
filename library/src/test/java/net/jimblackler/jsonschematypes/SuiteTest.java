@@ -1,7 +1,6 @@
 package net.jimblackler.jsonschematypes;
 
 import static net.jimblackler.jsonschemafriend.ObjectFixer.rewriteObject;
-import static net.jimblackler.jsonschemafriend.Validator.validate;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.DynamicContainer.dynamicContainer;
 import static org.junit.jupiter.api.DynamicTest.dynamicTest;
@@ -20,10 +19,10 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import net.jimblackler.jsonschemafriend.DocumentUtils;
-import net.jimblackler.jsonschemafriend.FormatError;
 import net.jimblackler.jsonschemafriend.SchemaStore;
 import net.jimblackler.jsonschemafriend.UrlRewriter;
 import net.jimblackler.jsonschemafriend.ValidationError;
+import net.jimblackler.jsonschemafriend.Validator;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.junit.jupiter.api.DynamicNode;
@@ -39,6 +38,7 @@ public class SuiteTest {
     URL resource1 = SuiteTest.class.getResource(remotes.toString());
     UrlRewriter urlRewriter =
         in -> URI.create(in.toString().replace("http://localhost:1234", resource1.toString()));
+    Validator validator = new Validator();
     for (Path testDir : testDirs) {
       try (InputStream inputStream = SuiteTest.class.getResourceAsStream(testDir.toString());
            BufferedReader bufferedReader =
@@ -92,8 +92,7 @@ public class SuiteTest {
                   System.out.println();
 
                   List<ValidationError> errors = new ArrayList<>();
-                  validate(schema1, data1, URI.create(""),
-                      validationError -> !(validationError instanceof FormatError), errors::add);
+                  validator.validate(schema1, data1, URI.create(""), errors::add);
 
                   System.out.print("Expected to " + (valid ? "pass" : "fail") + " ... ");
                   if (errors.isEmpty()) {

@@ -35,7 +35,7 @@ requires the `org.json` library.
 
 ```groovy
 dependencies {
-    implementation 'com.github.jimblackler.jsonschematypes:jsonschemafriend:0.7.6'
+    implementation 'com.github.jimblackler.jsonschematypes:jsonschemafriend:0.7.8'
     implementation 'org.json:json:20200518'
     // ...
 }
@@ -56,7 +56,7 @@ dependencies {
 <dependency>
     <groupId>com.github.jimblackler.jsonschematypes</groupId>
     <artifactId>codegen</artifactId>
-    <version>0.7.6</version>
+    <version>0.7.8</version>
 </dependency>
 <dependency>
     <groupId>org.json</groupId>
@@ -68,13 +68,15 @@ dependencies {
 # Usage
 
 Javadocs can be found
-[here](https://javadoc.jitpack.io/com/github/jimblackler/jsonschematypes/jsonschemafriend/0.7.6/javadoc/net/jimblackler/jsonschemafriend/package-summary.html).
+[here](https://javadoc.jitpack.io/com/github/jimblackler/jsonschematypes/jsonschemafriend/0.7.8/javadoc/net/jimblackler/jsonschemafriend/package-summary.html).
 
 ## Via a JSONObject.
 
 This is an example of loading a schema in a JSONObject.
 
 ```java
+package demo1;
+
 import net.jimblackler.jsonschemafriend.Schema;
 import net.jimblackler.jsonschemafriend.SchemaException;
 import net.jimblackler.jsonschemafriend.SchemaStore;
@@ -91,8 +93,9 @@ public class Main {
     try {
       SchemaStore schemaStore = new SchemaStore(); // Initialize a SchemaStore.
       Schema schema = schemaStore.loadSchema(schemaJson); // Load the schema.
-      Validator.validate(schema, 1); // Will not throw an exception.
-      Validator.validate(schema, "X"); // Will throw a ValidationException.
+      Validator validator = new Validator();  // Create a validator.
+      validator.validate(schema, 1); // Will not throw an exception.
+      validator.validate(schema, "x"); // Will throw a ValidationException.
     } catch (SchemaException e) {
       e.printStackTrace();
     }
@@ -138,6 +141,8 @@ This example loads a schema in the `resources` folder and validates data in the
 ### `Main.java`
 
 ```java
+package demo2;
+
 import java.io.IOException;
 import net.jimblackler.jsonschemafriend.Schema;
 import net.jimblackler.jsonschemafriend.SchemaException;
@@ -151,11 +156,13 @@ public class Main {
       // Load the schema.
       Schema schema = schemaStore.loadSchema(Main.class.getResource("/schema.json"));
 
+      Validator validator = new Validator();
+
       // Will not throw an exception.
-      Validator.validate(schema, Main.class.getResourceAsStream("/data1.json"));
+      validator.validate(schema, Main.class.getResourceAsStream("/data1.json"));
 
       // Will throw a ValidationException.
-      Validator.validate(schema, Main.class.getResourceAsStream("/data2.json"));
+      validator.validate(schema, Main.class.getResourceAsStream("/data2.json"));
     } catch (SchemaException | IOException e) {
       e.printStackTrace();
     }
@@ -169,6 +176,8 @@ This example loads both the schema, and the data to test from the internet, via
 URIs (URLs can also be use).
 
 ```java
+package demo3;
+
 import java.io.IOException;
 import java.net.URI;
 import net.jimblackler.jsonschemafriend.Schema;
@@ -186,7 +195,7 @@ public class Main {
       URI resume = URI.create(
           "https://gist.githubusercontent.com/thomasdavis/c9dcfa1b37dec07fb2ee7f36d7278105/raw");
       // Will not throw an exception; document passes the schema.
-      Validator.validate(schema, resume);
+      new Validator().validate(schema, resume);
 
     } catch (SchemaException | IOException e) {
       e.printStackTrace();
@@ -201,7 +210,7 @@ Both schemas and test data can be specified as a `java.io.File`. For example:
 
 ```json
 Schema schema = schemaStore.loadSchema(new File("/tmp/schema.json"));
-Validator.validate(schema, new File("/tmp/test.json"));
+new Validator().validate(schema, new File("/tmp/test.json"));
 ```
 
 ## Custom validation handling.
@@ -227,9 +236,8 @@ public class Main {
           schemaStore.loadSchema(URI.create("https://json.schemastore.org/chrome-manifest"));
 
       // Send an object that won't validate, and collect the validation errors.
-      // No ValidationException will be thrown in this form.
       JSONObject document = new JSONObject();
-      Validator.validate(schema, document, validationError -> {
+      new Validator().validate(schema, document, validationError -> {
         if (validationError instanceof MissingPropertyError) {
           MissingPropertyError missingPropertyError = (MissingPropertyError) validationError;
           System.out.println("A missing property was: " + missingPropertyError.getProperty());

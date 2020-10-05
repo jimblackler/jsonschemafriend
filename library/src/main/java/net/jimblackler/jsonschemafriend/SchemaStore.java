@@ -8,7 +8,6 @@ import static net.jimblackler.jsonschemafriend.PathUtils.baseDocumentFromUri;
 import static net.jimblackler.jsonschemafriend.PathUtils.fixUnescaped;
 import static net.jimblackler.jsonschemafriend.PathUtils.normalize;
 import static net.jimblackler.jsonschemafriend.PathUtils.resolve;
-import static net.jimblackler.jsonschemafriend.Validator.validate;
 
 import java.io.File;
 import java.io.IOException;
@@ -40,20 +39,12 @@ public class SchemaStore {
   private final Collection<URI> mapped = new HashSet<>();
   private final UrlRewriter urlRewriter;
   private int memorySchemaNumber;
-  private final RegExPatternSupplier regExPatternSupplier;
 
   public SchemaStore() {
     urlRewriter = null;
-    regExPatternSupplier = Ecma262Pattern::new;
-  }
-
-  public SchemaStore(RegExPatternSupplier regExPatternSupplier, UrlRewriter urlRewriter) {
-    this.regExPatternSupplier = regExPatternSupplier;
-    this.urlRewriter = urlRewriter;
   }
 
   public SchemaStore(UrlRewriter urlRewriter) {
-    regExPatternSupplier = Ecma262Pattern::new;
     this.urlRewriter = urlRewriter;
   }
 
@@ -146,8 +137,7 @@ public class SchemaStore {
         if (!normalize(metaSchemaUri).equals(uri)) {
           Schema metaSchema = loadSchema(metaSchemaUri, false);
           List<ValidationError> errors = new ArrayList<>();
-          validate(metaSchema, schemaObject, ROOT,
-              validationError -> !(validationError instanceof FormatError), errors::add);
+          new Validator().validate(metaSchema, schemaObject, ROOT, errors::add);
           if (!errors.isEmpty()) {
             throw new GenerationException(errors.stream()
                                               .map(Object::toString)
@@ -157,7 +147,7 @@ public class SchemaStore {
       }
     }
 
-    return new Schema(this, uri, this.regExPatternSupplier);
+    return new Schema(this, uri);
   }
 
   public void register(URI path, Schema schema) throws GenerationException {
@@ -256,5 +246,9 @@ public class SchemaStore {
       return canonicalUriToObject.get(canonicalUri);
     }
     return null;
+  }
+
+  public Object getBaseObject(URI uri) {
+    return canonicalUriToBaseObject.get(uri);
   }
 }

@@ -35,6 +35,7 @@ public class SchemaStoreTest {
     Path path0 = FILE_SYSTEM.getPath("/SchemaStore").resolve("src");
     Path schemaPath = path0.resolve("schemas").resolve("json");
     Path testDir = path0.resolve("test");
+    Validator validator = new Validator();
     getLines(SuiteTest.class.getResourceAsStream(testDir.toString()), resource -> {
       Path testSchema = schemaPath.resolve(resource + ".json");
       URL resource1 = SchemaStoreTest.class.getResource(testSchema.toString());
@@ -55,10 +56,9 @@ public class SchemaStoreTest {
             try {
               tests.add(DynamicTest.dynamicTest(testFileName, testDataUrl.toURI(), () -> {
                 Object o = loadJson(SchemaStoreTest.class.getResourceAsStream(testFile.toString()));
-                Schema schema = new SchemaStore(Ecma262Pattern::new, null).loadSchema(resource1);
+                Schema schema = new SchemaStore(null).loadSchema(resource1);
                 Collection<ValidationError> errors = new ArrayList<>();
-                Validator.validate(schema, o,
-                    validationError -> !(validationError instanceof FormatError), errors::add);
+                validator.validate(schema, o, errors::add);
                 if (!errors.isEmpty()) {
                   throw new ValidationException(errors);
                 }

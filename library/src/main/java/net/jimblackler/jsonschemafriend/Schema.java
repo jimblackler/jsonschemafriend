@@ -2,6 +2,7 @@ package net.jimblackler.jsonschemafriend;
 
 import static java.util.Collections.unmodifiableCollection;
 import static java.util.Collections.unmodifiableMap;
+import static net.jimblackler.jsonschemafriend.MetaSchemaDetector.detectMetaSchema;
 import static net.jimblackler.jsonschemafriend.PathUtils.append;
 import static net.jimblackler.jsonschemafriend.PathUtils.fixUnescaped;
 import static net.jimblackler.jsonschemafriend.PathUtils.resolve;
@@ -42,7 +43,7 @@ public class Schema {
   // string checks
   private final Number maxLength;
   private final Number minLength;
-  private final RegExPattern pattern;
+  private final String pattern;
   private final String format;
   private final String contentEncoding;
   private final String contentMediaType;
@@ -65,7 +66,7 @@ public class Schema {
   private final Schema additionalProperties;
   private final Schema unevaluatedProperties;
   private final Map<String, Schema> _properties = new HashMap<>();
-  private final Collection<RegExPattern> patternPropertiesPatterns = new ArrayList<>();
+  private final Collection<String> patternPropertiesPatterns = new ArrayList<>();
   private final Collection<Schema> patternPropertiesSchemas = new ArrayList<>();
   private final Map<String, Collection<String>> dependentRequired = new HashMap<>();
   private final Map<String, Schema> dependentSchemas = new HashMap<>();
@@ -94,15 +95,13 @@ public class Schema {
   private final String title;
   private final String description;
 
-  private final RegExPatternSupplier regExPatternSupplier;
+  private final URI metaSchema;
 
   // Own
   private Schema parent;
 
-  Schema(SchemaStore schemaStore, URI uri, RegExPatternSupplier regExPatternSupplier)
-      throws GenerationException {
+  Schema(SchemaStore schemaStore, URI uri) throws GenerationException {
     this.schemaStore = schemaStore;
-    this.regExPatternSupplier = regExPatternSupplier;
     this.uri = uri;
 
     schemaStore.register(uri, this);
@@ -123,6 +122,8 @@ public class Schema {
       jsonObject = new JSONObject();
     }
 
+    metaSchema = detectMetaSchema(schemaStore.getBaseObject(uri));
+
     // number checks
     multipleOf = (Number) jsonObject.opt("multipleOf");
     maximum = (Number) jsonObject.opt("maximum");
@@ -136,13 +137,9 @@ public class Schema {
     minLength = (Number) jsonObject.opt("minLength");
     Object patternObject = jsonObject.opt("pattern");
 
-    RegExPattern _pattern = null;
+    String _pattern = null;
     if (patternObject != null) {
-      try {
-        _pattern = regExPatternSupplier.newPattern((String) patternObject);
-      } catch (InvalidRegexException e) {
-        LOG.warning("Invalid regex: " + e.getMessage());
-      }
+      _pattern = (String) patternObject;
     }
     pattern = _pattern;
 
@@ -217,11 +214,7 @@ public class Schema {
       Iterator<String> it = patternProperties.keys();
       while (it.hasNext()) {
         String propertyPattern = it.next();
-        try {
-          patternPropertiesPatterns.add(regExPatternSupplier.newPattern(propertyPattern));
-        } catch (InvalidRegexException ex) {
-          LOG.warning("Invalid regular expression: " + propertyPattern);
-        }
+        patternPropertiesPatterns.add(propertyPattern);
         URI patternPointer = append(propertiesPointer, propertyPattern);
         patternPropertiesSchemas.add(getSubSchema(patternPointer));
       }
@@ -489,7 +482,7 @@ public class Schema {
     return minLength;
   }
 
-  public RegExPattern getPattern() {
+  public String getPattern() {
     return pattern;
   }
 
@@ -573,7 +566,7 @@ public class Schema {
     return unmodifiableMap(_properties);
   }
 
-  public Collection<RegExPattern> getPatternPropertiesPatterns() {
+  public Collection<String> getPatternPropertiesPatterns() {
     return unmodifiableCollection(patternPropertiesPatterns);
   }
 
@@ -687,7 +680,7 @@ public class Schema {
     this.parent = parent;
   }
 
-  public RegExPatternSupplier getRegExPatternSupplier() {
-    return regExPatternSupplier;
+  public URI getMetaSchema() {
+    return metaSchema;
   }
 }

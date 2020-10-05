@@ -1,6 +1,5 @@
 package net.jimblackler.jsonschematypes;
 
-import static net.jimblackler.jsonschemafriend.Validator.validate;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -10,6 +9,7 @@ import net.jimblackler.jsonschemafriend.Schema;
 import net.jimblackler.jsonschemafriend.SchemaException;
 import net.jimblackler.jsonschemafriend.SchemaStore;
 import net.jimblackler.jsonschemafriend.ValidationError;
+import net.jimblackler.jsonschemafriend.Validator;
 import org.json.JSONObject;
 import org.junit.jupiter.api.Test;
 
@@ -23,6 +23,7 @@ public class ViaJsonObject {
     myValue.put("type", "integer");
     properties.put("myValue", myValue);
     mySchema.put("properties", properties);
+    Validator validator = new Validator();
 
     Schema schema = new SchemaStore().loadSchema(mySchema);
 
@@ -30,7 +31,7 @@ public class ViaJsonObject {
       JSONObject myObject = new JSONObject();
       myObject.put("myValue", "x");
       List<ValidationError> errors = new ArrayList<>();
-      validate(schema, myObject, validationError -> true, errors::add);
+      validator.validate(schema, myObject, errors::add);
       assertFalse(errors.isEmpty());
     }
 
@@ -38,7 +39,7 @@ public class ViaJsonObject {
       JSONObject myObject = new JSONObject();
       myObject.put("myValue", 1);
       List<ValidationError> errors = new ArrayList<>();
-      validate(schema, myObject, validationError -> true, errors::add);
+      validator.validate(schema, myObject, errors::add);
       assertTrue(errors.isEmpty());
     }
   }
