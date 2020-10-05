@@ -75,8 +75,6 @@ Javadocs can be found
 This is an example of loading a schema in a JSONObject.
 
 ```java
-package demo1;
-
 import net.jimblackler.jsonschemafriend.Schema;
 import net.jimblackler.jsonschemafriend.SchemaException;
 import net.jimblackler.jsonschemafriend.SchemaStore;
@@ -141,8 +139,6 @@ This example loads a schema in the `resources` folder and validates data in the
 ### `Main.java`
 
 ```java
-package demo2;
-
 import java.io.IOException;
 import net.jimblackler.jsonschemafriend.Schema;
 import net.jimblackler.jsonschemafriend.SchemaException;
@@ -176,7 +172,6 @@ This example loads both the schema, and the data to test from the internet, via
 URIs (URLs can also be use).
 
 ```java
-package demo3;
 
 import java.io.IOException;
 import java.net.URI;
