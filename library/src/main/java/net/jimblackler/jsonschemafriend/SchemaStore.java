@@ -83,7 +83,7 @@ public class SchemaStore {
         uri = validUriToCanonicalUri.get(uri);
         continue;
       }
-      if (!canonicalUriToObject.containsKey(uri)) {
+      if (!canonicalUriToObject.containsKey(uri) && uri.isAbsolute()) {
         // We don't know this canonical URL, so we treat it as a resource URL and try to fetch
         // it.
         URI documentUri = baseDocumentFromUri(uri);
