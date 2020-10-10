@@ -94,7 +94,11 @@ public class CombinedSchema {
     if (anyOf != null && !anyOf.isEmpty()) {
       // For the anyOf operator we return the intersection of the types of each subschema.
       for (Schema subSchema : anyOf) {
-        allTypes.addAll(subSchema.getExplicitTypes());
+        Collection<String> types = subSchema.getExplicitTypes();
+        if (types == null) {
+          continue;
+        }
+        allTypes.addAll(types);
       }
     }
 
@@ -103,6 +107,9 @@ public class CombinedSchema {
       // For the anyOf operator we return the union of the types of each subschema.
       for (Schema subSchema : allOf) {
         Collection<String> types = subSchema.getExplicitTypes();
+        if (types == null) {
+          continue;
+        }
         allTypes.retainAll(types);
       }
     }
