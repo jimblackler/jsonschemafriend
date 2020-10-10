@@ -4,9 +4,14 @@ import static net.jimblackler.jsonschematypes.codegen.NameUtils.makeJavaLegalPac
 
 import com.helger.jcodemodel.JCodeModel;
 import com.helger.jcodemodel.JPackage;
+import com.helger.jcodemodel.writer.AbstractCodeWriter;
+import com.helger.jcodemodel.writer.FileCodeWriter;
 import com.helger.jcodemodel.writer.JCMWriter;
+import com.helger.jcodemodel.writer.OutputStreamCodeWriter;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.net.URI;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
@@ -37,10 +42,20 @@ public class JavaCodeGenerator implements CodeGenerator {
     builtClasses.put(uri, javaBuilder);
   }
 
+  public void output(OutputStream stream) throws IOException {
+    _output(new OutputStreamCodeWriter(
+        stream, StandardCharsets.UTF_8, System.getProperty("line.separator")));
+  }
+
   public void output(Path path) throws IOException {
+    _output(new FileCodeWriter(
+        path.toFile(), StandardCharsets.UTF_8, System.getProperty("line.separator")));
+  }
+
+  private void _output(AbstractCodeWriter writer) throws IOException {
     JCMWriter jcmWriter = new JCMWriter(jCodeModel);
-    jcmWriter.setIndentString("  ");
-    jcmWriter.build(path.toFile());
+    jcmWriter.setIndentString("\t");
+    jcmWriter.build(writer, writer);
   }
 
   public JCodeModel getJCodeModel() {
