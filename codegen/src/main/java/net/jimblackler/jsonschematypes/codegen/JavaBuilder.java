@@ -111,19 +111,20 @@ public class JavaBuilder {
 
       StringBuilder docs = new StringBuilder();
       String description = schema.getDescription();
-      if (description != null) {
+      if (description != null && !description.isEmpty()) {
         docs.append(htmlEscape(description))
             .append(System.lineSeparator())
             .append(System.lineSeparator());
       }
-      docs.append("Created from ").append(schema.getUri()).append(System.lineSeparator());
-      docs.append("Explicit types ")
-          .append(schema.getExplicitTypes())
-          .append(System.lineSeparator());
-      docs.append("Inferred types ")
-          .append(combinedSchema.getInferredTypes())
-          .append(System.lineSeparator());
-      // docs.append("<pre>").append(schema.getSchemaJson().toString(2)).append("</pre>");
+      docs.append("Created from ").append(schema.getUri());
+      if (false) {
+        docs.append(System.lineSeparator())
+            .append("Explicit types ")
+            .append(schema.getExplicitTypes())
+            .append(System.lineSeparator())
+            .append("Inferred types ")
+            .append(combinedSchema.getInferredTypes());
+      }
 
       jDefinedClass.javadoc().add(docs.toString());
 
