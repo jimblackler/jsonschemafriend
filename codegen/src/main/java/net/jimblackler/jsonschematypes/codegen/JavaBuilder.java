@@ -110,15 +110,20 @@ public class JavaBuilder {
       _name = _class.name();
 
       StringBuilder docs = new StringBuilder();
+      String toAppend = "";
       String description = schema.getDescription();
       if (description != null && !description.isEmpty()) {
-        docs.append(htmlEscape(description))
-            .append(System.lineSeparator())
-            .append(System.lineSeparator());
+        docs.append(htmlEscape(description));
+        toAppend = System.lineSeparator() + System.lineSeparator();
       }
-      docs.append("Created from ").append(schema.getUri());
+      String str = schema.getUri().toString();
+      if (!str.isEmpty()) {
+        docs.append(toAppend);
+        docs.append("Created from ").append(str);
+        toAppend = System.lineSeparator();
+      }
       if (false) {
-        docs.append(System.lineSeparator())
+        docs.append(toAppend)
             .append("Explicit types ")
             .append(schema.getExplicitTypes())
             .append(System.lineSeparator())
@@ -187,7 +192,10 @@ public class JavaBuilder {
     } else if (schema.getEnums() != null && dataType.equals(jCodeModel.ref(String.class))) {
       List<Object> enums = schema.getEnums();
       JDefinedClass _enum = makeClassForSchema(name, classParent::_enum);
-      _enum.javadoc().add("Created from " + schema.getUri() + System.lineSeparator());
+      String s = schema.getUri().toString();
+      if (!s.isEmpty()) {
+        _enum.javadoc().add("Created from " + s);
+      }
       _name = _enum.name();
       for (Object value : enums) {
         enumConstants.add(
