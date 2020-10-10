@@ -14,18 +14,16 @@ public class CodeGeneration {
   public static void build(URL url, CodeGenerator codeGenerator) throws CodeGenerationException {
     SchemaStore schemaStore = new SchemaStore();
 
-    try {
-      try (InputStream stream = url.openStream()) {
-        try (BufferedReader bufferedReader =
-                 new BufferedReader(new InputStreamReader(stream, StandardCharsets.UTF_8))) {
-          String resource;
-          while ((resource = bufferedReader.readLine()) != null) {
-            if (!resource.endsWith(".json")) {
-              continue;
-            }
-            URI uri = URI.create(url + (url.toString().endsWith("/") ? "" : "/") + resource);
-            codeGenerator.build(schemaStore.loadSchema(uri));
+    try (InputStream stream = url.openStream()) {
+      try (BufferedReader bufferedReader =
+               new BufferedReader(new InputStreamReader(stream, StandardCharsets.UTF_8))) {
+        String resource;
+        while ((resource = bufferedReader.readLine()) != null) {
+          if (!resource.endsWith(".json")) {
+            continue;
           }
+          URI uri = URI.create(url + (url.toString().endsWith("/") ? "" : "/") + resource);
+          codeGenerator.build(schemaStore.loadSchema(uri));
         }
       }
     } catch (SchemaException | IOException e) {
