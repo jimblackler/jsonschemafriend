@@ -15,8 +15,6 @@ import java.util.logging.Logger;
 import net.jimblackler.jsonschemafriend.Schema;
 import net.jimblackler.jsonschemafriend.SchemaStore;
 import net.jimblackler.jsonschemafriend.StandardValidationException;
-import net.jimblackler.jsonschemafriend.ValidationError;
-import net.jimblackler.jsonschemafriend.ValidationException;
 import net.jimblackler.jsonschemafriend.Validator;
 import org.json.JSONObject;
 import org.junit.jupiter.api.DynamicContainer;
