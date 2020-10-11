@@ -17,6 +17,7 @@ import java.nio.file.FileSystems;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import net.jimblackler.jsonschemafriend.DocumentUtils;
 import net.jimblackler.jsonschemafriend.SchemaStore;
@@ -125,7 +126,10 @@ public class SuiteTest {
     Path suite = FILE_SYSTEM.getPath("/suites").resolve("JSON-Schema-Test-Suite");
     Path tests = suite.resolve("tests").resolve(set);
     Path optional = tests.resolve("optional");
-    List<Path> paths = List.of(tests, optional, optional.resolve("format"));
+    List<Path> paths = new ArrayList<>();
+    paths.add(tests);
+    paths.add(optional);
+    paths.add(optional.resolve("format"));
     Path remotes = suite.resolve("remotes");
     return scan(paths, remotes, URI.create(metaSchema));
   }
@@ -134,7 +138,8 @@ public class SuiteTest {
   Collection<DynamicNode> own() {
     Path path = FILE_SYSTEM.getPath("/suites");
     Path own = path.resolve("own");
-    Collection<Path> testDirs = List.of(own);
+    Collection<Path> testDirs = new HashSet<>();
+    testDirs.add(own);
     Path remotes = path.resolve("own_remotes");
     URI metaSchema = URI.create("http://json-schema.org/draft-07/schema#");
     return scan(testDirs, remotes, metaSchema);
