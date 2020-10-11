@@ -121,6 +121,15 @@ public class SuiteTest {
     return allFileTests;
   }
 
+  private static Collection<DynamicNode> test(String set, String metaSchema) {
+    Path suite = FILE_SYSTEM.getPath("/suites").resolve("JSON-Schema-Test-Suite");
+    Path tests = suite.resolve("tests").resolve(set);
+    Path optional = tests.resolve("optional");
+    List<Path> paths = List.of(tests, optional, optional.resolve("format"));
+    Path remotes = suite.resolve("remotes");
+    return scan(paths, remotes, URI.create(metaSchema));
+  }
+
   @TestFactory
   Collection<DynamicNode> own() {
     Path path = FILE_SYSTEM.getPath("/suites");
@@ -154,14 +163,5 @@ public class SuiteTest {
   @TestFactory
   Collection<DynamicNode> draft2019_09() {
     return test("draft2019-09", "https://json-schema.org/draft/2019-09/schema");
-  }
-
-  public Collection<DynamicNode> test(String set, String metaSchema) {
-    Path suite = FILE_SYSTEM.getPath("/suites").resolve("JSON-Schema-Test-Suite");
-    Path tests = suite.resolve("tests").resolve(set);
-    Path optional = tests.resolve("optional");
-    List<Path> paths = List.of(tests, optional, optional.resolve("format"));
-    Path remotes = suite.resolve("remotes");
-    return scan(paths, remotes, URI.create(metaSchema));
   }
 }
