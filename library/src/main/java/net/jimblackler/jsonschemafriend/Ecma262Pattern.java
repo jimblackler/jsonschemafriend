@@ -11,11 +11,7 @@ public class Ecma262Pattern implements RegExPattern {
 
   public Ecma262Pattern(String pattern) throws InvalidRegexException {
     this.pattern = pattern;
-    function = test(pattern);
-  }
 
-  private Value test(String pattern) throws InvalidRegexException {
-    final Value function;
     try {
       synchronized (GRAALVM_CONTEXT) {
         function = GRAALVM_CONTEXT
@@ -34,7 +30,6 @@ public class Ecma262Pattern implements RegExPattern {
     } catch (PolyglotException ex) {
       throw new InvalidRegexException(ex);
     }
-    return function;
   }
 
   @Override
