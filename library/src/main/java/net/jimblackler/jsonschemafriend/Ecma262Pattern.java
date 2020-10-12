@@ -5,7 +5,16 @@ import org.graalvm.polyglot.PolyglotException;
 import org.graalvm.polyglot.Value;
 
 public class Ecma262Pattern implements RegExPattern {
-  private static final Context GRAALVM_CONTEXT = Context.create("js");
+  private static final Value REGEX_BUILDER = Context.create("js").eval("js",
+      "pattern => {"
+          + "  let regex;"
+          + "  try {"
+          + "    regex = new RegExp(pattern, 'u');"
+          + "  } catch (e) {"
+          + "    regex = new RegExp(pattern);"
+          + "  }"
+          + "  return text => text.match(regex)"
+          + "};");
   private final String pattern;
   private final Value function;
 
@@ -13,19 +22,8 @@ public class Ecma262Pattern implements RegExPattern {
     this.pattern = pattern;
 
     try {
-      synchronized (GRAALVM_CONTEXT) {
-        function = GRAALVM_CONTEXT
-                       .eval("js",
-                           "pattern => {"
-                               + "  let regex;"
-                               + "  try {"
-                               + "    regex = new RegExp(pattern, 'u');"
-                               + "  } catch (e) {"
-                               + "    regex = new RegExp(pattern);"
-                               + "  }"
-                               + "  return text => text.match(regex)"
-                               + "};")
-                       .execute(pattern);
+      synchronized (REGEX_BUILDER) {
+        function = REGEX_BUILDER.execute(pattern);
       }
     } catch (PolyglotException ex) {
       throw new InvalidRegexException(ex);
@@ -34,7 +32,7 @@ public class Ecma262Pattern implements RegExPattern {
 
   @Override
   public boolean matches(String text) {
-    synchronized (GRAALVM_CONTEXT) {
+    synchronized (REGEX_BUILDER) {
       return !function.execute(text).isNull();
     }
   }
