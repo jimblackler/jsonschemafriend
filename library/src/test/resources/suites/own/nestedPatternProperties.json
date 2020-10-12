@@ -1,0 +1,34 @@
+[
+  {
+    "description": "patternProperties validates properties matching a regex",
+    "schema": {
+      "patternProperties": {
+        "a": {
+          "patternProperties": {
+            "b": {
+              "type": "integer"
+            }
+          }
+        }
+      }
+    },
+    "tests": [
+      {
+        "data": {
+          "a": {
+            "b": 1
+          }
+        },
+        "valid": true
+      },
+      {
+        "data": {
+          "a": {
+            "b": "x"
+          }
+        },
+        "valid": false
+      }
+    ]
+  }
+]
