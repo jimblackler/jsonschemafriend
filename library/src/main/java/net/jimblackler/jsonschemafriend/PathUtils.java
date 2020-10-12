@@ -15,12 +15,13 @@ public class PathUtils {
   private static final Logger LOG = Logger.getLogger(PathUtils.class.getName());
 
   public static URI append(URI uri, String value) {
-    String fragment = uri.getRawFragment();
-    if (fragment == null) {
-      fragment = "";
+    String uriString = uri.toString();
+    if (!uriString.contains("#")) {
+      uriString += "#";
     }
-    if (!fragment.endsWith("/")) {
-      fragment += "/";
+
+    if (uriString.charAt(uriString.length() - 1) != '/') {
+      uriString += "/";
     }
 
     value = value.replace("~", "~0").replace("/", "~1");
@@ -28,7 +29,8 @@ public class PathUtils {
     if (value.isEmpty()) {
       value = ESCAPED_EMPTY;
     }
-    return URI.create(baseDocumentFromUri(uri) + "#" + fragment + value);
+
+    return URI.create(uriString + value);
   }
 
   static URI baseDocumentFromUri(URI path) {
