@@ -555,11 +555,13 @@ public class Validator {
   }
 
   private void typeCheck(Schema schema, Object document, URI path, Set<String> types,
-      Collection<String> disallow, Consumer<ValidationError> errorConsumer) {
-    Collection<String> typesIn0 = new HashSet<>(types);
-    typesIn0.retainAll(disallow);
-    if (!typesIn0.isEmpty()) {
-      errorConsumer.accept(new TypeDisallowedError(path, document, typesIn0, schema));
+      Collection<String> disallow, Consumer<? super ValidationError> errorConsumer) {
+    if (!disallow.isEmpty()) {
+      Collection<String> typesIn0 = new HashSet<>(types);
+      typesIn0.retainAll(disallow);
+      if (!typesIn0.isEmpty()) {
+        errorConsumer.accept(new TypeDisallowedError(path, document, typesIn0, schema));
+      }
     }
 
     Collection<String> explicitTypes = schema.getExplicitTypes();
@@ -581,8 +583,13 @@ public class Validator {
       return;
     }
 
-    Collection<String> typesIn = new HashSet<>(types);
-    typesIn.retainAll(explicitTypes);
+    Collection<String> typesIn;
+    if (explicitTypes.isEmpty()) {
+      typesIn = types;
+    } else {
+      typesIn = new HashSet<>(types);
+      typesIn.retainAll(explicitTypes);
+    }
     if (!typesIn.isEmpty()) {
       return;
     }
