@@ -20,8 +20,15 @@ public class Ecma262Pattern implements RegExPattern {
       synchronized (GRAALVM_CONTEXT) {
         function = GRAALVM_CONTEXT
                        .eval("js",
-                           "pattern => {const regex = new RegExp(pattern, 'u');"
-                               + "return text => text.match(regex)}")
+                           "pattern => {" +
+                               "  let regex;" +
+                               "  try {" +
+                               "    regex = new RegExp(pattern, 'u');" +
+                               "  } catch (e) {" +
+                               "    regex = new RegExp(pattern);" +
+                               "  }" +
+                               "  return text => text.match(regex)" +
+                               "};")
                        .execute(pattern);
       }
     } catch (PolyglotException ex) {
