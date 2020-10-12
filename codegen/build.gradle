@@ -22,7 +22,7 @@ afterEvaluate {
             release(MavenPublication) {
                 group = 'net.jimblackler'
                 artifactId = 'codegen'
-                version = '0.7.8'
+                version = '0.7.9'
                 artifact(sourceJar)
                 artifact(javadocJar)
                 from components.java
