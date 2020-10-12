@@ -45,7 +45,7 @@ public class Validator {
     this.errorFilter = errorFilter;
   }
 
-  static Object getObject(Object document, URI uri) {
+  public static Object getObject(Object document, URI uri) {
     Object object;
     String query = uri.getQuery();
     if (query == null) {
@@ -241,9 +241,13 @@ public class Validator {
       }
       Set<String> okTypes = new HashSet<>();
       okTypes.add("number");
-      if (new BigDecimal(number.toString()).remainder(BigDecimal.ONE).compareTo(BigDecimal.ZERO)
-          == 0) {
-        okTypes.add("integer");
+      try {
+        BigDecimal bigDecimal = new BigDecimal(number.toString());
+        if (bigDecimal.remainder(BigDecimal.ONE).compareTo(BigDecimal.ZERO) == 0) {
+          okTypes.add("integer");
+        }
+      } catch (NumberFormatException e) {
+        // Intentionally silenced.
       }
 
       typeCheck(schema, document, uri, okTypes, disallow, error);

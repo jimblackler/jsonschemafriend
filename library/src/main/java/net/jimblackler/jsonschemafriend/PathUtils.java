@@ -56,10 +56,10 @@ public class PathUtils {
     }
   }
 
-  public static void modifyAtPath(Object document, String path, Object newObject)
+  public static Object modifyAtPath(Object document, String path, Object newObject)
       throws MissingPathException {
     if (path == null || path.isEmpty()) {
-      throw new MissingPathException();
+      return newObject;
     }
     try {
       String parentPath = getParentPath(path);
@@ -73,11 +73,11 @@ public class PathUtils {
 
         if (parentObject instanceof JSONObject) {
           ((JSONObject) parentObject).put(lastPart, newObject);
-          return;
+          return document;
         }
         if (parentObject instanceof JSONArray) {
           ((JSONArray) parentObject).put(Integer.parseInt(lastPart), newObject);
-          return;
+          return document;
         }
         throw new MissingPathException("Could not modify document");
       } catch (JSONPointerException ex) {
