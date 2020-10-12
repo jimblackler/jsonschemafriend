@@ -12,7 +12,7 @@ public abstract class ValidationError {
     this.uri = uri;
     this.document = document;
     this.schema = schema;
-    object = PathUtils.fetchFromPath(document, uri.getRawFragment());
+    object = Validator.getObject(document, uri);
   }
 
   @Override

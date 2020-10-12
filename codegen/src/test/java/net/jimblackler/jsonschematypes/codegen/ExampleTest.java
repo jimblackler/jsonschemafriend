@@ -15,13 +15,14 @@ public class ExampleTest {
     FileUtils.createOrEmpty(out);
 
     Path base = FILE_SYSTEM.getPath("/examples");
-    scan(out, "org.example.basic", base, "basic");
-    scan(out, "org.example.fstab", base, "fstab");
-    scan(out, "org.example.standard", base, ("standard/7-7-1-1"));
-    scan(out, "org.example.misc", base, "misc");
-    scan(out, "org.example.longread", base, "longread");
-    scan(out, "org.example.meta", base, "meta");
-    scan(out, "org.example.docs", base, "docs");
+    scan(out, "org.example.own", base, "own");
+    //    scan(out, "org.example.basic", base, "basic");
+    //    scan(out, "org.example.fstab", base, "fstab");
+    //    scan(out, "org.example.standard", base, ("standard/7-7-1-1"));
+    //    scan(out, "org.example.misc", base, "misc");
+    //    scan(out, "org.example.longread", base, "longread");
+    //    scan(out, "org.example.meta", base, "meta");
+    //    scan(out, "org.example.docs", base, "docs");
   }
 
   private static void scan(Path out, String namespace, Path base, String append)

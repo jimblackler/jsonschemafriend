@@ -35,7 +35,7 @@ public class Validator {
   private final Predicate<ValidationError> errorFilter;
 
   public Validator() {
-    this.regExPatternSupplier = Ecma262Pattern::new;
+    this.regExPatternSupplier = new CachedRegExPatternSupplier(Ecma262Pattern::new);
     this.errorFilter = validationError -> true;
   }
 
@@ -43,6 +43,20 @@ public class Validator {
       RegExPatternSupplier regExPatternSupplier, Predicate<ValidationError> errorFilter) {
     this.regExPatternSupplier = regExPatternSupplier;
     this.errorFilter = errorFilter;
+  }
+
+  static Object getObject(Object document, URI uri) {
+    Object object;
+    String query = uri.getQuery();
+    if (query == null) {
+      object = PathUtils.fetchFromPath(document, uri.getRawFragment());
+    } else {
+      // Query part can carry a string for validation while preserving the rest of the URI for error
+      // messages. This is used for propertyName validation where it's not possible to link to the
+      // name with a standard JSON Pointer.
+      object = query;
+    }
+    return object;
   }
 
   public void validate(
@@ -58,16 +72,7 @@ public class Validator {
   public void validate(Schema schema, Object document, URI uri,
       Consumer<ValidationError> errorConsumer, Consumer<String> propertyConsumer,
       Consumer<Integer> itemConsumer, Schema recursiveRef) {
-    Object object;
-    String query = uri.getQuery();
-    if (query == null || query.isEmpty()) {
-      object = PathUtils.fetchFromPath(document, uri.getRawFragment());
-    } else {
-      // Query part can carry a string for validation while preserving the rest of the URI for error
-      // messages. This is used for propertyName validation where it's not possible to link to the
-      // name with a standard JSON Pointer.
-      object = query;
-    }
+    Object object = getObject(document, uri);
 
     Consumer<ValidationError> error = validationError -> {
       if (errorFilter.test(validationError)) {
