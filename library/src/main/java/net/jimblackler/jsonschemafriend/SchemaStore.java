@@ -26,8 +26,6 @@ import org.json.JSONObject;
 public class SchemaStore {
   private static final Logger LOG = Logger.getLogger(SchemaStore.class.getName());
 
-  private static final URI ROOT = URI.create("");
-
   private final Map<URI, Object> canonicalUriToObject = new HashMap<>();
   private final Map<URI, Object> canonicalUriToBaseObject = new HashMap<>();
   private final Map<URI, URI> validUriToCanonicalUri = new HashMap<>();
