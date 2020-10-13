@@ -32,15 +32,15 @@ public class Validator {
   private static final Logger LOG = Logger.getLogger(Validator.class.getName());
 
   private final RegExPatternSupplier regExPatternSupplier;
-  private final Predicate<ValidationError> errorFilter;
+  private final Predicate<? super ValidationError> errorFilter;
 
   public Validator() {
-    this.regExPatternSupplier = new CachedRegExPatternSupplier(Ecma262Pattern::new);
-    this.errorFilter = validationError -> true;
+    regExPatternSupplier = new CachedRegExPatternSupplier(Ecma262Pattern::new);
+    errorFilter = validationError -> true;
   }
 
   public Validator(
-      RegExPatternSupplier regExPatternSupplier, Predicate<ValidationError> errorFilter) {
+      RegExPatternSupplier regExPatternSupplier, Predicate<? super ValidationError> errorFilter) {
     this.regExPatternSupplier = regExPatternSupplier;
     this.errorFilter = errorFilter;
   }
@@ -289,36 +289,29 @@ public class Validator {
       }
       String stringToValidate = string;
       String contentEncoding = schema.getContentEncoding();
-      if (contentEncoding != null) {
-        switch (contentEncoding) {
-          case "base64":
-            Base64.Decoder urlDecoder = getUrlDecoder();
-            byte[] decoded = null;
-            try {
-              decoded = urlDecoder.decode(string);
-            } catch (IllegalArgumentException e) {
-              error.accept(new ContentEncodingError(uri, document, schema, e.getMessage()));
-            }
-            if (decoded != null) {
-              stringToValidate = new String(decoded, StandardCharsets.UTF_8);
-            }
 
-            break;
+      if ("base64".equals(contentEncoding)) {
+        Base64.Decoder urlDecoder = getUrlDecoder();
+        byte[] decoded = null;
+        try {
+          decoded = urlDecoder.decode(string);
+        } catch (IllegalArgumentException e) {
+          error.accept(new ContentEncodingError(uri, document, schema, e.getMessage()));
+        }
+        if (decoded != null) {
+          stringToValidate = new String(decoded, StandardCharsets.UTF_8);
         }
       }
 
       String contentMediaType = schema.getContentMediaType();
-      if (contentMediaType != null) {
-        switch (contentMediaType) {
-          case "application/json":
-            try {
-              new JSONArray("[" + stringToValidate + "]");
-            } catch (JSONException e) {
-              error.accept(new ContentEncodingError(uri, document, schema, e.getMessage()));
-            }
-            break;
+      if ("application/json".equals(contentMediaType)) {
+        try {
+          new JSONArray("[" + stringToValidate + "]");
+        } catch (JSONException e) {
+          error.accept(new ContentEncodingError(uri, document, schema, e.getMessage()));
         }
       }
+
       typeCheck(schema, document, uri, setOf("string"), disallow, errorConsumer);
     } else if (object instanceof Boolean) {
       typeCheck(schema, document, uri, setOf("boolean"), disallow, errorConsumer);
