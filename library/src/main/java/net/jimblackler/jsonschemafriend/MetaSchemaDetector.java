@@ -19,6 +19,9 @@ public class MetaSchemaDetector {
       if (jsonDocument.has("$schema")) {
         return URI.create(jsonDocument.getString("$schema"));
       }
+      if (jsonDocument.has("schema")) {
+        return URI.create(jsonDocument.getString("schema"));
+      }
     }
     int[] idCount = {0};
     int[] dollarIdCount = {0};
