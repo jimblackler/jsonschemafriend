@@ -11,7 +11,6 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.logging.Logger;
 import net.jimblackler.jsonschemafriend.Schema;
 import net.jimblackler.jsonschemafriend.SchemaStore;
 import net.jimblackler.jsonschemafriend.StandardValidationException;
@@ -23,7 +22,6 @@ import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.TestFactory;
 
 public class SchemaStoreTest {
-  private static final Logger LOG = Logger.getLogger(SchemaStore.class.getName());
   private static final FileSystem FILE_SYSTEM = FileSystems.getDefault();
 
   @TestFactory
