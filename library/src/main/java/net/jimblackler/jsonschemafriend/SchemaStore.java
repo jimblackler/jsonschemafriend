@@ -43,11 +43,11 @@ public class SchemaStore {
     this.urlRewriter = urlRewriter;
   }
 
-  public Schema loadSchema(Object object) throws GenerationException {
+  public Schema loadSchema(Object document) throws GenerationException {
     // Every document needs a unique, default canonical URI.
-    URI uri = URI.create(memorySchemaNumber == 0 ? "" : "" + memorySchemaNumber);
+    URI uri = URI.create(memorySchemaNumber == 0 ? "" : String.valueOf(memorySchemaNumber));
     memorySchemaNumber++;
-    URI canonicalUri = store(uri, object);
+    URI canonicalUri = store(uri, document);
     return loadSchema(canonicalUri);
   }
 
@@ -149,11 +149,11 @@ public class SchemaStore {
     }
   }
 
-  public URI store(URI uri, Object object) {
+  public URI store(URI uri, Object document) {
     if (!mapped.add(uri)) {
       throw new IllegalStateException("Double mapped");
     }
-    return map(object, object, uri, uri, detectMetaSchema(object), true);
+    return map(document, document, uri, uri, detectMetaSchema(document), true);
   }
 
   URI map(Object object, Object baseObject, URI validUri, URI canonicalBaseUri, URI metaSchema,
