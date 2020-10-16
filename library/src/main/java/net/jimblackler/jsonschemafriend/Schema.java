@@ -95,7 +95,7 @@ public class Schema {
   private final String title;
   private final String description;
 
-  private final URI metaSchema;
+  private URI metaSchema;
 
   // Own
   private Schema parent;
@@ -121,8 +121,6 @@ public class Schema {
     } else {
       jsonObject = new JSONObject();
     }
-
-    metaSchema = detectMetaSchema(schemaStore.getBaseObject(uri));
 
     // number checks
     multipleOf = (Number) jsonObject.opt("multipleOf");
@@ -681,6 +679,9 @@ public class Schema {
   }
 
   public URI getMetaSchema() {
+    if (metaSchema == null) {
+      metaSchema = detectMetaSchema(schemaStore.getBaseObject(uri));
+    }
     return metaSchema;
   }
 }
