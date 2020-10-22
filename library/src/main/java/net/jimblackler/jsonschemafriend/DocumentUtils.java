@@ -4,6 +4,7 @@ import static net.jimblackler.jsonschemafriend.StreamUtils.streamToString;
 
 import java.io.IOException;
 import java.io.InputStream;
+import net.jimblackler.usejson.Json5Parser;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -13,12 +14,7 @@ public class DocumentUtils {
   }
 
   public static Object parseJson(String content) {
-    content = content.replaceAll("[\uFEFF-\uFFFF]", ""); // Strip the dreaded FEFF.
-    JSONArray objects = new JSONArray("[" + content + "]");
-    if (objects.isEmpty()) {
-      return null;
-    }
-    return objects.get(0);
+    return JSONObject.wrap(new Json5Parser().parse(content));
   }
 
   public static String toString(Object object) {
