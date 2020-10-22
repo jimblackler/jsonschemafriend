@@ -56,7 +56,7 @@ dependencies {
 <dependency>
     <groupId>com.github.jimblackler.jsonschematypes</groupId>
     <artifactId>codegen</artifactId>
-    <version>0.7.12</version>
+    <version>0.7.13</version>
 </dependency>
 <dependency>
     <groupId>org.json</groupId>
