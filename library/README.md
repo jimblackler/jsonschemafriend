@@ -3,6 +3,8 @@
 jsonschemafriend is a JSON Schema loader and validator, delivered as a Java
 library.
 
+An online demonstration [is here](https://tryjsonschematypes.appspot.com/#validate).
+
 It is written by <jimblackler@gmail.com> and offered under an
 [Apache 2.0 license](https://www.apache.org/licenses/LICENSE-2.0).
 
