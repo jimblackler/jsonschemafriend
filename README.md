@@ -8,15 +8,14 @@ Written by jimblackler@gmail.com and offered under an
 
 This project consists of multiple parts:
 
-* A
-[JSON Schema](https://json-schema.org/) validator that can also be used as a
-schema parsing library for projects related to JSON Schemas:
-[jsonschemafriend](https://github.com/jimblackler/jsonschematypes/tree/master/library)
+* [jsonschemafriend](https://github.com/jimblackler/jsonschematypes/tree/master/library);
+  A [JSON Schema](https://json-schema.org/) validator that can also be used as a
+  schema parsing library for Java projects.
 
 * A generator
-[jsonschematypes](https://github.com/jimblackler/jsonschematypes/tree/master/codegen)
-for Java and Typescript interfaces based on JSON Schemas.
+  [jsonschematypes](https://github.com/jimblackler/jsonschematypes/tree/master/codegen)
+  for Java and Typescript interfaces based on JSON Schemas.
 
 * A
-[plugin](https://github.com/jimblackler/jsonschematypes/tree/master/plugin) for
-the jsonschematypes library.
+  [plugin](https://github.com/jimblackler/jsonschematypes/tree/master/plugin) for
+  the jsonschematypes library.
