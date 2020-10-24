@@ -1,5 +1,3 @@
-rootProject.name = 'jsonschematypes'
+rootProject.name = 'jsonschemafriend'
 
-include ':codegen'
 include ':library'
-include ':plugin'
