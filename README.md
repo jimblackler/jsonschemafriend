@@ -41,7 +41,7 @@ requires the `org.json` library.
 
 ```groovy
 dependencies {
-    implementation 'com.github.jimblackler.jsonschematypes:jsonschemafriend:0.7.14'
+    implementation 'net.jimblackler:jsonschemafriend:0.9.1'
     implementation 'org.json:json:20200518'
     // ...
 }
@@ -60,9 +60,9 @@ dependencies {
 
 ```xml
 <dependency>
-    <groupId>com.github.jimblackler.jsonschematypes</groupId>
-    <artifactId>codegen</artifactId>
-    <version>0.7.14</version>
+    <groupId>net.jimblackler</groupId>
+    <artifactId>jsonschemafriend</artifactId>
+    <version>0.9.1</version>
 </dependency>
 <dependency>
     <groupId>org.json</groupId>
