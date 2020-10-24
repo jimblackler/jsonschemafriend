@@ -18,6 +18,10 @@ It is compatible with the following metaschemas
 
 # Including in a project
 
+The library is live on JitPack.
+
+[![](https://jitpack.io/v/net.jimblackler/jsonschemafriend.svg)](https://jitpack.io/#net.jimblackler/jsonschemafriend)
+
 ## Gradle
 
 To include in a Gradle project, ensure jitpack repository is specified in your
