@@ -52,6 +52,9 @@ public class SchemaStore {
   }
 
   public Schema loadSchema(File file) throws GenerationException {
+    if (!file.isFile()) {
+      throw new GenerationException(file + " is not a file.");
+    }
     return loadSchema(file.toURI());
   }
 
