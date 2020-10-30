@@ -19,6 +19,6 @@ public class AnyOfError extends ValidationError {
 
   @Override
   String getMessage() {
-    return "All anyOf failed";
+    return "All anyOf failed: " + allErrors;
   }
 }
