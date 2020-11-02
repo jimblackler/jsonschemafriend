@@ -684,4 +684,17 @@ public class Schema {
     }
     return metaSchema;
   }
+
+  @Override
+  public int hashCode() {
+    return uri.hashCode();
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    if (!(obj instanceof Schema)) {
+      return false;
+    }
+    return uri.equals(((Schema) obj).getUri());
+  }
 }
