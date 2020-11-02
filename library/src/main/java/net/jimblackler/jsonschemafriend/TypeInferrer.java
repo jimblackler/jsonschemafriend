@@ -98,10 +98,14 @@ public class TypeInferrer {
     if (defaultValue != null) {
       inferredTypes.add(javaToSchemaType(defaultValue));
     }
+    return inferredTypes;
+  }
 
+  public static Collection<String> inferTypesNonEmpty(Schema schema) {
+    Collection<String> inferredTypes = inferTypes(schema);
     if (inferredTypes.isEmpty()) {
       // If type inference found nothing, we don't want to imply no types are allowed.
-      return allTypes();
+      return getNonProhibitedTypes(schema);
     }
     return inferredTypes;
   }
