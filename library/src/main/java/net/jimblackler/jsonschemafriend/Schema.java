@@ -91,7 +91,7 @@ public class Schema {
   private final Schema recursiveRef;
   private final boolean recursiveAnchor;
 
-  private final Object example;
+  private final JSONArray examples;
   private final String title;
   private final String description;
 
@@ -388,7 +388,19 @@ public class Schema {
     defaultValue = jsonObject.opt("default");
     title = jsonObject.optString("title");
     description = jsonObject.optString("description");
-    example = jsonObject.opt("example");
+    examples = jsonObject.optJSONArray("examples");
+
+    if (examples != null) {
+      Validator validator = new Validator();
+      for (int idx = 0; idx != examples.length(); idx++) {
+        Object example = examples.get(idx);
+        try {
+          validator.validate(this, example);
+        } catch (ValidationException e) {
+          throw new GenerationException(e);
+        }
+      }
+    }
   }
 
   private Schema getSubSchema(JSONObject jsonObject, String name, URI uri)
@@ -655,8 +667,8 @@ public class Schema {
     return defaultValue;
   }
 
-  public Object getExample() {
-    return example;
+  public JSONArray getExamples() {
+    return examples;
   }
 
   public String getTitle() {
