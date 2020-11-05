@@ -15,6 +15,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -65,7 +66,7 @@ public class Schema {
   private final boolean required;
   private final Schema additionalProperties;
   private final Schema unevaluatedProperties;
-  private final Map<String, Schema> _properties = new HashMap<>();
+  private final Map<String, Schema> _properties = new LinkedHashMap<>();
   private final Collection<String> patternPropertiesPatterns = new ArrayList<>();
   private final Collection<Schema> patternPropertiesSchemas = new ArrayList<>();
   private final Map<String, Collection<String>> dependentRequired = new HashMap<>();
