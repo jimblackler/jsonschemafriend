@@ -1,0 +1,31 @@
+[
+  {
+    "description": "Integer",
+    "schema": {
+      "type": "integer"
+    },
+    "tests": [
+      {
+        "data": 1,
+        "valid": true
+      },
+      {
+        "data": 1.1,
+        "valid": false
+      },
+      {
+        "data": 1.0,
+        "valid": true
+      },
+      {
+        "data": 1e1,
+        "valid": true
+      },
+      {
+        "data": 3.81E8,
+        "valid": true
+      }
+    ]
+  }
+
+]
