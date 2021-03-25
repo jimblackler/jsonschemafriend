@@ -2,7 +2,7 @@
 
 jsonschemafriend is a JSON Schema loader and validator, delivered as a Java
 library. Since version 0.10.0, schemas and objects are received in the form of
-standard Java objects, making it compatible with major Java JSON parser such as
+standard Java objects, making it compatible with major Java JSON parsers such as
 [org.json](https://mvnrepository.com/artifact/org.json/json),
 [gson](https://github.com/google/gson) and
 [Jackson](https://github.com/FasterXML/jackson).
