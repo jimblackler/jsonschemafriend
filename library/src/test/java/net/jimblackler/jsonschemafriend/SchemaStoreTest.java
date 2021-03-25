@@ -1,7 +1,7 @@
-package net.jimblackler.jsonschematypes;
+package net.jimblackler.jsonschemafriend;
 
 import static net.jimblackler.jsonschemafriend.DocumentUtils.loadJson;
-import static net.jimblackler.jsonschematypes.ReaderUtils.getLines;
+import static net.jimblackler.jsonschemafriend.ReaderUtils.getLines;
 
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -11,11 +11,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import net.jimblackler.jsonschemafriend.Schema;
-import net.jimblackler.jsonschemafriend.SchemaStore;
-import net.jimblackler.jsonschemafriend.StandardValidationException;
-import net.jimblackler.jsonschemafriend.Validator;
-import org.json.JSONObject;
+import java.util.Map;
 import org.junit.jupiter.api.DynamicContainer;
 import org.junit.jupiter.api.DynamicNode;
 import org.junit.jupiter.api.DynamicTest;
@@ -55,9 +51,9 @@ public class SchemaStoreTest {
                 SchemaStore schemaStore = new SchemaStore();
                 Schema schema = schemaStore.loadSchema(resource1);
 
-                JSONObject output = validator.validateWithOutput(schemaStore, schema, o);
+                Map<String, Object> output = validator.validateWithOutput(schemaStore, schema, o);
 
-                if (!output.getBoolean("valid")) {
+                if (!(Boolean) output.get("valid")) {
                   throw new StandardValidationException(output);
                 }
               }));

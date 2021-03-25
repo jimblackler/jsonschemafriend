@@ -1,10 +1,12 @@
-package net.jimblackler.jsonschematypes;
+package net.jimblackler.jsonschemafriend;
 
-import static net.jimblackler.jsonschemafriend.ObjectFixer.rewriteObject;
+import static net.jimblackler.jsonschemafriend.Utils.getOrDefault;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.DynamicContainer.dynamicContainer;
 import static org.junit.jupiter.api.DynamicTest.dynamicTest;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -19,13 +21,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
-import net.jimblackler.jsonschemafriend.DocumentUtils;
-import net.jimblackler.jsonschemafriend.SchemaStore;
-import net.jimblackler.jsonschemafriend.UrlRewriter;
-import net.jimblackler.jsonschemafriend.ValidationError;
-import net.jimblackler.jsonschemafriend.Validator;
-import org.json.JSONArray;
-import org.json.JSONObject;
+import java.util.Map;
 import org.junit.jupiter.api.DynamicNode;
 import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.TestFactory;
@@ -35,6 +31,7 @@ public class SuiteTest {
 
   private static Collection<DynamicNode> scan(
       Iterable<Path> testDirs, Path remotes, URI metaSchema) {
+    Gson gson = new GsonBuilder().setPrettyPrinting().serializeNulls().create();
     Collection<DynamicNode> allFileTests = new ArrayList<>();
     URL resource1 = SuiteTest.class.getResource(remotes.toString());
     UrlRewriter urlRewriter =
@@ -52,36 +49,32 @@ public class SuiteTest {
           Collection<DynamicNode> nodes = new ArrayList<>();
           try (InputStream inputStream1 =
                    SuiteTest.class.getResourceAsStream(testDir.resolve(resource).toString())) {
-            JSONArray data = (JSONArray) DocumentUtils.loadJson(inputStream1);
-            for (int idx = 0; idx != data.length(); idx++) {
-              JSONObject testSet = data.getJSONObject(idx);
-              if (!testSet.has("schema")) {
+            List<Object> data = DocumentUtils.loadJson(inputStream1);
+            for (int idx = 0; idx != data.size(); idx++) {
+              Map<String, Object> testSet = (Map<String, Object>) data.get(idx);
+              if (!testSet.containsKey("schema")) {
                 continue; // ever happens?
               }
 
               Collection<DynamicTest> tests = new ArrayList<>();
               Object schemaObject = testSet.get("schema");
-              if (schemaObject instanceof JSONObject) {
-                JSONObject schema1 = (JSONObject) rewriteObject(schemaObject);
+              if (schemaObject instanceof Map) {
+                Map<String, Object> schema1 = (Map<String, Object>) schemaObject;
                 schema1.put("$schema", metaSchema.toString());
               }
-              JSONArray tests1 = testSet.getJSONArray("tests");
-              for (int idx2 = 0; idx2 != tests1.length(); idx2++) {
-                JSONObject test = tests1.getJSONObject(idx2);
-                Object data1 = rewriteObject(test.get("data"));
-                boolean valid = test.getBoolean("valid");
-                String description = test.optString("description", "Data: " + data1);
+              List<Object> tests1 = (List<Object>) testSet.get("tests");
+              for (int idx2 = 0; idx2 != tests1.size(); idx2++) {
+                Map<String, Object> test = (Map<String, Object>) tests1.get(idx2);
+                Object data1 = test.get("data");
+                boolean valid = getOrDefault(test, "valid", false);
+                String description = getOrDefault(test, "description", "Data: " + data1);
                 if (!valid) {
                   description += " (F)";
                 }
 
                 tests.add(dynamicTest(description, () -> {
                   System.out.println("Schema:");
-                  if (schemaObject instanceof JSONObject) {
-                    System.out.println(((JSONObject) schemaObject).toString(2));
-                  } else {
-                    System.out.println(schemaObject);
-                  }
+                  System.out.println(gson.toJson(schemaObject));
                   System.out.println();
 
                   SchemaStore schemaStore = new SchemaStore(urlRewriter);
@@ -89,7 +82,7 @@ public class SuiteTest {
                       schemaStore.loadSchema(schemaObject);
 
                   System.out.println("Test:");
-                  System.out.println(test.toString(2));
+                  System.out.println(gson.toJson(test));
                   System.out.println();
 
                   List<ValidationError> errors = new ArrayList<>();
@@ -109,7 +102,7 @@ public class SuiteTest {
                   assertEquals(errors.isEmpty(), valid);
                 }));
               }
-              nodes.add(dynamicContainer(testSet.getString("description"), tests));
+              nodes.add(dynamicContainer((String) testSet.get("description"), tests));
             }
           }
           allFileTests.add(dynamicContainer(resource, nodes));

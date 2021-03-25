@@ -1,17 +1,18 @@
-package net.jimblackler.jsonschematypes;
+package net.jimblackler.jsonschemafriend;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.DynamicTest.dynamicTest;
 
+import com.google.gson.GsonBuilder;
 import java.net.URI;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.Random;
-import net.jimblackler.jsonschemafriend.PathUtils;
-import org.json.JSONObject;
 import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.TestFactory;
 
@@ -32,13 +33,13 @@ public class PathUtilsTest {
     return allFileTests;
   }
 
-  private void test(Random random) {
-    JSONObject jsonObject = new JSONObject();
+  private void test(Random random) throws MissingPathException {
+    Map<String, Object> jsonObject = new LinkedHashMap<>();
     String str = randomString(random, random.nextInt(MAX_LENGTH) + 1);
     String testInsertion = "hello";
     jsonObject.put(str, testInsertion);
 
-    System.out.println(jsonObject.toString(2));
+    System.out.println(new GsonBuilder().setPrettyPrinting().create().toJson(jsonObject));
 
     URI uri = URI.create("");
     URI appended = PathUtils.append(uri, str);

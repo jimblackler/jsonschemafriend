@@ -12,6 +12,7 @@ import static net.jimblackler.jsonschemafriend.MetaSchemaUris.DRAFT_7;
 
 import com.damnhandy.uri.template.MalformedUriTemplateException;
 import com.damnhandy.uri.template.UriTemplate;
+import com.fasterxml.jackson.core.JsonPointer;
 import com.ibm.icu.text.IDNA;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -28,7 +29,6 @@ import javax.mail.internet.InternetAddress;
 import org.apache.commons.validator.routines.DomainValidator;
 import org.apache.commons.validator.routines.EmailValidator;
 import org.apache.commons.validator.routines.InetAddressValidator;
-import org.json.JSONPointer;
 
 public class FormatChecker {
   private static final Collection<String> IDNA_DISALLOWED;
@@ -192,7 +192,7 @@ public class FormatChecker {
               return "Protocol-relative";
             }
             URI uri1 = new URI(string);
-            if (!metaSchema.equals(MetaSchemaUris.DRAFT_3) && !uri1.isAbsolute()) {
+            if (!metaSchema.equals(DRAFT_3) && !uri1.isAbsolute()) {
               return "Not absolute";
             }
           } catch (URISyntaxException e) {
@@ -228,8 +228,11 @@ public class FormatChecker {
   }
 
   private static String checkJsonPointer(String string) {
+    if (string.replace("~0", "").replace("~1", "").contains("~")) {
+      return "Not escaped";
+    }
     try {
-      JSONPointer jsonPointer = new JSONPointer(string);
+      JsonPointer jsonPointer = JsonPointer.compile(string);
       String readBack = jsonPointer.toString().replace("\\\\", "\\").replace("\\\"", "\"");
       if (readBack.equals(string)) {
         return null;

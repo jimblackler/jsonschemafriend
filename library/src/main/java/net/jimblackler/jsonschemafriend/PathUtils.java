@@ -1,14 +1,13 @@
 package net.jimblackler.jsonschemafriend;
 
+import com.fasterxml.jackson.core.JsonPointer;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
+import java.util.List;
+import java.util.Map;
 import java.util.logging.Logger;
-import org.json.JSONArray;
-import org.json.JSONObject;
-import org.json.JSONPointer;
-import org.json.JSONPointerException;
 
 public class PathUtils {
   public static final String ESCAPED_EMPTY = "~2";
@@ -41,7 +40,7 @@ public class PathUtils {
     }
   }
 
-  public static Object fetchFromPath(Object document, String path) {
+  public static Object fetchFromPath(Object document, String path) throws MissingPathException {
     if (path == null || path.isEmpty()) {
       return document;
     }
@@ -50,12 +49,33 @@ public class PathUtils {
     // Empty keys mid-path could be represented with // (nothing between the separators), but
     // that would not work for keys at the end of the path.
     path = path.replace(ESCAPED_EMPTY, "");
-    JSONPointer jsonPointer = new JSONPointer("#" + path);
-    try {
-      return jsonPointer.queryFrom(document);
-    } catch (JSONPointerException ex) {
-      throw new IllegalStateException(ex);
+    JsonPointer jsonPointer = JsonPointer.compile(path);
+
+    return queryFrom(jsonPointer, document);
+  }
+
+  private static Object queryFrom(JsonPointer jsonPointer, Object object)
+      throws MissingPathException {
+    if (jsonPointer.matches()) {
+      return object;
     }
+    if (object instanceof List) {
+      int matchingIndex = jsonPointer.getMatchingIndex();
+      List<Object> list = (List<Object>) object;
+      if (matchingIndex < 0 || matchingIndex >= list.size()) {
+        throw new MissingPathException(jsonPointer.toString());
+      }
+      return queryFrom(jsonPointer.tail(), list.get(matchingIndex));
+    }
+    if (object instanceof Map) {
+      Map<String, Object> map = (Map<String, Object>) object;
+      String property = URLDecoder.decode(jsonPointer.getMatchingProperty());
+      if (!map.containsKey(property)) {
+        throw new MissingPathException(jsonPointer.toString());
+      }
+      return queryFrom(jsonPointer.tail(), map.get(property));
+    }
+    throw new MissingPathException(jsonPointer.toString());
   }
 
   public static Object modifyAtPath(Object document, String path, Object newObject)
@@ -66,25 +86,23 @@ public class PathUtils {
     try {
       String parentPath = getParentPath(path);
       path = path.replace(ESCAPED_EMPTY, "");
-      JSONPointer jsonPointer = new JSONPointer("#" + parentPath);
-      try {
-        Object parentObject = jsonPointer.queryFrom(document);
-        String lastPart = getLastPart(path);
-        lastPart = URLDecoder.decode(lastPart);
-        lastPart = jsonPointerUnescape(lastPart);
+      JsonPointer jsonPointer = JsonPointer.compile(parentPath);
 
-        if (parentObject instanceof JSONObject) {
-          ((JSONObject) parentObject).put(lastPart, newObject);
-          return document;
-        }
-        if (parentObject instanceof JSONArray) {
-          ((JSONArray) parentObject).put(Integer.parseInt(lastPart), newObject);
-          return document;
-        }
-        throw new MissingPathException("Could not modify document");
-      } catch (JSONPointerException ex) {
-        throw new MissingPathException(ex);
+      Object parentObject = queryFrom(jsonPointer, document);
+      String lastPart = getLastPart(path);
+      lastPart = URLDecoder.decode(lastPart);
+      lastPart = jsonPointerUnescape(lastPart);
+
+      if (parentObject instanceof Map) {
+        ((Map<String, Object>) parentObject).put(lastPart, newObject);
+        return document;
       }
+      if (parentObject instanceof List) {
+        ((List<Object>) parentObject).add(Integer.parseInt(lastPart), newObject);
+        return document;
+      }
+      throw new MissingPathException("Could not modify document");
+
     } catch (IllegalArgumentException ex) {
       throw new MissingPathException("Probable attempt to use an $id as a URL", ex);
     }
@@ -97,32 +115,30 @@ public class PathUtils {
     try {
       String parentPath = getParentPath(path);
       path = path.replace(ESCAPED_EMPTY, "");
-      JSONPointer jsonPointer = new JSONPointer("#" + parentPath);
-      try {
-        Object parentObject = jsonPointer.queryFrom(document);
-        String lastPart = getLastPart(path);
-        lastPart = URLDecoder.decode(lastPart);
-        lastPart = jsonPointerUnescape(lastPart);
+      JsonPointer jsonPointer = JsonPointer.compile("#" + parentPath);
 
-        if (parentObject instanceof JSONObject) {
-          ((JSONObject) parentObject).remove(lastPart);
-          return;
-        }
-        if (parentObject instanceof JSONArray) {
-          ((JSONArray) parentObject).remove(Integer.parseInt(lastPart));
-          return;
-        }
-        throw new MissingPathException("Could not modify document");
-      } catch (JSONPointerException ex) {
-        throw new MissingPathException(ex);
+      Object parentObject = queryFrom(jsonPointer, document);
+      String lastPart = getLastPart(path);
+      lastPart = URLDecoder.decode(lastPart);
+      lastPart = jsonPointerUnescape(lastPart);
+
+      if (parentObject instanceof Map) {
+        ((Map<String, Object>) parentObject).remove(lastPart);
+        return;
       }
+      if (parentObject instanceof List) {
+        ((List<Object>) parentObject).remove(Integer.parseInt(lastPart));
+        return;
+      }
+      throw new MissingPathException("Could not modify document");
+
     } catch (IllegalArgumentException ex) {
       throw new MissingPathException("Probable attempt to use an $id as a URL", ex);
     }
   }
 
   private static String getParentPath(String path) throws MissingPathException {
-    int i = path.lastIndexOf("/");
+    int i = path.lastIndexOf('/');
     if (i == -1) {
       throw new MissingPathException("No parent");
     }
@@ -130,7 +146,7 @@ public class PathUtils {
   }
 
   private static String getLastPart(String path) {
-    int i = path.lastIndexOf("/");
+    int i = path.lastIndexOf('/');
     if (i == -1) {
       return path;
     }
@@ -161,7 +177,7 @@ public class PathUtils {
     if (pointer == null) {
       return null;
     }
-    int i = pointer.lastIndexOf("/");
+    int i = pointer.lastIndexOf('/');
     if (i == -1) {
       return null;
     }
@@ -197,7 +213,7 @@ public class PathUtils {
    * @return The fixed ref.
    */
   public static String fixUnescaped(String ref) {
-    int i = ref.indexOf("#");
+    int i = ref.indexOf('#');
     if (i == -1) {
       return ref;
     }

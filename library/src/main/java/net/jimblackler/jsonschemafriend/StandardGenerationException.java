@@ -1,16 +1,16 @@
 package net.jimblackler.jsonschemafriend;
 
-import org.json.JSONObject;
+import java.util.Map;
 
 public class StandardGenerationException extends GenerationException {
-  private final JSONObject standardOutput;
+  private final Map<String, Object> standardOutput;
 
-  public StandardGenerationException(JSONObject standardOutput) {
+  public StandardGenerationException(Map<String, Object> standardOutput) {
     super(standardOutput.toString());
     this.standardOutput = standardOutput;
   }
 
-  public JSONObject getStandardOutput() {
+  public Map<String, Object> getStandardOutput() {
     return standardOutput;
   }
 }

@@ -12,7 +12,13 @@ public abstract class ValidationError {
     this.uri = uri;
     this.document = document;
     this.schema = schema;
-    object = Validator.getObject(document, uri);
+    Object _object;
+    try {
+      _object = Validator.getObject(document, uri);
+    } catch (MissingPathException e) {
+      _object = null;
+    }
+    object = _object;
   }
 
   @Override

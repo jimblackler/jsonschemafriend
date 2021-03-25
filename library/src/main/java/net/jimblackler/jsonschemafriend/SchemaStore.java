@@ -17,11 +17,9 @@ import java.net.URL;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
 
 public class SchemaStore {
   private static final Logger LOG = Logger.getLogger(SchemaStore.class.getName());
@@ -98,23 +96,23 @@ public class SchemaStore {
             store(documentUri, parseJson(content));
             continue;
           }
-        } catch (JSONException | IOException e) {
+        } catch (IOException e) {
           LOG.warning("Failed attempt to auto fetch to resolve: " + uri);
         }
       }
 
       Object schemaObject = getObject(uri);
-      if (!(schemaObject instanceof JSONObject)) {
+      if (!(schemaObject instanceof Map)) {
         break;
       }
-      JSONObject schemaJsonObject = (JSONObject) schemaObject;
-      Object refObject = schemaJsonObject.opt("$ref");
+      Map<String, Object> schemaJsonObject = (Map<String, Object>) schemaObject;
+      Object refObject = schemaJsonObject.get("$ref");
       if (refObject instanceof String) {
         String refString = fixUnescaped((String) refObject);
         URI pointingTo = resolve(uri, URI.create(refString));
         URI metaSchema = detectMetaSchema(canonicalUriToBaseObject.get(uri));
         if (metaSchema.equals(MetaSchemaUris.DRAFT_2019_09)) {
-          if (schemaJsonObject.length() > 1) {
+          if (schemaJsonObject.size() > 1) {
             break;
           }
         }
@@ -127,16 +125,15 @@ public class SchemaStore {
     // before we attempt to build the Schema.
     // This can't be done inside the Schema builder because the schema's meta-schema might be in its
     // own graph, so the meta-schema won't be built in full when it's first available.
-
     if (prevalidate) {
       Object schemaObject = getObject(uri);
       if (schemaObject != null) {
         URI metaSchemaUri = detectMetaSchema(canonicalUriToBaseObject.get(uri));
         if (!normalize(metaSchemaUri).equals(uri)) {
           Schema metaSchema = loadSchema(metaSchemaUri, false);
-          JSONObject validation =
+          Map<String, Object> validation =
               new Validator().validateWithOutput(this, metaSchema, schemaObject);
-          if (!validation.getBoolean("valid")) {
+          if (!(boolean) validation.get("valid")) {
             throw new StandardGenerationException(validation);
           }
         }
@@ -166,9 +163,9 @@ public class SchemaStore {
         ? "id"
         : "$id";
     URI canonicalUri = canonicalBaseUri;
-    if (object instanceof JSONObject) {
-      JSONObject jsonObject = (JSONObject) object;
-      Object idObject = jsonObject.opt(idKey);
+    if (object instanceof Map) {
+      Map<String, Object> jsonObject = (Map<String, Object>) object;
+      Object idObject = jsonObject.get(idKey);
       if (idObject instanceof String) {
         URI child = URI.create((String) idObject);
         if (MetaSchemaUris.DRAFT_2019_09.equals(metaSchema) && child.getRawFragment() != null
@@ -178,7 +175,7 @@ public class SchemaStore {
           canonicalUri = resolve(canonicalUri, child);
         }
       }
-      Object anchorObject = jsonObject.opt("$anchor");
+      Object anchorObject = jsonObject.get("$anchor");
       if (anchorObject instanceof String) {
         try {
           URI anchor = new URI(null, null, null, (String) anchorObject);
@@ -213,19 +210,21 @@ public class SchemaStore {
       validUriToCanonicalUri.put(validUri, canonicalUri);
     }
 
-    if (object instanceof JSONObject) {
-      JSONObject jsonObject = (JSONObject) object;
-      for (String key : jsonObject.keySet()) {
-        map(jsonObject.get(key), baseObject, append(validUri, key), append(canonicalUri, key),
+    if (object instanceof Map) {
+      Map<String, Object> jsonObject = (Map<String, Object>) object;
+      for (Map.Entry<String, Object> entry : jsonObject.entrySet()) {
+        String key = entry.getKey();
+        map(entry.getValue(), baseObject, append(validUri, key), append(canonicalUri, key),
             metaSchema, isResource);
-        if (!canonicalBaseUri.equals(canonicalUri) && !canonicalBaseUri.equals(validUri)) {
-          map(jsonObject.get(key), baseObject, append(canonicalBaseUri, key),
-              append(canonicalUri, key), metaSchema, false);
+        if (canonicalBaseUri.equals(canonicalUri) || canonicalBaseUri.equals(validUri)) {
+          continue;
         }
+        map(entry.getValue(), baseObject, append(canonicalBaseUri, key), append(canonicalUri, key),
+            metaSchema, false);
       }
-    } else if (object instanceof JSONArray) {
-      JSONArray jsonArray = (JSONArray) object;
-      for (int idx = 0; idx != jsonArray.length(); idx++) {
+    } else if (object instanceof List) {
+      List<Object> jsonArray = (List<Object>) object;
+      for (int idx = 0; idx != jsonArray.size(); idx++) {
         map(jsonArray.get(idx), baseObject, append(validUri, String.valueOf(idx)),
             append(canonicalUri, String.valueOf(idx)), metaSchema, isResource);
       }

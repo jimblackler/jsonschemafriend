@@ -1,11 +1,9 @@
 package net.jimblackler.jsonschemafriend;
 
-abstract public class ValidationException extends SchemaException {
-  public ValidationException(String message) {
+public abstract class ValidationException extends SchemaException {
+  protected ValidationException(String message) {
     super(message);
   }
 
-  public ValidationException() {
-    super();
-  }
+  protected ValidationException() {}
 }

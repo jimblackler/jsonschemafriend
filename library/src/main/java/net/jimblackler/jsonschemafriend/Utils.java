@@ -1,6 +1,7 @@
 package net.jimblackler.jsonschemafriend;
 
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 class Utils {
@@ -9,5 +10,9 @@ class Utils {
     Set<T> set = new HashSet<>();
     set.add(element);
     return set;
+  }
+
+  static <T> T getOrDefault(Map<String, Object> map, String key, T def) {
+    return map.containsKey(key) ? (T) map.get(key) : def;
   }
 }

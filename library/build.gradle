@@ -22,7 +22,7 @@ afterEvaluate {
             release(MavenPublication) {
                 group = 'net.jimblackler'
                 artifactId = 'jsonschemafriend'
-                version = '0.9.3'
+                version = '0.10.0'
                 artifact(sourceJar)
                 artifact(javadocJar)
                 from components.java
@@ -44,9 +44,11 @@ dependencies {
     implementation 'com.damnhandy:handy-uri-templates:2.1.7'
     implementation 'com.sun.mail:javax.mail:1.6.2'
     implementation 'commons-validator:commons-validator:1.7'
-    implementation 'net.jimblackler:usejson:0.1.4'
+    implementation 'com.fasterxml.jackson.core:jackson-databind:2.12.1'
+    implementation 'net.jimblackler:usejson:0.2.0'
     implementation 'org.graalvm.js:js:20.2.0'
     implementation 'org.graalvm.sdk:graal-sdk:20.2.0'
-    implementation 'org.json:json:20200518'
+    testImplementation 'com.google.code.gson:gson:2.8.6'
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.6.2'
+    testImplementation 'org.json:json:20200518'
 }

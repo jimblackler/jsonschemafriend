@@ -1,17 +1,17 @@
 package net.jimblackler.jsonschemafriend;
 
-public class SchemaException extends Exception {
-  public SchemaException() {}
+public abstract class SchemaException extends Exception {
+  protected SchemaException() {}
 
-  public SchemaException(String message) {
+  protected SchemaException(String message) {
     super(message);
   }
 
-  public SchemaException(String message, Throwable cause) {
+  protected SchemaException(String message, Throwable cause) {
     super(message, cause);
   }
 
-  public SchemaException(Throwable cause) {
+  protected SchemaException(Throwable cause) {
     super(cause);
   }
 }

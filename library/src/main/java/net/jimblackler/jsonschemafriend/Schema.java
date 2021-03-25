@@ -6,6 +6,7 @@ import static net.jimblackler.jsonschemafriend.MetaSchemaDetector.detectMetaSche
 import static net.jimblackler.jsonschemafriend.PathUtils.append;
 import static net.jimblackler.jsonschemafriend.PathUtils.fixUnescaped;
 import static net.jimblackler.jsonschemafriend.PathUtils.resolve;
+import static net.jimblackler.jsonschemafriend.Utils.getOrDefault;
 import static net.jimblackler.jsonschemafriend.Utils.setOf;
 
 import java.net.URI;
@@ -14,14 +15,11 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.logging.Logger;
-import org.json.JSONArray;
-import org.json.JSONObject;
 
 /**
  * A schema defined by an object. "Object" refers to the type in the definition, not the type of
@@ -73,6 +71,7 @@ public class Schema {
   private final Map<String, Schema> dependentSchemas = new HashMap<>();
   private final Schema propertyNames;
   // all types checks
+  private final boolean hasConst;
   private final Object _const;
   private final List<Object> enums;
   private final Set<String> explicitTypes;
@@ -92,7 +91,7 @@ public class Schema {
   private final Schema recursiveRef;
   private final boolean recursiveAnchor;
 
-  private final JSONArray examples;
+  private final List<Object> examples;
   private final String title;
   private final String description;
 
@@ -116,25 +115,25 @@ public class Schema {
     }
 
     schemaObject = _schemaObject;
-    JSONObject jsonObject;
-    if (schemaObject instanceof JSONObject) {
-      jsonObject = (JSONObject) schemaObject;
+    Map<String, Object> jsonObject;
+    if (schemaObject instanceof Map) {
+      jsonObject = (Map<String, Object>) schemaObject;
     } else {
-      jsonObject = new JSONObject();
+      jsonObject = new LinkedHashMap<>();
     }
 
     // number checks
-    multipleOf = (Number) jsonObject.opt("multipleOf");
-    maximum = (Number) jsonObject.opt("maximum");
-    exclusiveMaximum = jsonObject.opt("exclusiveMaximum");
-    minimum = (Number) jsonObject.opt("minimum");
-    exclusiveMinimum = jsonObject.opt("exclusiveMinimum");
-    divisibleBy = (Number) jsonObject.opt("divisibleBy");
+    multipleOf = (Number) jsonObject.get("multipleOf");
+    maximum = (Number) jsonObject.get("maximum");
+    exclusiveMaximum = jsonObject.get("exclusiveMaximum");
+    minimum = (Number) jsonObject.get("minimum");
+    exclusiveMinimum = jsonObject.get("exclusiveMinimum");
+    divisibleBy = (Number) jsonObject.get("divisibleBy");
 
     // string checks
-    maxLength = (Number) jsonObject.opt("maxLength");
-    minLength = (Number) jsonObject.opt("minLength");
-    Object patternObject = jsonObject.opt("pattern");
+    maxLength = (Number) jsonObject.get("maxLength");
+    minLength = (Number) jsonObject.get("minLength");
+    Object patternObject = jsonObject.get("pattern");
 
     String _pattern = null;
     if (patternObject != null) {
@@ -142,14 +141,14 @@ public class Schema {
     }
     pattern = _pattern;
 
-    Object formatObject = jsonObject.opt("format");
+    Object formatObject = jsonObject.get("format");
     format = formatObject instanceof String ? (String) formatObject : null;
 
-    Object contentEncodingObject = jsonObject.opt("contentEncoding");
+    Object contentEncodingObject = jsonObject.get("contentEncoding");
     contentEncoding =
         contentEncodingObject instanceof String ? (String) contentEncodingObject : null;
 
-    Object contentMediaTypeObject = jsonObject.opt("contentMediaType");
+    Object contentMediaTypeObject = jsonObject.get("contentMediaType");
     contentMediaType =
         contentMediaTypeObject instanceof String ? (String) contentMediaTypeObject : null;
 
@@ -157,12 +156,12 @@ public class Schema {
     additionalItems = getSubSchema(jsonObject, "additionalItems", uri);
     unevaluatedItems = getSubSchema(jsonObject, "unevaluatedItems", uri);
 
-    Object itemsObject = jsonObject.opt("items");
+    Object itemsObject = jsonObject.get("items");
     URI itemsPath = append(uri, "items");
-    if (itemsObject instanceof JSONArray) {
+    if (itemsObject instanceof List) {
       itemsTuple = new ArrayList<>();
-      JSONArray jsonArray = (JSONArray) itemsObject;
-      for (int idx = 0; idx != jsonArray.length(); idx++) {
+      Collection<Object> jsonArray = (Collection<Object>) itemsObject;
+      for (int idx = 0; idx != jsonArray.size(); idx++) {
         itemsTuple.add(getSubSchema(append(itemsPath, String.valueOf(idx))));
       }
       _items = null;
@@ -171,22 +170,21 @@ public class Schema {
       _items = getSubSchema(jsonObject, "items", uri);
     }
 
-    maxItems = (Number) jsonObject.opt("maxItems");
-    minItems = (Number) jsonObject.opt("minItems");
-    uniqueItems = jsonObject.optBoolean("uniqueItems", false);
+    maxItems = (Number) jsonObject.get("maxItems");
+    minItems = (Number) jsonObject.get("minItems");
+    uniqueItems = getOrDefault(jsonObject, "uniqueItems", false);
     contains = getSubSchema(jsonObject, "contains", uri);
-    minContains = (Number) jsonObject.opt("minContains");
-    maxContains = (Number) jsonObject.opt("maxContains");
+    minContains = (Number) jsonObject.get("minContains");
+    maxContains = (Number) jsonObject.get("maxContains");
 
     // object checks
-    maxProperties = (Number) jsonObject.opt("maxProperties");
-    minProperties = (Number) jsonObject.opt("minProperties");
+    maxProperties = (Number) jsonObject.get("maxProperties");
+    minProperties = (Number) jsonObject.get("minProperties");
 
-    Object requiredObject = jsonObject.opt("required");
-    if (requiredObject instanceof JSONArray) {
-      JSONArray array = (JSONArray) requiredObject;
-      for (int idx = 0; idx != array.length(); idx++) {
-        requiredProperties.add(array.getString(idx));
+    Object requiredObject = jsonObject.get("required");
+    if (requiredObject instanceof List) {
+      for (Object req : (Iterable<Object>) requiredObject) {
+        requiredProperties.add((String) req);
       }
     }
     required = requiredObject instanceof Boolean && (Boolean) requiredObject;
@@ -194,43 +192,40 @@ public class Schema {
     additionalProperties = getSubSchema(jsonObject, "additionalProperties", uri);
     unevaluatedProperties = getSubSchema(jsonObject, "unevaluatedProperties", uri);
 
-    Object propertiesObject = jsonObject.opt("properties");
-    if (propertiesObject instanceof JSONObject) {
-      JSONObject properties = (JSONObject) propertiesObject;
+    Object propertiesObject = jsonObject.get("properties");
+    if (propertiesObject instanceof Map) {
+      Map<String, Object> properties = (Map<String, Object>) propertiesObject;
       URI propertiesPointer = append(uri, "properties");
-      Iterator<String> it = properties.keys();
-      while (it.hasNext()) {
-        String propertyName = it.next();
+      for (String propertyName : properties.keySet()) {
         URI propertyUri = append(propertiesPointer, propertyName);
         _properties.put(propertyName, getSubSchema(propertyUri));
       }
     }
 
-    Object patternPropertiesObject = jsonObject.opt("patternProperties");
-    if (patternPropertiesObject instanceof JSONObject) {
-      JSONObject patternProperties = (JSONObject) patternPropertiesObject;
+    Object patternPropertiesObject = jsonObject.get("patternProperties");
+    if (patternPropertiesObject instanceof Map) {
+      Map<String, Object> patternProperties = (Map<String, Object>) patternPropertiesObject;
       URI propertiesPointer = append(uri, "patternProperties");
-      Iterator<String> it = patternProperties.keys();
-      while (it.hasNext()) {
-        String propertyPattern = it.next();
+      for (String propertyPattern : patternProperties.keySet()) {
         patternPropertiesPatterns.add(propertyPattern);
         URI patternPointer = append(propertiesPointer, propertyPattern);
         patternPropertiesSchemas.add(getSubSchema(patternPointer));
       }
     }
 
-    JSONObject dependenciesJsonObject = jsonObject.optJSONObject("dependencies");
+    Map<String, Object> dependenciesJsonObject =
+        (Map<String, Object>) jsonObject.get("dependencies");
     if (dependenciesJsonObject != null) {
-      for (String dependency : dependenciesJsonObject.keySet()) {
+      for (Map.Entry<String, Object> entry : dependenciesJsonObject.entrySet()) {
+        String dependency = entry.getKey();
         Collection<String> spec = new ArrayList<>();
-        Object dependencyObject = dependenciesJsonObject.get(dependency);
-        if (dependencyObject instanceof JSONArray) {
-          JSONArray array = (JSONArray) dependencyObject;
-          for (int idx = 0; idx != array.length(); idx++) {
-            spec.add(array.getString(idx));
+        Object dependencyObject = entry.getValue();
+        if (dependencyObject instanceof List) {
+          for (Object o : (Iterable<Object>) dependencyObject) {
+            spec.add((String) o);
           }
           dependentRequired.put(dependency, spec);
-        } else if (dependencyObject instanceof JSONObject || dependencyObject instanceof Boolean) {
+        } else if (dependencyObject instanceof Map || dependencyObject instanceof Boolean) {
           URI dependenciesPointer = append(uri, "dependencies");
           dependentSchemas.put(dependency, getSubSchema(append(dependenciesPointer, dependency)));
         } else {
@@ -241,19 +236,20 @@ public class Schema {
       }
     }
 
-    JSONObject dependentRequiredJsonObject = jsonObject.optJSONObject("dependentRequired");
+    Map<String, Object> dependentRequiredJsonObject =
+        (Map<String, Object>) jsonObject.get("dependentRequired");
     if (dependentRequiredJsonObject != null) {
-      for (String dependency : dependentRequiredJsonObject.keySet()) {
+      for (Map.Entry<String, Object> entry : dependentRequiredJsonObject.entrySet()) {
         Collection<String> spec = new ArrayList<>();
-        JSONArray array = (JSONArray) dependentRequiredJsonObject.get(dependency);
-        for (int idx = 0; idx != array.length(); idx++) {
-          spec.add(array.getString(idx));
+        for (Object req : (Iterable<Object>) entry.getValue()) {
+          spec.add((String) req);
         }
-        dependentRequired.put(dependency, spec);
+        dependentRequired.put(entry.getKey(), spec);
       }
     }
 
-    JSONObject dependentSchemasJsonObject = jsonObject.optJSONObject("dependentSchemas");
+    Map<String, Object> dependentSchemasJsonObject =
+        (Map<String, Object>) jsonObject.get("dependentSchemas");
     if (dependentSchemasJsonObject != null) {
       for (String dependency : dependentSchemasJsonObject.keySet()) {
         URI dependenciesPointer = append(uri, "dependentSchemas");
@@ -264,27 +260,30 @@ public class Schema {
     propertyNames = getSubSchema(jsonObject, "propertyNames", uri);
 
     // all types checks
-    _const = jsonObject.opt("const");
+    if (jsonObject.containsKey("const")) {
+      hasConst = true;
+      _const = jsonObject.get("const");
+    } else {
+      hasConst = false;
+      _const = null;
+    }
 
-    JSONArray enumArray = jsonObject.optJSONArray("enum");
+    Collection<Object> enumArray = (Collection<Object>) jsonObject.get("enum");
     if (enumArray == null) {
       enums = null;
     } else {
       enums = new ArrayList<>();
-      for (int idx = 0; idx != enumArray.length(); idx++) {
-        Object enumObject = enumArray.get(idx);
-        enums.add(enumObject);
-      }
+      enums.addAll(enumArray);
     }
 
-    Object typeObject = jsonObject.opt("type");
-    if (typeObject instanceof JSONArray) {
+    Object typeObject = jsonObject.get("type");
+    if (typeObject instanceof List) {
       URI typePointer = append(uri, "type");
       explicitTypes = new HashSet<>();
-      JSONArray array = (JSONArray) typeObject;
-      for (int idx = 0; idx != array.length(); idx++) {
+      List<Object> array = (List<Object>) typeObject;
+      for (int idx = 0; idx != array.size(); idx++) {
         Object arrayEntryObject = array.get(idx);
-        if (arrayEntryObject instanceof Boolean || arrayEntryObject instanceof JSONObject) {
+        if (arrayEntryObject instanceof Boolean || arrayEntryObject instanceof Map) {
           typesSchema.add(getSubSchema(append(typePointer, String.valueOf(idx))));
         } else {
           explicitTypes.add((String) arrayEntryObject);
@@ -300,30 +299,30 @@ public class Schema {
     _then = getSubSchema(jsonObject, "then", uri);
     _else = getSubSchema(jsonObject, "else", uri);
 
-    Object allOfObject = jsonObject.opt("allOf");
-    if (allOfObject instanceof JSONArray) {
-      JSONArray array = (JSONArray) allOfObject;
+    Object allOfObject = jsonObject.get("allOf");
+    if (allOfObject instanceof List) {
+      Collection<Object> array = (Collection<Object>) allOfObject;
       URI arrayPath = append(uri, "allOf");
-      for (int idx = 0; idx != array.length(); idx++) {
+      for (int idx = 0; idx != array.size(); idx++) {
         URI indexPointer = append(arrayPath, String.valueOf(idx));
         allOf.add(getSubSchema(indexPointer));
       }
     }
 
-    Object extendsObject = jsonObject.opt("extends");
-    if (extendsObject instanceof JSONArray) {
+    Object extendsObject = jsonObject.get("extends");
+    if (extendsObject instanceof List) {
       URI arrayPath = append(uri, "extends");
-      JSONArray array = (JSONArray) extendsObject;
-      for (int idx = 0; idx != array.length(); idx++) {
+      Collection<Object> array = (Collection<Object>) extendsObject;
+      for (int idx = 0; idx != array.size(); idx++) {
         URI indexPointer = append(arrayPath, String.valueOf(idx));
         allOf.add(getSubSchema(indexPointer));
       }
-    } else if (extendsObject instanceof JSONObject || extendsObject instanceof Boolean) {
+    } else if (extendsObject instanceof Map || extendsObject instanceof Boolean) {
       URI arrayPath = append(uri, "extends");
       allOf.add(getSubSchema(arrayPath));
     }
 
-    Object refObject = jsonObject.opt("$ref");
+    Object refObject = jsonObject.get("$ref");
     if (refObject instanceof String) {
       // Refs should be URL Escaped already; but in practice they are sometimes not.
       URI resolved = resolve(uri, URI.create(fixUnescaped((String) refObject)));
@@ -332,7 +331,7 @@ public class Schema {
       ref = null;
     }
 
-    Object recursiveRefObject = jsonObject.opt("$recursiveRef");
+    Object recursiveRefObject = jsonObject.get("$recursiveRef");
     if (recursiveRefObject instanceof String) {
       URI resolved = resolve(uri, URI.create((String) recursiveRefObject));
       recursiveRef = schemaStore.loadSchema(resolved, false);
@@ -340,14 +339,14 @@ public class Schema {
       recursiveRef = null;
     }
 
-    recursiveAnchor = jsonObject.optBoolean("$recursiveAnchor");
+    recursiveAnchor = getOrDefault(jsonObject, "$recursiveAnchor", false);
 
-    Object anyOfObject = jsonObject.opt("anyOf");
-    if (anyOfObject instanceof JSONArray) {
+    Object anyOfObject = jsonObject.get("anyOf");
+    if (anyOfObject instanceof List) {
       anyOf = new ArrayList<>();
-      JSONArray array = (JSONArray) anyOfObject;
+      Collection<Object> array = (Collection<Object>) anyOfObject;
       URI arrayPath = append(uri, "anyOf");
-      for (int idx = 0; idx != array.length(); idx++) {
+      for (int idx = 0; idx != array.size(); idx++) {
         URI indexPointer = append(arrayPath, String.valueOf(idx));
         anyOf.add(getSubSchema(indexPointer));
       }
@@ -355,12 +354,12 @@ public class Schema {
       anyOf = null;
     }
 
-    Object oneOfObject = jsonObject.opt("oneOf");
-    if (oneOfObject instanceof JSONArray) {
+    Object oneOfObject = jsonObject.get("oneOf");
+    if (oneOfObject instanceof List) {
       oneOf = new ArrayList<>();
-      JSONArray array = (JSONArray) oneOfObject;
+      Collection<Object> array = (Collection<Object>) oneOfObject;
       URI arrayPath = append(uri, "oneOf");
-      for (int idx = 0; idx != array.length(); idx++) {
+      for (int idx = 0; idx != array.size(); idx++) {
         URI indexPointer = append(arrayPath, String.valueOf(idx));
         oneOf.add(getSubSchema(indexPointer));
       }
@@ -370,31 +369,30 @@ public class Schema {
 
     not = getSubSchema(jsonObject, "not", uri);
 
-    Object disallowObject = jsonObject.opt("disallow");
+    Object disallowObject = jsonObject.get("disallow");
     if (disallowObject instanceof String) {
       disallow.add(disallowObject.toString());
-    } else if (disallowObject instanceof JSONArray) {
-      JSONArray array = (JSONArray) disallowObject;
+    } else if (disallowObject instanceof List) {
+      List<Object> array = (List<Object>) disallowObject;
       URI disallowPointer = append(uri, "disallow");
-      for (int idx = 0; idx != array.length(); idx++) {
+      for (int idx = 0; idx != array.size(); idx++) {
         Object disallowEntryObject = array.get(idx);
         if (disallowEntryObject instanceof String) {
-          disallow.add(array.getString(idx));
+          disallow.add((String) array.get(idx));
         } else {
           disallowSchemas.add(getSubSchema(append(disallowPointer, String.valueOf(idx))));
         }
       }
     }
 
-    defaultValue = jsonObject.opt("default");
-    title = jsonObject.optString("title");
-    description = jsonObject.optString("description");
-    examples = jsonObject.optJSONArray("examples");
+    defaultValue = jsonObject.get("default");
+    title = (String) jsonObject.get("title");
+    description = (String) jsonObject.get("description");
+    examples = (List<Object>) jsonObject.get("examples");
 
     if (examples != null) {
       Validator validator = new Validator();
-      for (int idx = 0; idx != examples.length(); idx++) {
-        Object example = examples.get(idx);
+      for (Object example : examples) {
         try {
           validator.validate(this, example);
         } catch (ValidationException e) {
@@ -404,10 +402,10 @@ public class Schema {
     }
   }
 
-  private Schema getSubSchema(JSONObject jsonObject, String name, URI uri)
+  private Schema getSubSchema(Map<String, Object> jsonObject, String name, URI uri)
       throws GenerationException {
-    Object childObject = jsonObject.opt(name);
-    if (childObject instanceof JSONObject || childObject instanceof Boolean) {
+    Object childObject = jsonObject.get(name);
+    if (childObject instanceof Map || childObject instanceof Boolean) {
       return getSubSchema(append(uri, name));
     }
     return null;
@@ -597,6 +595,10 @@ public class Schema {
     return propertyNames;
   }
 
+  public boolean hasConst() {
+    return hasConst;
+  }
+
   public Object getConst() {
     return _const;
   }
@@ -668,7 +670,7 @@ public class Schema {
     return defaultValue;
   }
 
-  public JSONArray getExamples() {
+  public List<Object> getExamples() {
     return examples;
   }
 

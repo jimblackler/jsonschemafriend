@@ -1,8 +1,10 @@
-package net.jimblackler.jsonschematypes;
+package net.jimblackler.jsonschemafriend;
 
 import static net.jimblackler.jsonschemafriend.DocumentUtils.loadJson;
-import static net.jimblackler.jsonschematypes.ReaderUtils.getLines;
+import static net.jimblackler.jsonschemafriend.ReaderUtils.getLines;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintWriter;
@@ -12,21 +14,23 @@ import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 
 public class ConvertCatalog {
   private static final FileSystem FILE_SYSTEM = FileSystems.getDefault();
 
   public static void main(String[] args) throws IOException {
-    JSONObject out = new JSONObject();
-    JSONObject demos = new JSONObject();
+    Gson gson = new GsonBuilder().setPrettyPrinting().create();
+    Map<String, Object> out = new LinkedHashMap<>();
+    Map<String, Object> demos = new LinkedHashMap<>();
     out.put("demos", demos);
-    JSONObject schemas = new JSONObject();
+    Map<String, Object> schemas = new LinkedHashMap<>();
     out.put("schemas", schemas);
 
-    JSONArray allDemos = new JSONArray();
+    List<Object> allDemos = new ArrayList<>();
 
     Path path0 = FILE_SYSTEM.getPath("/SchemaStore").resolve("src");
     Path schemaPath = path0.resolve("schemas").resolve("json");
@@ -55,24 +59,24 @@ public class ConvertCatalog {
         }
 
         try {
-          JSONObject demo = new JSONObject();
+          Map<String, Object> demo = new LinkedHashMap<>();
           demo.put("schema", resource);
           demo.put("data", loadJson(ConvertCatalog.class.getResourceAsStream(testFile.toString())));
           demos.put(testFileName, demo);
-          allDemos.put(testFileName);
-        } catch (JSONException | IOException e) {
+          allDemos.add(testFileName);
+        } catch (IOException e) {
           e.printStackTrace();
         }
       });
     });
 
     try (PrintWriter writer = new PrintWriter(Files.newBufferedWriter(Paths.get("demos.json")))) {
-      writer.print(out.toString(2));
+      writer.print(gson.toJson(out));
     }
 
     try (
         PrintWriter writer = new PrintWriter(Files.newBufferedWriter(Paths.get("allDemos.json")))) {
-      writer.print(allDemos.toString(2));
+      writer.print(gson.toJson(allDemos));
     }
   }
 }

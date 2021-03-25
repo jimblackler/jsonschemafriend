@@ -4,9 +4,9 @@ import static net.jimblackler.jsonschemafriend.MetaSchemaUris.DRAFT_4;
 import static net.jimblackler.jsonschemafriend.MetaSchemaUris.DRAFT_7;
 
 import java.net.URI;
+import java.util.List;
+import java.util.Map;
 import java.util.function.Consumer;
-import org.json.JSONArray;
-import org.json.JSONObject;
 
 public class MetaSchemaDetector {
   static URI detectMetaSchema(Object document) {
@@ -14,13 +14,13 @@ public class MetaSchemaDetector {
       return DRAFT_7;
     }
 
-    if (document instanceof JSONObject) {
-      JSONObject jsonDocument = (JSONObject) document;
-      if (jsonDocument.has("$schema")) {
-        return URI.create(jsonDocument.getString("$schema"));
+    if (document instanceof Map) {
+      Map<String, Object> jsonDocument = (Map<String, Object>) document;
+      if (jsonDocument.containsKey("$schema")) {
+        return URI.create((String) jsonDocument.get("$schema"));
       }
-      if (jsonDocument.has("schema")) {
-        return URI.create(jsonDocument.getString("schema"));
+      if (jsonDocument.containsKey("schema")) {
+        return URI.create((String) jsonDocument.get("schema"));
       }
     }
     int[] idCount = {0};
@@ -40,17 +40,14 @@ public class MetaSchemaDetector {
   }
 
   private static void allKeys(Object document, Consumer<String> consumer) {
-    if (document instanceof JSONObject) {
-      JSONObject jsonObject = (JSONObject) document;
-      for (String key : jsonObject.keySet()) {
-        consumer.accept(key);
-        Object value = jsonObject.opt(key);
-        allKeys(value, consumer);
+    if (document instanceof Map) {
+      for (Map.Entry<String, Object> entry : ((Map<String, Object>) document).entrySet()) {
+        consumer.accept(entry.getKey());
+        allKeys(entry.getValue(), consumer);
       }
-    } else if (document instanceof JSONArray) {
-      JSONArray jsonArray = (JSONArray) document;
-      for (int idx = 0; idx != jsonArray.length(); idx++) {
-        allKeys(jsonArray.get(idx), consumer);
+    } else if (document instanceof List) {
+      for (Object o : (Iterable<Object>) document) {
+        allKeys(o, consumer);
       }
     }
   }
