@@ -1,3 +1,4 @@
 rootProject.name = 'jsonschemafriend'
 
 include ':library'
+include ':extra'

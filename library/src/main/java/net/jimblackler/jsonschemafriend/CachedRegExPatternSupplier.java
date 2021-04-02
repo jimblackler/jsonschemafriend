@@ -6,7 +6,7 @@ public class CachedRegExPatternSupplier implements RegExPatternSupplier {
   private final RegExPatternSupplier wrapped;
   private final WeakHashMap<String, RegExPattern> map = new WeakHashMap<>();
 
-  CachedRegExPatternSupplier(RegExPatternSupplier wrapped) {
+  public CachedRegExPatternSupplier(RegExPatternSupplier wrapped) {
     this.wrapped = wrapped;
   }
 

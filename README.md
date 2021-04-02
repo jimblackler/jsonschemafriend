@@ -327,4 +327,30 @@ public class Main {
 }
 ```
 
+## Strict regular expression handling.
+
+Since 0.10.1, for strictly ECMA-compliant regular expressions you should include
+the extra library. Note this is not compatible with Android.
+
+```groovy
+dependencies {
+// ...
+    implementation 'net.jimblackler:jsonschemafriend:0.10.1'
+    implementation 'net.jimblackler:jsonschemafriend-extra:0.10.1'
+}
+```
+
+```java
+import net.jimblackler.jsonschemafriend.CachedRegExPatternSupplier;
+import net.jimblackler.jsonschemafriend.Validator;
+import net.jimblackler.jsonschemafriendextra.Ecma262Pattern;
+
+public class Main {
+  public static void main(String[] args) {
+    Validator validator =
+        new Validator(new CachedRegExPatternSupplier(Ecma262Pattern::new), validationError -> true);
+  }
+}
+```
+
 [JSON value]: https://tools.ietf.org/html/rfc7159#section-3

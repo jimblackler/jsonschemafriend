@@ -1,5 +1,7 @@
-package net.jimblackler.jsonschemafriend;
+package net.jimblackler.jsonschemafriendextra;
 
+import net.jimblackler.jsonschemafriend.InvalidRegexException;
+import net.jimblackler.jsonschemafriend.RegExPattern;
 import org.graalvm.polyglot.Context;
 import org.graalvm.polyglot.PolyglotException;
 import org.graalvm.polyglot.Value;

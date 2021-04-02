@@ -41,7 +41,7 @@ public class Validator {
   }
 
   public Validator(Predicate<? super ValidationError> errorFilter) {
-    this(new CachedRegExPatternSupplier(Ecma262Pattern::new), errorFilter);
+    this(new CachedRegExPatternSupplier(JavaRegExPattern::new), errorFilter);
   }
 
   public Validator(
