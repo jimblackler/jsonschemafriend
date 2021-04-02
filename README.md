@@ -47,7 +47,7 @@ Add the project as a dependency in the module's `build.gradle`.
 
 ```groovy
 dependencies {
-    implementation 'net.jimblackler:jsonschemafriend:0.10.0'
+    implementation 'net.jimblackler.jsonschemafriend:core:0.10.5'
     // ...
 }
 ```
@@ -329,14 +329,16 @@ public class Main {
 
 ## Strict regular expression handling.
 
-Since 0.10.1, for strictly ECMA-compliant regular expressions you should include
-the extra library. Note this is not compatible with Android.
+Strictly ECMA-compliant regular expressions requires an ECMA interpreter,
+GraalJS. This is fairly heavyweight and is not compatible with Android. For this
+mode include both the core library and the extra library, and initialize it as
+shown in the fragment below.
 
 ```groovy
 dependencies {
 // ...
-    implementation 'net.jimblackler:jsonschemafriend:0.10.4'
-    implementation 'net.jimblackler:jsonschemafriend-extra:0.10.4'
+    implementation 'net.jimblackler.jsonschemafriend:core:0.10.5'
+    implementation 'net.jimblackler.jsonschemafriend:extra:0.10.5'
 }
 ```
 
