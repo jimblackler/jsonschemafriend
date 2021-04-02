@@ -335,8 +335,8 @@ the extra library. Note this is not compatible with Android.
 ```groovy
 dependencies {
 // ...
-    implementation 'net.jimblackler:jsonschemafriend:0.10.3'
-    implementation 'net.jimblackler:jsonschemafriend-extra:0.10.3'
+    implementation 'net.jimblackler:jsonschemafriend:0.10.4'
+    implementation 'net.jimblackler:jsonschemafriend-extra:0.10.4'
 }
 ```
 
