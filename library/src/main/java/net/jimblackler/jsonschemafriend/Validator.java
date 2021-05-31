@@ -542,7 +542,7 @@ public class Validator {
     } else if (object == null) {
       typeCheck(schema, document, uri, setOf("null"), disallow, errorConsumer);
     } else {
-      error.accept(new UnexpecedTypeError(uri, document, object, schema));
+      error.accept(new UnexpectedTypeError(uri, document, object, schema));
     }
 
     if (schema.hasConst()) {
