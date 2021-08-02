@@ -249,7 +249,7 @@ public class Main {
 ## From URIs or URLs
 
 This example loads both the schema, and the data to test from the internet, via
-URIs (URLs can also be use).
+URIs (URLs can also be used).
 
 ```java
 
