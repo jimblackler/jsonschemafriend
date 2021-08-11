@@ -1,11 +1,7 @@
 # jsonschemafriend
 
 jsonschemafriend is a JSON Schema loader and validator, delivered as a Java
-library. Since version 0.10.0, schemas and objects are received in the form of
-standard Java objects, making it compatible with major Java JSON parsers such as
-[org.json](https://mvnrepository.com/artifact/org.json/json),
-[gson](https://github.com/google/gson) and
-[Jackson](https://github.com/FasterXML/jackson).
+library.
 
 # About
 
@@ -78,15 +74,17 @@ Javadocs can be found
 
 ## Format
 
-The library follows the convention that has emerged for JSON document handling
-in Java, where instead of custom classes to represent documents and
-subdocuments, a tree of basic Java interfaces is used. Code that processes
-documents in this convention (rather than through libary-specific wrapper
-classes such as org.json's `JSONObject`) are not tied to any one JSON library.
+The library is "BYOP"; Bring Your Own Parser. Schemas and objects are received
+not as JSON strings but in the form of standard Java objects, making it
+compatible with all major Java JSON parsers.
+
 This enables the selection of a JSON parser by the client, based on preferences
 such as speed, handling of numbers, and handling of key order, all of which vary
 between libraries. Clients can also chose to construct these document directly
-or on import from different formats such as JSON5 and YAML.
+or on import from different formats such as JSON5 and YAML. It also makes it
+easier to validate documents before serialization.
+
+The parser takes documents and schemas as a tree of objects, typed as follows:
 
 [JSON value][] | Java class
 -------------- | -------------------------------
