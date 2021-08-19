@@ -43,6 +43,10 @@ public class SchemaStore {
     urlRewriter = null;
   }
 
+  public SchemaStore(UrlRewriter urlRewriter) {
+    this.urlRewriter = urlRewriter;
+  }
+
   public SchemaStore(UrlRewriter urlRewriter, boolean cacheSchema) {
     this.urlRewriter = urlRewriter;
     this.cacheSchema = cacheSchema;
