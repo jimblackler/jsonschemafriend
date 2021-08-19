@@ -32,13 +32,20 @@ public class SchemaStore {
   private final Collection<URI> mapped = new HashSet<>();
   private final UrlRewriter urlRewriter;
   private int memorySchemaNumber;
+  private boolean cacheSchema = false;
 
   public SchemaStore() {
     urlRewriter = null;
   }
 
-  public SchemaStore(UrlRewriter urlRewriter) {
+  public SchemaStore(boolean cacheSchema) {
+    this.cacheSchema = cacheSchema;
+    urlRewriter = null;
+  }
+
+  public SchemaStore(UrlRewriter urlRewriter, boolean cacheSchema) {
     this.urlRewriter = urlRewriter;
+    this.cacheSchema = cacheSchema;
   }
 
   public Schema loadSchema(Object document) throws GenerationException {
@@ -88,9 +95,9 @@ public class SchemaStore {
         try {
           String content;
           if (urlRewriter == null) {
-            content = load(documentUri);
+            content = load(documentUri, cacheSchema);
           } else {
-            content = load(urlRewriter.rewrite(documentUri));
+            content = load(urlRewriter.rewrite(documentUri), cacheSchema);
           }
           if (!mapped.contains(documentUri)) {
             store(documentUri, parseJson(content));
