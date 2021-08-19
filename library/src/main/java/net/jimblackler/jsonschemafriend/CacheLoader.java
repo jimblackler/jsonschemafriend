@@ -15,8 +15,8 @@ public class CacheLoader {
   private static final Logger LOG = Logger.getLogger(CacheLoader.class.getName());
   private static final FileSystem FILE_SYSTEM = FileSystems.getDefault();
 
-  public static String load(URI uri) throws IOException {
-    if ("http".equals(uri.getScheme()) || "https".equals(uri.getScheme())) {
+  public static String load(URI uri, boolean cacheSchema) throws IOException {
+    if (cacheSchema && ("http".equals(uri.getScheme()) || "https".equals(uri.getScheme()))) {
       Path diskCacheName = FILE_SYSTEM.getPath(System.getProperty("java.io.tmpdir"))
                                .resolve("net.jimblackler.jsonschemafriend")
                                .resolve("cache")
