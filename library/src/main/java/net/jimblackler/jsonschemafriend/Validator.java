@@ -64,11 +64,6 @@ public class Validator {
     return object;
   }
 
-  public static void validate(
-      Schema schema, InputStream inputStream, Consumer<ValidationError> errorConsumer) {
-    validate(schema, inputStream, errorConsumer);
-  }
-
   public void validate(
       Schema schema, Object document, URI uri, Consumer<ValidationError> errorConsumer) {
     validate(schema, document, uri, errorConsumer, property -> {}, item -> {}, null);
