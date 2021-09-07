@@ -80,6 +80,10 @@ public class SchemaStore {
   }
 
   public Schema loadSchema(URI uri, boolean prevalidate) throws GenerationException {
+    return loadSchema(uri, prevalidate ? new Validator() : null);
+  }
+
+  public Schema loadSchema(URI uri, Validator validator) throws GenerationException {
     uri = normalize(uri);
     while (true) {
       if (builtSchemas.containsKey(uri)) {
@@ -136,14 +140,14 @@ public class SchemaStore {
     // before we attempt to build the Schema.
     // This can't be done inside the Schema builder because the schema's meta-schema might be in its
     // own graph, so the meta-schema won't be built in full when it's first available.
-    if (prevalidate) {
+    if (validator != null) {
       Object schemaObject = getObject(uri);
       if (schemaObject != null) {
         URI metaSchemaUri = detectMetaSchema(canonicalUriToBaseObject.get(uri));
         if (!normalize(metaSchemaUri).equals(uri)) {
           Schema metaSchema = loadSchema(metaSchemaUri, false);
           Map<String, Object> validation =
-              new Validator().validateWithOutput(this, metaSchema, schemaObject);
+              validator.validateWithOutput(this, metaSchema, schemaObject);
           if (!(boolean) validation.get("valid")) {
             throw new StandardGenerationException(validation);
           }

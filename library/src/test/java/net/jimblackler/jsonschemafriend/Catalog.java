@@ -8,12 +8,15 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import net.jimblackler.jsonschemafriendextra.Ecma262Pattern;
 import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.TestFactory;
 
 public class Catalog {
   @TestFactory
   Collection<DynamicTest> all() throws IOException {
+    Validator validator =
+        new Validator(new CachedRegExPatternSupplier(Ecma262Pattern::new), validationError -> true);
     Gson gson = new GsonBuilder().setPrettyPrinting().create();
     Collection<DynamicTest> testsOut = new ArrayList<>();
 
@@ -26,7 +29,7 @@ public class Catalog {
         URI uri = URI.create((String) schema.get("url"));
         System.out.println(uri);
         SchemaStore schemaStore = new SchemaStore();
-        Schema schema1 = schemaStore.loadSchema(uri);
+        Schema schema1 = schemaStore.loadSchema(uri, validator);
         System.out.println(gson.toJson(schema1.getSchemaObject()));
         Object example = schema1.getExamples();
         if (example != null) {
