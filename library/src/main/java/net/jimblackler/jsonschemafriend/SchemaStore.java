@@ -32,7 +32,7 @@ public class SchemaStore {
   private final Collection<URI> mapped = new HashSet<>();
   private final UrlRewriter urlRewriter;
   private int memorySchemaNumber;
-  private boolean cacheSchema = false;
+  private boolean cacheSchema;
 
   public SchemaStore() {
     urlRewriter = null;
