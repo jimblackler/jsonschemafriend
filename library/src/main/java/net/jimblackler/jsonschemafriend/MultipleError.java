@@ -8,7 +8,7 @@ public class MultipleError extends ValidationError {
   }
 
   @Override
-  String getMessage() {
+  public String getMessage() {
     return "Not a multiple of " + getSchema().getMultipleOf();
   }
 }

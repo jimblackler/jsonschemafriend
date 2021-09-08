@@ -8,7 +8,7 @@ public class EnumError extends ValidationError {
   }
 
   @Override
-  String getMessage() {
+  public String getMessage() {
     return "Object not in enums: " + getSchema().getEnums();
   }
 }

@@ -13,7 +13,7 @@ public class UnexpectedTypeError extends ValidationError {
   }
 
   @Override
-  String getMessage() {
+  public String getMessage() {
     if (uri.toString().isEmpty()) {
       return "Unexpected type in data: " + object.getClass().getSimpleName();
     }

@@ -8,7 +8,7 @@ public class MinPropertiesError extends ValidationError {
   }
 
   @Override
-  String getMessage() {
+  public String getMessage() {
     return "Too few properties";
   }
 }

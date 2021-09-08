@@ -25,7 +25,7 @@ public class OneOfError extends ValidationError {
   }
 
   @Override
-  String getMessage() {
+  public String getMessage() {
     if (passed.isEmpty()) {
       return "No oneOf passed. Errors were: " + allErrors;
     }

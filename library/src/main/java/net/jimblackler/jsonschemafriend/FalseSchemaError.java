@@ -8,7 +8,7 @@ public class FalseSchemaError extends ValidationError {
   }
 
   @Override
-  String getMessage() {
+  public String getMessage() {
     return "False";
   }
 }

@@ -8,7 +8,7 @@ public class MaxLengthError extends ValidationError {
   }
 
   @Override
-  String getMessage() {
+  public String getMessage() {
     return "Greater than maxLength: " + getSchema().getMaxLength();
   }
 }

@@ -8,7 +8,7 @@ public class MinItemsError extends ValidationError {
   }
 
   @Override
-  String getMessage() {
+  public String getMessage() {
     return "Below min items: " + getSchema().getMinItems();
   }
 }

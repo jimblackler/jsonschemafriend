@@ -8,7 +8,7 @@ public class MaxContainsError extends ValidationError {
   }
 
   @Override
-  String getMessage() {
+  public String getMessage() {
     return "Too many elements in the array matched contains";
   }
 }

@@ -8,7 +8,7 @@ public class MaxItemsError extends ValidationError {
   }
 
   @Override
-  String getMessage() {
+  public String getMessage() {
     return "Above max items: " + getSchema().getMaxItems();
   }
 }

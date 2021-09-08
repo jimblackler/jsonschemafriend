@@ -8,7 +8,7 @@ public class ExclusiveMaximumError extends ValidationError {
   }
 
   @Override
-  String getMessage() {
+  public String getMessage() {
     return "Greater than or equal to exclusive maximum: " + getSchema().getExclusiveMaximum();
   }
 }

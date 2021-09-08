@@ -48,5 +48,5 @@ public abstract class ValidationError {
     return schema;
   }
 
-  abstract String getMessage();
+  public abstract String getMessage();
 }

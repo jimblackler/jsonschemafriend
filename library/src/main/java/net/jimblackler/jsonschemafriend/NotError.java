@@ -8,7 +8,7 @@ public class NotError extends ValidationError {
   }
 
   @Override
-  String getMessage() {
+  public String getMessage() {
     return "Not condition passed";
   }
 }

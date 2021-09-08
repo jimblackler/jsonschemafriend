@@ -11,7 +11,7 @@ public class MissingPropertyError extends ValidationError {
   }
 
   @Override
-  String getMessage() {
+  public String getMessage() {
     return "Missing property " + property;
   }
 

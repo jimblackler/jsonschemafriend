@@ -8,7 +8,7 @@ public class PatternError extends ValidationError {
   }
 
   @Override
-  String getMessage() {
+  public String getMessage() {
     return "Did not match pattern: " + getSchema().getPattern();
   }
 }

@@ -14,7 +14,7 @@ public class DependencyError extends ValidationError {
   }
 
   @Override
-  String getMessage() {
+  public String getMessage() {
     return "Missing dependency " + property + " -> " + dependency;
   }
 

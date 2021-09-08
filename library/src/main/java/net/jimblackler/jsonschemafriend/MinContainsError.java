@@ -8,7 +8,7 @@ public class MinContainsError extends ValidationError {
   }
 
   @Override
-  String getMessage() {
+  public String getMessage() {
     return "Too few elements in the array matched contains";
   }
 }

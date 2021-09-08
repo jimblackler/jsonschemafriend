@@ -11,7 +11,7 @@ public class ContentEncodingError extends ValidationError {
   }
 
   @Override
-  String getMessage() {
+  public String getMessage() {
     return "Content encoding failed on: " + getSchema().getContentEncoding()
         + ". Reason: " + reason;
   }

@@ -8,7 +8,7 @@ public class UniqueItemsError extends ValidationError {
   }
 
   @Override
-  String getMessage() {
+  public String getMessage() {
     return "Items were not unique";
   }
 }

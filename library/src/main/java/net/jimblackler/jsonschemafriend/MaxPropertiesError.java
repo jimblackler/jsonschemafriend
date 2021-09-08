@@ -8,7 +8,7 @@ public class MaxPropertiesError extends ValidationError {
   }
 
   @Override
-  String getMessage() {
+  public String getMessage() {
     return "Too many properties";
   }
 }

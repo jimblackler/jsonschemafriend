@@ -8,7 +8,7 @@ public class ConstError extends ValidationError {
   }
 
   @Override
-  String getMessage() {
+  public String getMessage() {
     return "Expected const: " + getSchema().getConst();
   }
 }

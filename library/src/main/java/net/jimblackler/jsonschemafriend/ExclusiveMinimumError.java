@@ -8,7 +8,7 @@ public class ExclusiveMinimumError extends ValidationError {
   }
 
   @Override
-  String getMessage() {
+  public String getMessage() {
     return "Less than or equal to exclusive minimum: " + getSchema().getExclusiveMinimum();
   }
 }

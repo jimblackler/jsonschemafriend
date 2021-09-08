@@ -8,7 +8,7 @@ public class MinLengthError extends ValidationError {
   }
 
   @Override
-  String getMessage() {
+  public String getMessage() {
     return "Shorter than minLength: " + getSchema().getMinLength();
   }
 }

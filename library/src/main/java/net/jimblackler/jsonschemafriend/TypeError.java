@@ -26,7 +26,7 @@ public class TypeError extends ValidationError {
   }
 
   @Override
-  String getMessage() {
+  public String getMessage() {
     return "Expected: [" + String.join(", ", expectedTypes) + "] "
         + "Found: [" + String.join(", ", foundTypes) + "]";
   }

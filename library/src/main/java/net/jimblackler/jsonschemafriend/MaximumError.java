@@ -8,7 +8,7 @@ public class MaximumError extends ValidationError {
   }
 
   @Override
-  String getMessage() {
+  public String getMessage() {
     return "Greater than maximum: " + getSchema().getMaximum()
         + (getSchema().isExclusiveMaximumBoolean() ? " (exclusive)" : "");
   }

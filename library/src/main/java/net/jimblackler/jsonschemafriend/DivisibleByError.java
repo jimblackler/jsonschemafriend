@@ -8,7 +8,7 @@ public class DivisibleByError extends ValidationError {
   }
 
   @Override
-  String getMessage() {
+  public String getMessage() {
     return "Not divisible hy " + getSchema().getDivisibleBy();
   }
 }

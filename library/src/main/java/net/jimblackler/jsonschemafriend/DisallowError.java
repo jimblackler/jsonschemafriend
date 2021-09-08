@@ -8,7 +8,7 @@ public class DisallowError extends ValidationError {
   }
 
   @Override
-  String getMessage() {
+  public String getMessage() {
     return "Disallow condition passed";
   }
 }

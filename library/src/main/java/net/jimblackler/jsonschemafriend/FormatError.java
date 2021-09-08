@@ -11,7 +11,7 @@ public class FormatError extends ValidationError {
   }
 
   @Override
-  String getMessage() {
+  public String getMessage() {
     return "Not compliant with format: " + getSchema().getFormat() + ". Reason: " + reason;
   }
 }

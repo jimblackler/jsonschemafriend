@@ -13,7 +13,7 @@ public class TypeDisallowedError extends ValidationError {
   }
 
   @Override
-  String getMessage() {
+  public String getMessage() {
     return "Type disallowed: " + disallowed;
   }
 }
