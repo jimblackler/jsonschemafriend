@@ -20,6 +20,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
+import net.jimblackler.usejson.SyntaxError;
 
 public class SchemaStore {
   private static final Logger LOG = Logger.getLogger(SchemaStore.class.getName());
@@ -108,7 +109,11 @@ public class SchemaStore {
             content = load(urlRewriter.rewrite(documentUri), cacheSchema);
           }
           if (!mapped.contains(documentUri)) {
-            store(documentUri, parseJson(content));
+            try {
+              store(documentUri, parseJson(content));
+            } catch (SyntaxError e) {
+              LOG.warning("Was not valid JSON: " + uri);
+            }
             continue;
           }
         } catch (IOException e) {
