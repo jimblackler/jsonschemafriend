@@ -21,6 +21,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
 import net.jimblackler.usejson.SyntaxError;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
+import org.jsoup.select.Elements;
 
 public class SchemaStore {
   private static final Logger LOG = Logger.getLogger(SchemaStore.class.getName());
@@ -102,21 +106,34 @@ public class SchemaStore {
         LOG.fine("Loading: " + documentUri + " to resolve: " + uri);
 
         try {
-          String content;
-          if (urlRewriter == null) {
-            content = load(documentUri, cacheSchema);
-          } else {
-            content = load(urlRewriter.rewrite(documentUri), cacheSchema);
-          }
           if (!mapped.contains(documentUri)) {
+            String content = getContent(documentUri);
             try {
               store(documentUri, parseJson(content));
             } catch (SyntaxError e) {
-              LOG.warning("Was not valid JSON: " + uri);
+              // This is a special method designed to handle the JavaScript-based redirection (not
+              // http) on the web page at http://json-schema.org/schema.
+              // If the loaded content is an HTML page with a canonical reference to another
+              // destination. we make a one-off attempt to fetch the document at that destination.
+              Document doc = Jsoup.parse(content);
+              Elements links = doc.head().select("link[rel='canonical']");
+              boolean resolved = false;
+              for (Element link : links) {
+                String href = link.attr("href");
+                URI canonical = new URL(documentUri.toURL(), href).toURI();
+                if (!canonical.equals(documentUri)) {
+                  store(documentUri, getContent(canonical));
+                  resolved = true;
+                  break;
+                }
+              }
+              if (!resolved) {
+                LOG.warning("Was not valid JSON: " + uri);
+              }
             }
             continue;
           }
-        } catch (IOException e) {
+        } catch (IOException | URISyntaxException e) {
           LOG.warning("Failed attempt to auto fetch to resolve: " + uri);
         }
       }
@@ -161,6 +178,13 @@ public class SchemaStore {
     }
 
     return new Schema(this, uri);
+  }
+
+  private String getContent(URI documentUri) throws IOException {
+    if (urlRewriter == null) {
+      return load(documentUri, cacheSchema);
+    }
+    return load(urlRewriter.rewrite(documentUri), cacheSchema);
   }
 
   public void register(URI path, Schema schema) throws GenerationException {
