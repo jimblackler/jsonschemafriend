@@ -28,7 +28,7 @@ public class Catalog {
       testsOut.add(DynamicTest.dynamicTest((String) schema.get("name"), () -> {
         URI uri = URI.create((String) schema.get("url"));
         System.out.println(uri);
-        SchemaStore schemaStore = new SchemaStore();
+        SchemaStore schemaStore = new SchemaStore(true);
         Schema schema1 = schemaStore.loadSchema(uri, validator);
         System.out.println(gson.toJson(schema1.getSchemaObject()));
         Object example = schema1.getExamples();

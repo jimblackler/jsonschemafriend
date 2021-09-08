@@ -48,7 +48,7 @@ public class SchemaStoreTest {
             try {
               tests.add(DynamicTest.dynamicTest(testFileName, testDataUrl.toURI(), () -> {
                 Object o = loadJson(SchemaStoreTest.class.getResourceAsStream(testFile.toString()));
-                SchemaStore schemaStore = new SchemaStore();
+                SchemaStore schemaStore = new SchemaStore(true);
                 Schema schema = schemaStore.loadSchema(resource1);
 
                 Map<String, Object> output = validator.validateWithOutput(schemaStore, schema, o);
