@@ -629,6 +629,14 @@ public class Validator {
     }
   }
 
+  public void validate(Schema schema, Object document, URI uri) throws ValidationException {
+    Collection<ValidationError> errors = new ArrayList<>();
+    validate(schema, document, uri, errors::add);
+    if (!errors.isEmpty()) {
+      throw new ListValidationException(errors);
+    }
+  }
+
   public void validate(Schema schema, Object document) throws ValidationException {
     Collection<ValidationError> errors = new ArrayList<>();
     validate(schema, document, errors::add);

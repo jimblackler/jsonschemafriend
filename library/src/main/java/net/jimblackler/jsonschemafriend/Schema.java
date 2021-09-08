@@ -392,9 +392,9 @@ public class Schema {
 
     if (examples != null) {
       Validator validator = new Validator();
-      for (Object example : examples) {
+      for (int idx = 0; idx != examples.size(); idx++) {
         try {
-          validator.validate(this, example);
+          validator.validate(this, jsonObject, URI.create("#/examples/" + idx));
         } catch (ValidationException e) {
           throw new GenerationException(e);
         }
