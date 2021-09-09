@@ -202,13 +202,13 @@ public class SchemaStore {
 
   URI map(Object object, Object baseObject, URI validUri, URI canonicalBaseUri, URI metaSchema,
       boolean isResource) {
-    String idKey =
-        (MetaSchemaUris.DRAFT_3.equals(metaSchema) || MetaSchemaUris.DRAFT_4.equals(metaSchema))
-        ? "id"
-        : "$id";
     URI canonicalUri = canonicalBaseUri;
     if (object instanceof Map) {
       Map<String, Object> jsonObject = (Map<String, Object>) object;
+      String idKey =
+          (MetaSchemaUris.DRAFT_3.equals(metaSchema) || MetaSchemaUris.DRAFT_4.equals(metaSchema))
+          ? "id"
+          : "$id";
       Object idObject = jsonObject.get(idKey);
       if (idObject instanceof String) {
         URI child = URI.create((String) idObject);
