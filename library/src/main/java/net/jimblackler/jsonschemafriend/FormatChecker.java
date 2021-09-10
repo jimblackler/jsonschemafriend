@@ -185,6 +185,11 @@ public class FormatChecker {
             return e.getMessage();
           }
           break;
+        case "duration":
+          if (NON_ASCII_CHARACTERS.matcher(string).find()) {
+            return "Non-ASCII characters found";
+          }
+          break;
         case "email":
           if (!EmailValidator.getInstance().isValid(string)) {
             return "Did not match";
