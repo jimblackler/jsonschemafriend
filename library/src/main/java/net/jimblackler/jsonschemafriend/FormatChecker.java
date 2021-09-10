@@ -172,7 +172,7 @@ public class FormatChecker {
           break;
         case "time":
           try {
-            DateTimeFormatter.ISO_TIME.parse(string);
+            DateTimeFormatter.ISO_OFFSET_TIME.parse(string);
           } catch (DateTimeParseException e) {
             return e.getMessage();
           }
