@@ -15,6 +15,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -28,6 +29,12 @@ import org.jsoup.select.Elements;
 
 public class SchemaStore {
   private static final Logger LOG = Logger.getLogger(SchemaStore.class.getName());
+
+  private static final int SCHEMA = 1;
+  private static final int MAP_OF_SCHEMAS = 2;
+  private static final int LIST_OF_SCHEMAS = 4;
+
+  private static final Map<String, Integer> KEY_TYPES = getKeyTypes();
 
   private final Map<URI, Object> canonicalUriToObject = new HashMap<>();
   private final Map<URI, Object> canonicalUriToBaseObject = new HashMap<>();
@@ -55,6 +62,30 @@ public class SchemaStore {
   public SchemaStore(UrlRewriter urlRewriter, boolean cacheSchema) {
     this.urlRewriter = urlRewriter;
     this.cacheSchema = cacheSchema;
+  }
+
+  private static Map<String, Integer> getKeyTypes() {
+    Map<String, Integer> keyTypes = new HashMap<>();
+    keyTypes.put("$defs", MAP_OF_SCHEMAS);
+    keyTypes.put("additionalItems", SCHEMA);
+    keyTypes.put("additionalProperties", SCHEMA);
+    keyTypes.put("allOf", LIST_OF_SCHEMAS);
+    keyTypes.put("anyOf", LIST_OF_SCHEMAS);
+    keyTypes.put("contains", SCHEMA);
+    keyTypes.put("definitions", MAP_OF_SCHEMAS);
+    keyTypes.put("dependencies", MAP_OF_SCHEMAS | LIST_OF_SCHEMAS);
+    keyTypes.put("else", MAP_OF_SCHEMAS);
+    keyTypes.put("if", SCHEMA);
+    keyTypes.put("items", SCHEMA | LIST_OF_SCHEMAS);
+    keyTypes.put("not", SCHEMA);
+    keyTypes.put("oneOf", LIST_OF_SCHEMAS);
+    keyTypes.put("patternProperties", MAP_OF_SCHEMAS);
+    keyTypes.put("properties", MAP_OF_SCHEMAS);
+    keyTypes.put("propertyNames", SCHEMA);
+    keyTypes.put("then", SCHEMA);
+    keyTypes.put("unevaluatedItems", SCHEMA);
+    keyTypes.put("unevaluatedProperties", SCHEMA);
+    return Collections.unmodifiableMap(keyTypes);
   }
 
   public Schema loadSchema(Object document) throws GenerationException {
@@ -197,13 +228,13 @@ public class SchemaStore {
     if (!mapped.add(uri)) {
       throw new IllegalStateException("Double mapped");
     }
-    return map(document, document, uri, uri, detectMetaSchema(document), true);
+    return map(document, document, uri, uri, detectMetaSchema(document), true, SCHEMA);
   }
 
   URI map(Object object, Object baseObject, URI validUri, URI canonicalBaseUri, URI metaSchema,
-      boolean isResource) {
+      boolean isResource, int context) {
     URI canonicalUri = canonicalBaseUri;
-    if (object instanceof Map) {
+    if ((context & SCHEMA) != 0 && object instanceof Map) {
       Map<String, Object> jsonObject = (Map<String, Object>) object;
       String idKey =
           (MetaSchemaUris.DRAFT_3.equals(metaSchema) || MetaSchemaUris.DRAFT_4.equals(metaSchema))
@@ -254,23 +285,39 @@ public class SchemaStore {
       validUriToCanonicalUri.put(validUri, canonicalUri);
     }
 
+    if ((context & SCHEMA) != 0 && object instanceof Map) {
+      Map<String, Object> jsonObject = (Map<String, Object>) object;
+      for (Map.Entry<String, Object> entry : jsonObject.entrySet()) {
+        String key = entry.getKey();
+        Integer mapContext = KEY_TYPES.get(key);
+        if (mapContext == null) {
+          mapContext = 0;
+        }
+        map(entry.getValue(), baseObject, append(validUri, key), append(canonicalUri, key),
+            metaSchema, isResource, mapContext);
+        if (canonicalBaseUri.equals(canonicalUri) || canonicalBaseUri.equals(validUri)) {
+          continue;
+        }
+        map(entry.getValue(), baseObject, append(canonicalBaseUri, key), append(canonicalUri, key),
+            metaSchema, false, mapContext);
+      }
+    }
+
     if (object instanceof Map) {
       Map<String, Object> jsonObject = (Map<String, Object>) object;
       for (Map.Entry<String, Object> entry : jsonObject.entrySet()) {
         String key = entry.getKey();
         map(entry.getValue(), baseObject, append(validUri, key), append(canonicalUri, key),
-            metaSchema, isResource);
-        if (canonicalBaseUri.equals(canonicalUri) || canonicalBaseUri.equals(validUri)) {
-          continue;
-        }
-        map(entry.getValue(), baseObject, append(canonicalBaseUri, key), append(canonicalUri, key),
-            metaSchema, false);
+            metaSchema, isResource, (context & MAP_OF_SCHEMAS) == 0 ? 0 : SCHEMA);
       }
-    } else if (object instanceof List) {
+    }
+
+    if (object instanceof List) {
       List<Object> jsonArray = (List<Object>) object;
       for (int idx = 0; idx != jsonArray.size(); idx++) {
         map(jsonArray.get(idx), baseObject, append(validUri, String.valueOf(idx)),
-            append(canonicalUri, String.valueOf(idx)), metaSchema, isResource);
+            append(canonicalUri, String.valueOf(idx)), metaSchema, isResource,
+            (context & LIST_OF_SCHEMAS) == 0 ? 0 : SCHEMA);
       }
     }
 
