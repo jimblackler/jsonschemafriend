@@ -4,7 +4,6 @@ import static com.ibm.icu.text.IDNA.CHECK_CONTEXTJ;
 import static com.ibm.icu.text.IDNA.CHECK_CONTEXTO;
 import static com.ibm.icu.text.IDNA.NONTRANSITIONAL_TO_ASCII;
 import static java.net.InetAddress.getByName;
-import static net.jimblackler.jsonschemafriend.MetaSchemaUris.DRAFT_2019_09;
 import static net.jimblackler.jsonschemafriend.MetaSchemaUris.DRAFT_3;
 import static net.jimblackler.jsonschemafriend.MetaSchemaUris.DRAFT_4;
 import static net.jimblackler.jsonschemafriend.MetaSchemaUris.DRAFT_6;
@@ -53,7 +52,9 @@ public class FormatChecker {
   static String formatCheck(
       String string, String format, URI metaSchema, RegExPatternSupplier regExPatternSupplier) {
     boolean doAll = false;
-    if (metaSchema.equals(DRAFT_2019_09)) {
+    boolean preDraft5 = metaSchema.equals(DRAFT_3) || metaSchema.equals(DRAFT_4);
+    boolean preDraft2019 = preDraft5 || metaSchema.equals(DRAFT_6) || metaSchema.equals(DRAFT_7);
+    if (!preDraft2019) {
       doAll = true;
       switch (format) {
         case "uuid":
@@ -154,8 +155,7 @@ public class FormatChecker {
           return checkJsonPointer(string);
       }
     }
-
-    if (doAll || metaSchema.equals(DRAFT_3) || metaSchema.equals(DRAFT_4)) {
+    if (doAll || preDraft5) {
       switch (format) {
         case "regex":
           try {
