@@ -105,6 +105,9 @@ public class FormatChecker {
             return "Relative JSON Pointer invalid";
           }
           String number = matcher.group(1);
+          if (!number.equals(String.valueOf(Integer.parseInt(number)))) {
+            return "Index number invalid";
+          }
           String remain = matcher.group(2);
           if (!"#".equals(remain)) {
             return checkJsonPointer(remain);
