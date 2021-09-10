@@ -5,6 +5,8 @@ import static net.jimblackler.jsonschemafriend.ComparableUtils.makeComparable;
 import static net.jimblackler.jsonschemafriend.DocumentUtils.loadJson;
 import static net.jimblackler.jsonschemafriend.MetaSchemaUris.DRAFT_3;
 import static net.jimblackler.jsonschemafriend.MetaSchemaUris.DRAFT_4;
+import static net.jimblackler.jsonschemafriend.MetaSchemaUris.DRAFT_6;
+import static net.jimblackler.jsonschemafriend.MetaSchemaUris.DRAFT_7;
 import static net.jimblackler.jsonschemafriend.Utils.setOf;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -256,7 +258,9 @@ public class Validator {
       Set<String> okTypes = new HashSet<>();
       okTypes.add("number");
       try {
-        if (DRAFT_3.equals(schema.getMetaSchema()) || DRAFT_4.equals(schema.getMetaSchema())) {
+        boolean preDraft5 =
+            DRAFT_3.equals(schema.getMetaSchema()) || DRAFT_4.equals(schema.getMetaSchema());
+        if (preDraft5) {
           if (!(number instanceof Float) && !(number instanceof Double)) {
             okTypes.add("integer");
           }
@@ -310,25 +314,31 @@ public class Validator {
       String stringToValidate = string;
       String contentEncoding = schema.getContentEncoding();
 
-      if ("base64".equals(contentEncoding)) {
-        Base64.Decoder urlDecoder = getUrlDecoder();
-        byte[] decoded = null;
-        try {
-          decoded = urlDecoder.decode(string);
-        } catch (IllegalArgumentException e) {
-          error.accept(new ContentEncodingError(uri, document, schema, e.getMessage()));
+      boolean preDraft5 =
+          DRAFT_3.equals(schema.getMetaSchema()) || DRAFT_4.equals(schema.getMetaSchema());
+      boolean preDraft2019 = preDraft5 || DRAFT_6.equals(schema.getMetaSchema())
+          || DRAFT_7.equals(schema.getMetaSchema());
+      if (preDraft2019) {
+        if ("base64".equals(contentEncoding)) {
+          Base64.Decoder urlDecoder = getUrlDecoder();
+          byte[] decoded = null;
+          try {
+            decoded = urlDecoder.decode(string);
+          } catch (IllegalArgumentException e) {
+            error.accept(new ContentEncodingError(uri, document, schema, e.getMessage()));
+          }
+          if (decoded != null) {
+            stringToValidate = new String(decoded, StandardCharsets.UTF_8);
+          }
         }
-        if (decoded != null) {
-          stringToValidate = new String(decoded, StandardCharsets.UTF_8);
-        }
-      }
 
-      String contentMediaType = schema.getContentMediaType();
-      if ("application/json".equals(contentMediaType)) {
-        try {
-          new ObjectMapper().readValue(stringToValidate, Object.class);
-        } catch (JsonProcessingException e) {
-          error.accept(new ContentEncodingError(uri, document, schema, e.getMessage()));
+        String contentMediaType = schema.getContentMediaType();
+        if ("application/json".equals(contentMediaType)) {
+          try {
+            new ObjectMapper().readValue(stringToValidate, Object.class);
+          } catch (JsonProcessingException e) {
+            error.accept(new ContentEncodingError(uri, document, schema, e.getMessage()));
+          }
         }
       }
 

@@ -4,6 +4,7 @@ import static com.ibm.icu.text.IDNA.CHECK_CONTEXTJ;
 import static com.ibm.icu.text.IDNA.CHECK_CONTEXTO;
 import static com.ibm.icu.text.IDNA.NONTRANSITIONAL_TO_ASCII;
 import static java.net.InetAddress.getByName;
+import static net.jimblackler.jsonschemafriend.MetaSchemaUris.DRAFT_2019_09;
 import static net.jimblackler.jsonschemafriend.MetaSchemaUris.DRAFT_3;
 import static net.jimblackler.jsonschemafriend.MetaSchemaUris.DRAFT_4;
 import static net.jimblackler.jsonschemafriend.MetaSchemaUris.DRAFT_6;
@@ -51,53 +52,26 @@ public class FormatChecker {
 
   static String formatCheck(
       String string, String format, URI metaSchema, RegExPatternSupplier regExPatternSupplier) {
-    boolean doAll = false;
-    boolean preDraft5 = metaSchema.equals(DRAFT_3) || metaSchema.equals(DRAFT_4);
-    boolean preDraft2019 = preDraft5 || metaSchema.equals(DRAFT_6) || metaSchema.equals(DRAFT_7);
-    if (!preDraft2019) {
-      doAll = true;
-      switch (format) {
-        case "uuid":
-          try {
-            UUID uuid = UUID.fromString(string);
-            if (!string.toLowerCase().equals(uuid.toString())) {
-              return "Not canonical";
-            }
-          } catch (IllegalArgumentException e) {
-            return e.getMessage();
-          }
-          break;
-      }
-    }
+    boolean preDraft4 = metaSchema.equals(DRAFT_3);
+    boolean preDraft6 = preDraft4 || metaSchema.equals(DRAFT_4);
+    boolean preDraft7 = preDraft6 || metaSchema.equals(DRAFT_6);
+    boolean preDraft2019 = preDraft7 || metaSchema.equals(DRAFT_7);
 
-    if (doAll || metaSchema.equals(DRAFT_7)) {
-      doAll = true;
+    if (!preDraft7 && preDraft2019) {
       switch (format) {
-        case "iri":
-          try {
-            URI uri1 = new URI(string);
-            if (!uri1.isAbsolute()) {
-              return "Not absolute";
+        case "idn-hostname":
+          for (int idx = 0; idx < string.length(); idx++) {
+            char c = string.charAt(idx);
+            if (IDNA_DISALLOWED.contains(String.valueOf(c))) {
+              return "Disallowed character " + c;
             }
-            String authority = uri1.getAuthority();
-            if (authority != null
-                && InetAddressValidator.getInstance().isValidInet6Address(authority)) {
-              return "ipv6 not valid as host in an IRI";
-            }
-          } catch (URISyntaxException e) {
-            return e.getReason();
           }
-          break;
-        case "idn-email":
-          try {
-            InternetAddress[] parsed = InternetAddress.parse(string);
-            if (parsed.length == 1) {
-              parsed[0].validate();
-            } else {
-              return "Unexpected parse result";
-            }
-          } catch (AddressException e) {
-            return e.getMessage();
+          StringBuilder sb = new StringBuilder();
+          IDNA.Info info = new IDNA.Info();
+          IDNA.getUTS46Instance(CHECK_CONTEXTJ | NONTRANSITIONAL_TO_ASCII | CHECK_CONTEXTO)
+              .nameToASCII(string, sb, info);
+          if (!info.getErrors().isEmpty()) {
+            return info.getErrors().toString();
           }
           break;
         case "relative-json-pointer":
@@ -115,27 +89,13 @@ public class FormatChecker {
             return checkJsonPointer(remain);
           }
           break;
-        case "idn-hostname":
-          for (int idx = 0; idx < string.length(); idx++) {
-            char c = string.charAt(idx);
-            if (IDNA_DISALLOWED.contains(String.valueOf(c))) {
-              return "Disallowed character " + c;
-            }
-          }
-          StringBuilder sb = new StringBuilder();
-          IDNA.Info info = new IDNA.Info();
-          IDNA.getUTS46Instance(CHECK_CONTEXTJ | NONTRANSITIONAL_TO_ASCII | CHECK_CONTEXTO)
-              .nameToASCII(string, sb, info);
-          if (!info.getErrors().isEmpty()) {
-            return info.getErrors().toString();
-          }
-          break;
       }
     }
 
-    if (doAll || metaSchema.equals(DRAFT_6)) {
-      doAll = true;
+    if (!preDraft6 && preDraft2019) {
       switch (format) {
+        case "json-pointer":
+          return checkJsonPointer(string);
         case "iri-reference":
         case "uri-reference":
           try {
@@ -151,29 +111,14 @@ public class FormatChecker {
             return e.getMessage();
           }
           break;
-        case "json-pointer":
-          return checkJsonPointer(string);
       }
     }
-    if (doAll || preDraft5) {
+
+    if (preDraft2019) {
       switch (format) {
-        case "regex":
-          try {
-            regExPatternSupplier.newPattern(string);
-          } catch (InvalidRegexException ex) {
-            return ex.getMessage();
-          }
-          break;
         case "date":
           try {
             DateTimeFormatter.ISO_DATE.parse(string);
-          } catch (DateTimeParseException e) {
-            return e.getMessage();
-          }
-          break;
-        case "time":
-          try {
-            DateTimeFormatter.ISO_OFFSET_TIME.parse(string);
           } catch (DateTimeParseException e) {
             return e.getMessage();
           }
@@ -191,27 +136,21 @@ public class FormatChecker {
           }
           break;
         case "email":
+        case "idn-email":
           if (!EmailValidator.getInstance().isValid(string)) {
             return "Did not match";
-          }
-          break;
-        case "uri":
-          try {
-            if (string.startsWith("//")) {
-              return "Protocol-relative";
-            }
-            URI uri1 = new URI(string);
-            if (!metaSchema.equals(DRAFT_3) && !uri1.isAbsolute()) {
-              return "Not absolute";
-            }
-          } catch (URISyntaxException e) {
-            return e.getReason();
           }
           break;
         case "hostname":
         case "host-name":
           if (!DomainValidator.getInstance().isValid(string)) {
             return "Failed DomainValidator";
+          }
+          break;
+        case "ipv4":
+        case "ip-address":
+          if (!InetAddressValidator.getInstance().isValidInet4Address(string)) {
+            return "Failed InetAddressValidator";
           }
           break;
         case "ipv6":
@@ -227,10 +166,68 @@ public class FormatChecker {
             return e.getMessage();
           }
           break;
-        case "ipv4":
-        case "ip-address":
-          if (!InetAddressValidator.getInstance().isValidInet4Address(string)) {
-            return "Failed InetAddressValidator";
+        case "iri":
+          try {
+            URI uri1 = new URI(string);
+            if (!uri1.isAbsolute()) {
+              return "Not absolute";
+            }
+            String authority = uri1.getAuthority();
+            if (authority != null
+                && InetAddressValidator.getInstance().isValidInet6Address(authority)) {
+              return "ipv6 not valid as host in an IRI";
+            }
+          } catch (URISyntaxException e) {
+            return e.getReason();
+          }
+          break;
+        case "regex":
+          try {
+            regExPatternSupplier.newPattern(string);
+          } catch (InvalidRegexException ex) {
+            return ex.getMessage();
+          }
+          break;
+        case "time":
+          try {
+            DateTimeFormatter.ISO_OFFSET_TIME.parse(string);
+          } catch (DateTimeParseException e) {
+            return e.getMessage();
+          }
+          break;
+        case "uri":
+          try {
+            if (string.startsWith("//")) {
+              return "Protocol-relative";
+            }
+            URI uri1 = new URI(string);
+            if (!metaSchema.equals(DRAFT_3) && !uri1.isAbsolute()) {
+              return "Not absolute";
+            }
+          } catch (URISyntaxException e) {
+            return e.getReason();
+          }
+          break;
+        case "uuid":
+          try {
+            UUID uuid = UUID.fromString(string);
+            if (!string.toLowerCase().equals(uuid.toString())) {
+              return "Not canonical";
+            }
+          } catch (IllegalArgumentException e) {
+            return e.getMessage();
+          }
+          break;
+      }
+    }
+
+    if (preDraft7) {
+      switch (format) {
+        case "time":
+          try {
+            DateTimeFormatter.ISO_TIME.parse(string);
+          } catch (DateTimeParseException e) {
+            return e.getMessage();
           }
           break;
       }
