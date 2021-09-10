@@ -228,7 +228,11 @@ public class Validator {
 
     if (object instanceof Number) {
       Number number = (Number) object;
-      if (multipleOf != null && number.doubleValue() / multipleOf.doubleValue() % 1 != 0) {
+      if (multipleOf != null
+          && (new BigDecimal(number.toString())
+                  .remainder(new BigDecimal(multipleOf.toString()))
+                  .compareTo(BigDecimal.ZERO)
+              != 0)) {
         error.accept(new MultipleError(uri, document, schema));
       }
       if (maximum != null
