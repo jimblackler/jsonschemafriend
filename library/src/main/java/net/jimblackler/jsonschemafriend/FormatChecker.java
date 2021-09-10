@@ -33,6 +33,7 @@ import org.apache.commons.validator.routines.InetAddressValidator;
 public class FormatChecker {
   private static final Collection<String> IDNA_DISALLOWED;
   private static final Pattern RELATIVE_JSON_POINTER_PATTERN = Pattern.compile("^(\\d+)(.*)$");
+  private static final Pattern NON_ASCII_CHARACTERS = Pattern.compile("[^\\x00-\\x7F]");
 
   static {
     Collection<String> set = new HashSet<>();
@@ -211,6 +212,9 @@ public class FormatChecker {
         case "ipv6":
           if (!InetAddressValidator.getInstance().isValidInet6Address(string)) {
             return "Failed InetAddressValidator";
+          }
+          if (NON_ASCII_CHARACTERS.matcher(string).find()) {
+            return "Non-ASCII characters found";
           }
           try {
             getByName(string);
