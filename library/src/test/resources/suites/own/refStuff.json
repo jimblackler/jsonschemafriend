@@ -3,7 +3,7 @@
     "description": "Use default json path",
     "schema": {
       "type": "object",
-      "myDescriptions": {
+      "$defs": {
         "someNumberDefinition": {
           "type": "number"
         }
@@ -33,7 +33,7 @@
     "description": "Use $id on target",
     "schema": {
       "type": "object",
-      "myDescriptions": {
+      "$defs": {
         "someNumberDefinition": {
           "type": "number",
           "$id": "loremipsum"
@@ -64,7 +64,7 @@
     "description": "$refs resolved with domain from closest ancestor",
     "schema": {
       "type": "object",
-      "myDescriptions": {
+      "$defs": {
         "someNumberDefinition": {
           "$id": "http://example.org:8080/loremipsum",
           "type": "number"
