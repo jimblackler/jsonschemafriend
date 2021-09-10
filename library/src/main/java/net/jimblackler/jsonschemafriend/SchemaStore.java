@@ -303,7 +303,7 @@ public class SchemaStore {
       }
     }
 
-    if ((context & SCHEMA) == 0 && object instanceof Map) {
+    if (((context & SCHEMA) == 0 || (context & MAP_OF_SCHEMAS) != 0) && object instanceof Map) {
       Map<String, Object> jsonObject = (Map<String, Object>) object;
       for (Map.Entry<String, Object> entry : jsonObject.entrySet()) {
         String key = entry.getKey();
@@ -312,7 +312,7 @@ public class SchemaStore {
       }
     }
 
-    if ((context & SCHEMA) == 0 && object instanceof List) {
+    if (((context & SCHEMA) == 0 || (context & LIST_OF_SCHEMAS) != 0) && object instanceof List) {
       List<Object> jsonArray = (List<Object>) object;
       for (int idx = 0; idx != jsonArray.size(); idx++) {
         map(jsonArray.get(idx), baseObject, append(validUri, String.valueOf(idx)),
