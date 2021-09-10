@@ -41,6 +41,7 @@ public class SuiteTest {
     Validator validator =
         new Validator(new CachedRegExPatternSupplier(supplier), validationError -> true);
     for (Path testDir : testDirs) {
+      Collection<DynamicNode> dirTests = new ArrayList<>();
       try (InputStream inputStream = SuiteTest.class.getResourceAsStream(testDir.toString());
            BufferedReader bufferedReader =
                new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8))) {
@@ -80,7 +81,7 @@ public class SuiteTest {
                   System.out.println(gson.toJson(schemaObject));
                   System.out.println();
 
-                  SchemaStore schemaStore = new SchemaStore(urlRewriter);
+                  SchemaStore schemaStore = new SchemaStore(urlRewriter, true);
                   net.jimblackler.jsonschemafriend.Schema schema1 =
                       schemaStore.loadSchema(schemaObject);
 
@@ -108,8 +109,10 @@ public class SuiteTest {
               nodes.add(dynamicContainer((String) testSet.get("description"), tests));
             }
           }
-          allFileTests.add(dynamicContainer(resource, nodes));
+          dirTests.add(dynamicContainer(resource, nodes));
         }
+        allFileTests.add(
+            dynamicContainer(testDir.getName(testDir.getNameCount() - 1).toString(), dirTests));
       } catch (IOException e) {
         throw new IllegalStateException(e);
       }
