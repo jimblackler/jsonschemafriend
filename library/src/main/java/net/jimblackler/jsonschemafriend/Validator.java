@@ -111,13 +111,9 @@ public class Validator {
 
     Schema recursiveRef1 = schema.getRecursiveRef();
     if (recursiveRef1 != null) {
-      if (recursiveRef != null && recursiveRef1.isRecursiveAnchor()) {
-        validate(
-            recursiveRef, document, uri, errorConsumer, selfPropertyHandler, selfItemHandler, null);
-      } else {
-        validate(recursiveRef1, document, uri, errorConsumer, selfPropertyHandler, selfItemHandler,
-            null);
-      }
+      validate(
+          recursiveRef == null || !recursiveRef1.isRecursiveAnchor() ? recursiveRef1 : recursiveRef,
+          document, uri, errorConsumer, selfPropertyHandler, selfItemHandler, null);
     }
 
     if (recursiveRef == null && schema.isRecursiveAnchor()) {
