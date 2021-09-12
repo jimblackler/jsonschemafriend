@@ -10,8 +10,8 @@ import java.nio.file.FileSystems;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
 import java.util.Map;
+import net.jimblackler.jsonschemafriendextra.Ecma262Pattern;
 import org.junit.jupiter.api.DynamicContainer;
 import org.junit.jupiter.api.DynamicNode;
 import org.junit.jupiter.api.DynamicTest;
@@ -27,7 +27,8 @@ public class SchemaStoreTest {
     Path path0 = FILE_SYSTEM.getPath("/SchemaStore").resolve("src");
     Path schemaPath = path0.resolve("schemas").resolve("json");
     Path testDir = path0.resolve("test");
-    Validator validator = new Validator();
+    Validator validator =
+        new Validator(new CachedRegExPatternSupplier(Ecma262Pattern::new), validationError -> true);
     getLines(SuiteTest.class.getResourceAsStream(testDir.toString()), resource -> {
       Path testSchema = schemaPath.resolve(resource + ".json");
       URL resource1 = SchemaStoreTest.class.getResource(testSchema.toString());
@@ -35,7 +36,7 @@ public class SchemaStoreTest {
         return;
       }
 
-      List<DynamicTest> tests = new ArrayList<>();
+      Collection<DynamicTest> tests = new ArrayList<>();
       Path directoryPath = testDir.resolve(resource);
       getLines(
           SchemaStoreTest.class.getResourceAsStream(directoryPath.toString()), testFileName -> {
