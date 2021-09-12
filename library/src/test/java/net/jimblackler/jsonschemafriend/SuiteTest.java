@@ -12,6 +12,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.FileSystem;
@@ -51,8 +52,10 @@ public class SuiteTest {
             continue;
           }
           Collection<DynamicNode> nodes = new ArrayList<>();
+          Path resourcePath = testDir.resolve(resource);
+          URI testSourceUri = SuiteTest.class.getResource(resourcePath.toString()).toURI();
           try (InputStream inputStream1 =
-                   SuiteTest.class.getResourceAsStream(testDir.resolve(resource).toString())) {
+                   SuiteTest.class.getResourceAsStream(resourcePath.toString())) {
             List<Object> data = DocumentUtils.loadJson(inputStream1);
             for (int idx = 0; idx != data.size(); idx++) {
               Map<String, Object> testSet = (Map<String, Object>) data.get(idx);
@@ -76,7 +79,7 @@ public class SuiteTest {
                   description += " (F)";
                 }
 
-                tests.add(dynamicTest(description, () -> {
+                tests.add(dynamicTest(description, testSourceUri, () -> {
                   System.out.println("Schema:");
                   System.out.println(gson.toJson(schemaObject));
                   System.out.println();
@@ -106,14 +109,15 @@ public class SuiteTest {
                   assertEquals(errors.isEmpty(), valid);
                 }));
               }
-              nodes.add(dynamicContainer((String) testSet.get("description"), tests));
+              nodes.add(dynamicContainer(
+                  (String) testSet.get("description"), testSourceUri, tests.stream()));
             }
           }
-          dirTests.add(dynamicContainer(resource, nodes));
+          dirTests.add(dynamicContainer(resource, testSourceUri, nodes.stream()));
         }
         allFileTests.add(
             dynamicContainer(testDir.getName(testDir.getNameCount() - 1).toString(), dirTests));
-      } catch (IOException e) {
+      } catch (IOException | URISyntaxException e) {
         throw new IllegalStateException(e);
       }
     }
