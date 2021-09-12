@@ -152,10 +152,12 @@ public class SchemaStore {
         String refString = fixUnescaped((String) refObject);
         URI pointingTo = resolve(uri, URI.create(refString));
         URI metaSchema = detectMetaSchema(canonicalUriToBaseObject.get(uri));
-        if (metaSchema.equals(MetaSchemaUris.DRAFT_2019_09)) {
-          if (schemaJsonObject.size() > 1) {
-            break;
-          }
+        boolean preDraft4 = metaSchema.equals(DRAFT_3);
+        boolean preDraft6 = preDraft4 || metaSchema.equals(DRAFT_4);
+        boolean preDraft7 = preDraft6 || metaSchema.equals(DRAFT_6);
+        boolean preDraft2019 = preDraft7 || metaSchema.equals(DRAFT_7);
+        if (!preDraft2019 && schemaJsonObject.size() > 1) {
+          break;
         }
         uri = pointingTo;
       } else {
@@ -209,10 +211,11 @@ public class SchemaStore {
     URI canonicalUri = canonicalBaseUri;
     if ((context & Keywords.SCHEMA) != 0 && object instanceof Map) {
       Map<String, Object> jsonObject = (Map<String, Object>) object;
-      String idKey =
-          (MetaSchemaUris.DRAFT_3.equals(metaSchema) || MetaSchemaUris.DRAFT_4.equals(metaSchema))
-          ? "id"
-          : "$id";
+      boolean preDraft4 = metaSchema.equals(DRAFT_3);
+      boolean preDraft6 = preDraft4 || metaSchema.equals(DRAFT_4);
+      boolean preDraft7 = preDraft6 || metaSchema.equals(DRAFT_6);
+      boolean preDraft2019 = preDraft7 || metaSchema.equals(DRAFT_7);
+      String idKey = preDraft6 ? "id" : "$id";
       Object idObject = jsonObject.get(idKey);
       if (idObject instanceof String) {
         URI child = URI.create((String) idObject);
