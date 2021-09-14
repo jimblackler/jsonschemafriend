@@ -344,30 +344,61 @@ public class Validator {
     } else if (object instanceof List) {
       typeCheck(schema, document, uri, setOf("array"), disallow, errorConsumer);
       Collection<Object> jsonArray = (Collection<Object>) object;
-      List<Schema> itemsTuple = schema.getItemsTuple();
-      Schema additionalItems = schema.getAdditionalItems();
-      if (itemsTuple != null) {
-        if (jsonArray.size() > itemsTuple.size() && additionalItems != null) {
-          for (int idx = itemsTuple.size(); idx != jsonArray.size(); idx++) {
-            validate(additionalItems, document, PathUtils.append(uri, String.valueOf(idx)),
+      List<Schema> prefixItems = schema.getPrefixItems();
+      int itemStart = 0;
+      if (prefixItems != null) {
+        itemStart = prefixItems.size();
+        for (int idx = 0; idx != Math.min(prefixItems.size(), jsonArray.size()); idx++) {
+          validate(prefixItems.get(idx), document, PathUtils.append(uri, String.valueOf(idx)),
+              errorConsumer, recursiveRef);
+          selfItemHandler.accept(idx);
+        }
+      } else {
+        List<Schema> itemsTuple = schema.getItemsTuple();
+        if (itemsTuple != null) {
+          Schema additionalItems = schema.getAdditionalItems();
+          if (jsonArray.size() > itemsTuple.size() && additionalItems != null) {
+            for (int idx = itemsTuple.size(); idx != jsonArray.size(); idx++) {
+              validate(additionalItems, document, PathUtils.append(uri, String.valueOf(idx)),
+                  errorConsumer, recursiveRef);
+              selfItemHandler.accept(idx);
+            }
+          }
+          for (int idx = 0; idx != Math.min(itemsTuple.size(), jsonArray.size()); idx++) {
+            validate(itemsTuple.get(idx), document, PathUtils.append(uri, String.valueOf(idx)),
                 errorConsumer, recursiveRef);
             selfItemHandler.accept(idx);
           }
-        }
-
-        for (int idx = 0; idx != Math.min(itemsTuple.size(), jsonArray.size()); idx++) {
-          validate(itemsTuple.get(idx), document, PathUtils.append(uri, String.valueOf(idx)),
-              errorConsumer, recursiveRef);
-          selfItemHandler.accept(idx);
         }
       }
 
       Schema _items = schema.getItems();
       if (_items != null) {
-        for (int idx = 0; idx != jsonArray.size(); idx++) {
+        for (int idx = itemStart; idx < jsonArray.size(); idx++) {
           validate(_items, document, PathUtils.append(uri, String.valueOf(idx)), errorConsumer,
               recursiveRef);
           selfItemHandler.accept(idx);
+        }
+      }
+      Schema contains = schema.getContains();
+      if (contains != null) {
+        int numberPassed = 0;
+        for (int idx = 0; idx != jsonArray.size(); idx++) {
+          List<ValidationError> errors = new ArrayList<>();
+          validate(contains, document, PathUtils.append(uri, String.valueOf(idx)), errors::add,
+              recursiveRef);
+          if (errors.isEmpty()) {
+            selfItemHandler.accept(idx);
+            numberPassed++;
+          }
+        }
+        Number minContains = schema.getMinContains();
+        if (numberPassed < (minContains == null ? 1 : minContains.intValue())) {
+          error.accept(new MinContainsError(uri, document, schema));
+        }
+        Number maxContains = schema.getMaxContains();
+        if (maxContains != null && numberPassed > maxContains.intValue()) {
+          error.accept(new MaxContainsError(uri, document, schema));
         }
       }
 
@@ -402,26 +433,6 @@ public class Validator {
         }
       }
 
-      Schema contains = schema.getContains();
-      if (contains != null) {
-        int numberPassed = 0;
-        for (int idx = 0; idx != jsonArray.size(); idx++) {
-          List<ValidationError> errors = new ArrayList<>();
-          validate(contains, document, PathUtils.append(uri, String.valueOf(idx)), errors::add,
-              recursiveRef);
-          if (errors.isEmpty()) {
-            numberPassed++;
-          }
-        }
-        Number minContains = schema.getMinContains();
-        if (numberPassed < (minContains == null ? 1 : minContains.intValue())) {
-          error.accept(new MinContainsError(uri, document, schema));
-        }
-        Number maxContains = schema.getMaxContains();
-        if (maxContains != null && numberPassed > maxContains.intValue()) {
-          error.accept(new MaxContainsError(uri, document, schema));
-        }
-      }
     } else if (object instanceof Map) {
       typeCheck(schema, document, uri, setOf("object"), disallow, errorConsumer);
       Map<String, Object> jsonObject = (Map<String, Object>) object;

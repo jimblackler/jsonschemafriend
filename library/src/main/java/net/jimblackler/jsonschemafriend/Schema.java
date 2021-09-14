@@ -47,6 +47,7 @@ public class Schema {
   private final String contentEncoding;
   private final String contentMediaType;
   // array checks
+  private final List<Schema> prefixItems;
   private final Schema additionalItems;
   private final Schema unevaluatedItems;
   private final Schema _items;
@@ -153,6 +154,18 @@ public class Schema {
         contentMediaTypeObject instanceof String ? (String) contentMediaTypeObject : null;
 
     // array checks
+    Object prefixItemsObject = jsonObject.get("prefixItems");
+    URI prefixItemsPath = append(uri, "prefixItems");
+    if (prefixItemsObject instanceof List) {
+      prefixItems = new ArrayList<>();
+      Collection<Object> jsonArray = (Collection<Object>) prefixItemsObject;
+      for (int idx = 0; idx != jsonArray.size(); idx++) {
+        prefixItems.add(getSubSchema(append(prefixItemsPath, String.valueOf(idx))));
+      }
+    } else {
+      prefixItems = null;
+    }
+
     additionalItems = getSubSchema(jsonObject, "additionalItems", uri);
     unevaluatedItems = getSubSchema(jsonObject, "unevaluatedItems", uri);
 
@@ -505,6 +518,10 @@ public class Schema {
 
   public String getContentMediaType() {
     return contentMediaType;
+  }
+
+  public List<Schema> getPrefixItems() {
+    return prefixItems == null ? null : Collections.unmodifiableList(prefixItems);
   }
 
   public Schema getAdditionalItems() {
