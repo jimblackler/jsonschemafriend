@@ -254,10 +254,18 @@ public class SchemaStore {
       }
     }
     if (!canonicalBaseUri.equals(canonicalUri)) {
-      validUriToCanonicalUri.put(canonicalBaseUri, canonicalUri);
+      URI was = validUriToCanonicalUri.put(canonicalBaseUri, canonicalUri);
+      if (was != null) {
+        LOG.warning("Attempt to map from at least two locations: " + canonicalBaseUri
+            + System.lineSeparator() + canonicalUri + System.lineSeparator() + was);
+      }
     }
-    if (!validUri.equals(canonicalUri)) {
-      validUriToCanonicalUri.put(validUri, canonicalUri);
+    if (!validUri.equals(canonicalUri) && !canonicalBaseUri.equals(validUri)) {
+      URI was = validUriToCanonicalUri.put(validUri, canonicalUri);
+      if (was != null) {
+        LOG.warning("Attempt to map from at least two locations: " + validUri
+            + System.lineSeparator() + canonicalUri + System.lineSeparator() + was);
+      }
     }
 
     if ((context & Keywords.SCHEMA) != 0 && object instanceof Map) {
