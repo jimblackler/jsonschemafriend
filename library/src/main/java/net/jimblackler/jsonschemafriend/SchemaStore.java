@@ -268,7 +268,10 @@ public class SchemaStore {
         URI nextCanonical = append(canonicalUri, key);
         if (mapContext == null) {
           LOG.warning("Unexpected keyword: " + nextCanonical);
-          mapContext = 0;
+          mapContext = Keywords.MAP;
+        }
+        if (mapContext == 0) {
+          continue;
         }
         map(entry.getValue(), baseObject, append(validUri, key), nextCanonical, metaSchema,
             isResource, mapContext);

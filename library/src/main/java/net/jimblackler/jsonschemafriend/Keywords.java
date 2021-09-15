@@ -8,6 +8,8 @@ public class Keywords {
   static final int SCHEMA = 1;
   static final int MAP_OF_SCHEMAS = 2;
   static final int LIST_OF_SCHEMAS = 4;
+  static final int MAP = 8;
+  static final int LIST = 16;
 
   static final Map<String, Integer> KEY_TYPES = getKeyTypes();
 
@@ -50,14 +52,14 @@ public class Keywords {
     keyTypes.put("dependentSchemas", MAP_OF_SCHEMAS);
     keyTypes.put("deprecated", 0);
     keyTypes.put("description", 0);
-    keyTypes.put("disallow", 0);
+    keyTypes.put("disallow", LIST);
     keyTypes.put("divisibleBy", 0);
     keyTypes.put("else", MAP_OF_SCHEMAS);
     keyTypes.put("enum", 0);
     keyTypes.put("examples", 0);
     keyTypes.put("exclusiveMaximum", 0);
     keyTypes.put("exclusiveMinimum", 0);
-    keyTypes.put("extends", MAP_OF_SCHEMAS);
+    keyTypes.put("extends", SCHEMA | LIST_OF_SCHEMAS);
     keyTypes.put("format", 0);
     keyTypes.put("id", 0);
     keyTypes.put("if", SCHEMA);
@@ -83,7 +85,7 @@ public class Keywords {
     keyTypes.put("required", 0);
     keyTypes.put("then", SCHEMA);
     keyTypes.put("title", 0);
-    keyTypes.put("type", 0);
+    keyTypes.put("type", LIST);
     keyTypes.put("unevaluatedItems", SCHEMA);
     keyTypes.put("unevaluatedProperties", SCHEMA);
     keyTypes.put("uniqueItems", 0);
