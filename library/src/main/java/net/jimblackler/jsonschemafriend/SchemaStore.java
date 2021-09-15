@@ -253,41 +253,53 @@ public class SchemaStore {
             "Different content with same IDs found mapping " + canonicalUri);
       }
     }
-    if (!canonicalBaseUri.equals(canonicalUri)) {
-      URI was = validUriToCanonicalUri.put(canonicalBaseUri, canonicalUri);
-      if (was != null) {
-        LOG.warning("Attempt to map from at least two locations: " + canonicalBaseUri
-            + System.lineSeparator() + canonicalUri + System.lineSeparator() + was);
+    if ((context & Keywords.SCHEMA) != 0) {
+      if (!canonicalBaseUri.equals(canonicalUri)) {
+        URI was = validUriToCanonicalUri.put(canonicalBaseUri, canonicalUri);
+        if (was != null) {
+          if (was.equals(canonicalUri)) {
+            LOG.warning("Redundant double mapping: " + canonicalBaseUri + System.lineSeparator()
+                + canonicalUri);
+          } else {
+            LOG.warning("Attempt to map from at least two locations: " + canonicalBaseUri
+                + System.lineSeparator() + canonicalUri + System.lineSeparator() + was);
+          }
+        }
       }
-    }
-    if (!validUri.equals(canonicalUri) && !canonicalBaseUri.equals(validUri)) {
-      URI was = validUriToCanonicalUri.put(validUri, canonicalUri);
-      if (was != null) {
-        LOG.warning("Attempt to map from at least two locations: " + validUri
-            + System.lineSeparator() + canonicalUri + System.lineSeparator() + was);
+      if (!validUri.equals(canonicalUri) && !canonicalBaseUri.equals(validUri)) {
+        URI was = validUriToCanonicalUri.put(validUri, canonicalUri);
+        if (was != null) {
+          if (was.equals(canonicalUri)) {
+            LOG.warning(
+                "Redundant double mapping: " + validUri + System.lineSeparator() + canonicalUri);
+          } else {
+            LOG.warning("Attempt to map from at least two locations: " + validUri
+                + System.lineSeparator() + canonicalUri + System.lineSeparator() + was);
+          }
+        }
       }
-    }
 
-    if ((context & Keywords.SCHEMA) != 0 && object instanceof Map) {
-      Map<String, Object> jsonObject = (Map<String, Object>) object;
-      for (Map.Entry<String, Object> entry : jsonObject.entrySet()) {
-        String key = entry.getKey();
-        Integer mapContext = Keywords.KEY_TYPES.get(key);
-        URI nextCanonical = append(canonicalUri, key);
-        if (mapContext == null) {
-          LOG.warning("Unexpected keyword: " + nextCanonical);
-          mapContext = Keywords.MAP;
+      if (object instanceof Map) {
+        Map<String, Object> jsonObject = (Map<String, Object>) object;
+        for (Map.Entry<String, Object> entry : jsonObject.entrySet()) {
+          String key = entry.getKey();
+          Integer mapContext = Keywords.KEY_TYPES.get(key);
+          URI nextCanonical = append(canonicalUri, key);
+          if (mapContext == null) {
+            LOG.warning("Unexpected keyword: " + nextCanonical);
+            mapContext = Keywords.MAP;
+          }
+          if (mapContext == 0) {
+            continue;
+          }
+          map(entry.getValue(), baseObject, append(validUri, key), nextCanonical, metaSchema,
+              isResource, mapContext);
+          if (canonicalBaseUri.equals(canonicalUri) || canonicalBaseUri.equals(validUri)) {
+            continue;
+          }
+          map(entry.getValue(), baseObject, append(canonicalBaseUri, key), nextCanonical,
+              metaSchema, false, mapContext);
         }
-        if (mapContext == 0) {
-          continue;
-        }
-        map(entry.getValue(), baseObject, append(validUri, key), nextCanonical, metaSchema,
-            isResource, mapContext);
-        if (canonicalBaseUri.equals(canonicalUri) || canonicalBaseUri.equals(validUri)) {
-          continue;
-        }
-        map(entry.getValue(), baseObject, append(canonicalBaseUri, key), nextCanonical, metaSchema,
-            false, mapContext);
       }
     }
 
