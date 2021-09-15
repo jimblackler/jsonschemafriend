@@ -257,24 +257,14 @@ public class SchemaStore {
       if (!canonicalBaseUri.equals(canonicalUri)) {
         URI was = validUriToCanonicalUri.put(canonicalBaseUri, canonicalUri);
         if (was != null) {
-          if (was.equals(canonicalUri)) {
-            LOG.warning("Redundant double mapping: " + canonicalBaseUri + System.lineSeparator()
-                + canonicalUri);
-          } else {
-            LOG.warning("Attempt to map from at least two locations: " + canonicalBaseUri
-                + System.lineSeparator() + canonicalUri + System.lineSeparator() + was);
-          }
+          throw new IllegalStateException("Double mapping on " + canonicalBaseUri);
         }
       }
       if (!validUri.equals(canonicalUri) && !canonicalBaseUri.equals(validUri)) {
         URI was = validUriToCanonicalUri.put(validUri, canonicalUri);
         if (was != null) {
           if (was.equals(canonicalUri)) {
-            LOG.warning(
-                "Redundant double mapping: " + validUri + System.lineSeparator() + canonicalUri);
-          } else {
-            LOG.warning("Attempt to map from at least two locations: " + validUri
-                + System.lineSeparator() + canonicalUri + System.lineSeparator() + was);
+            throw new IllegalStateException("Double mapping on " + validUri);
           }
         }
       }
@@ -308,8 +298,12 @@ public class SchemaStore {
       Map<String, Object> jsonObject = (Map<String, Object>) object;
       for (Map.Entry<String, Object> entry : jsonObject.entrySet()) {
         String key = entry.getKey();
-        map(entry.getValue(), baseObject, append(validUri, key), append(canonicalUri, key),
-            metaSchema, isResource, (context & Keywords.MAP_OF_SCHEMAS) == 0 ? 0 : Keywords.SCHEMA);
+        URI nextCanonical = append(canonicalUri, key);
+        if (validUriToCanonicalUri.containsKey(nextCanonical)) {
+          continue;
+        }
+        map(entry.getValue(), baseObject, append(validUri, key), nextCanonical, metaSchema,
+            isResource, (context & Keywords.MAP_OF_SCHEMAS) == 0 ? 0 : Keywords.SCHEMA);
       }
     }
 
