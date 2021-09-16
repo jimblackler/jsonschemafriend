@@ -4,15 +4,19 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import java.io.IOException;
 import java.net.URI;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import net.jimblackler.jsonschemafriendextra.Ecma262Pattern;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.TestFactory;
+import org.junit.jupiter.api.Timeout;
 
 public class Catalog {
+  @Timeout(60)
   @TestFactory
   Collection<DynamicTest> all() throws IOException {
     Validator validator =
@@ -26,15 +30,17 @@ public class Catalog {
     for (int idx = 0; idx != schemas.size(); idx++) {
       Map<String, Object> schema = (Map<String, Object>) schemas.get(idx);
       testsOut.add(DynamicTest.dynamicTest((String) schema.get("name"), () -> {
-        URI uri = URI.create((String) schema.get("url"));
-        System.out.println(uri);
-        SchemaStore schemaStore = new SchemaStore(true);
-        Schema schema1 = schemaStore.loadSchema(uri, validator);
-        System.out.println(gson.toJson(schema1.getSchemaObject()));
-        Object example = schema1.getExamples();
-        if (example != null) {
-          System.out.println(gson.toJson(example));
-        }
+        Assertions.assertTimeoutPreemptively(Duration.ofSeconds(60), () -> {
+          URI uri = URI.create((String) schema.get("url"));
+          System.out.println(uri);
+          SchemaStore schemaStore = new SchemaStore(true);
+          Schema schema1 = schemaStore.loadSchema(uri, validator);
+          System.out.println(gson.toJson(schema1.getSchemaObject()));
+          Object example = schema1.getExamples();
+          if (example != null) {
+            System.out.println(gson.toJson(example));
+          }
+        });
       }));
     }
 
