@@ -32,6 +32,8 @@ public class Schema {
   private final Object baseObject; // Kept to infer the metaschema if required.
 
   private final URI uri;
+  private final boolean isFalse;
+
   // number checks
   private final Number multipleOf;
   private final Number maximum;
@@ -123,6 +125,8 @@ public class Schema {
     }
 
     baseObject = schemaStore.getBaseObject(uri);
+
+    isFalse = Boolean.FALSE.equals(schemaObject);
 
     // number checks
     multipleOf = (Number) jsonObject.get("multipleOf");
@@ -437,10 +441,7 @@ public class Schema {
   }
 
   public Boolean isFalse() {
-    if (schemaObject instanceof Boolean) {
-      return !(Boolean) schemaObject;
-    }
-    return false;
+    return isFalse;
   }
 
   @Override
