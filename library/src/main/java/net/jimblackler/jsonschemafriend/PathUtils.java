@@ -200,8 +200,7 @@ public class PathUtils {
       // If the destination URI is not a file, it's not going to be in the jar.
       return resolved;
     }
-    URI resolve = base.resolve(child);
-    return normalize(resolve);
+    return normalize(base.resolve(child));
   }
 
   /**
