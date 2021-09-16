@@ -52,9 +52,9 @@ public class Keywords {
     keyTypes.put("dependentSchemas", MAP_OF_SCHEMAS);
     keyTypes.put("deprecated", 0);
     keyTypes.put("description", 0);
-    keyTypes.put("disallow", LIST);
+    keyTypes.put("disallow", LIST_OF_SCHEMAS | LIST);
     keyTypes.put("divisibleBy", 0);
-    keyTypes.put("else", MAP_OF_SCHEMAS);
+    keyTypes.put("else", SCHEMA);
     keyTypes.put("enum", 0);
     keyTypes.put("examples", 0);
     keyTypes.put("exclusiveMaximum", 0);
@@ -85,7 +85,7 @@ public class Keywords {
     keyTypes.put("required", 0);
     keyTypes.put("then", SCHEMA);
     keyTypes.put("title", 0);
-    keyTypes.put("type", LIST);
+    keyTypes.put("type", LIST_OF_SCHEMAS | LIST);
     keyTypes.put("unevaluatedItems", SCHEMA);
     keyTypes.put("unevaluatedProperties", SCHEMA);
     keyTypes.put("uniqueItems", 0);

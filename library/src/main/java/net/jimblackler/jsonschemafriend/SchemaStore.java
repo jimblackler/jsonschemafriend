@@ -236,7 +236,7 @@ public class SchemaStore {
       }
     }
 
-    if (isResource) {
+    if (((context & Keywords.SCHEMA) != 0 || (context & Keywords.MAP) != 0) && isResource) {
       URI was = canonicalUriToResourceUri.put(canonicalUri, validUri);
       if (was != null) {
         LOG.warning("Attempt to map from at least two locations: " + canonicalUri
