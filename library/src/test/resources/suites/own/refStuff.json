@@ -1,34 +1,5 @@
 [
-  {
-    "description": "Use default json path",
-    "schema": {
-      "type": "object",
-      "$defs": {
-        "someNumberDefinition": {
-          "type": "number"
-        }
-      },
-      "properties": {
-        "someNumber": {
-          "$ref": "#/myDescriptions/someNumberDefinition"
-        }
-      }
-    },
-    "tests": [
-      {
-        "data": {
-          "someNumber": "xyz"
-        },
-        "valid": false
-      },
-      {
-        "data": {
-          "someNumber": 3
-        },
-        "valid": true
-      }
-    ]
-  },
+
   {
     "description": "Use $id on target",
     "schema": {
