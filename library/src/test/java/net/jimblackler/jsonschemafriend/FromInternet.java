@@ -28,7 +28,7 @@ public class FromInternet {
             System.out.println(uri);
             SchemaStore schemaStore = new SchemaStore();
             schemaStore.loadSchema(uri);
-		  });
+          });
         }));
       }
     }
