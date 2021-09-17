@@ -79,7 +79,7 @@ public class Keywords {
     keyTypes.put("oneOf", LIST_OF_SCHEMAS);
     keyTypes.put("pattern", 0);
     keyTypes.put("patternProperties", MAP_OF_SCHEMAS);
-    keyTypes.put("prefixItems", MAP_OF_SCHEMAS);
+    keyTypes.put("prefixItems", LIST_OF_SCHEMAS);
     keyTypes.put("properties", MAP_OF_SCHEMAS);
     keyTypes.put("propertyNames", SCHEMA);
     keyTypes.put("required", 0);
