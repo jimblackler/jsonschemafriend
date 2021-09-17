@@ -22,9 +22,9 @@
       {
         "data": {
           "patternProperties": {
-            "+": {
+            "/+": {
               "patternProperties": {
-                "+": {
+                "/+": {
                 }
               }
             }
