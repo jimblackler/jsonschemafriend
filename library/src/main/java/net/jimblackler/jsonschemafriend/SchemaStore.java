@@ -274,16 +274,16 @@ public class SchemaStore {
     if ((context & Keywords.SCHEMA) != 0) {
       if (!canonicalBaseUri.equals(canonicalUri)) {
         URI was = validUriToCanonicalUri.put(canonicalBaseUri, canonicalUri);
-        if (was != null) {
-          throw new IllegalStateException("Double mapping on " + canonicalBaseUri);
+        if (was != null && !was.equals(canonicalUri)) {
+          LOG.warning("Error mapping " + canonicalBaseUri + " to " + canonicalUri
+              + System.lineSeparator() + "Location was already mapped to " + was);
         }
       }
       if (!validUri.equals(canonicalUri) && !canonicalBaseUri.equals(validUri)) {
         URI was = validUriToCanonicalUri.put(validUri, canonicalUri);
-        if (was != null) {
-          if (was.equals(canonicalUri)) {
-            throw new IllegalStateException("Double mapping on " + validUri);
-          }
+        if (was != null && !was.equals(canonicalUri)) {
+          LOG.warning("Error mapping " + validUri + " to " + canonicalUri + System.lineSeparator()
+              + "Location was already mapped to " + was);
         }
       }
 
