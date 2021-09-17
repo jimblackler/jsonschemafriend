@@ -23,6 +23,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.logging.Logger;
 import net.jimblackler.usejson.SyntaxError;
 import org.jsoup.Jsoup;
@@ -38,6 +39,7 @@ public class SchemaStore {
   private final Map<URI, URI> validUriToCanonicalUri = new HashMap<>();
   private final Map<URI, URI> canonicalUriToResourceUri = new HashMap<>();
   private final Map<URI, Schema> builtSchemas = new HashMap<>();
+  private final Map<URI, Set<String>> dynamicAnchorsBySchemaResource = new HashMap<>();
   private final Collection<URI> mapped = new HashSet<>();
   private final UrlRewriter urlRewriter;
   private int memorySchemaNumber;
@@ -234,6 +236,22 @@ public class SchemaStore {
           LOG.warning("Problem with $anchor: " + e.getMessage());
         }
       }
+
+      Object dynamicAnchorObject = jsonObject.get("$dynamicAnchor");
+      if (dynamicAnchorObject instanceof String) {
+        try {
+          String dynamicAnchorString = (String) dynamicAnchorObject;
+          URI dynamicAnchorUri = new URI(null, null, null, dynamicAnchorString);
+          // This is for the situations where a $dynamicAnchor should behave like a normal $anchor.
+          validUriToCanonicalUri.put(resolve(canonicalUri, dynamicAnchorUri), canonicalUri);
+          URI schemaResource = new URI(
+              canonicalUri.getScheme(), canonicalUri.getHost(), canonicalUri.getPath(), null);
+          dynamicAnchorsBySchemaResource.computeIfAbsent(schemaResource, k -> new HashSet<>())
+              .add(dynamicAnchorUri.getFragment());
+        } catch (URISyntaxException e) {
+          LOG.warning("Problem with $dynamicAnchor: " + e.getMessage());
+        }
+      }
     }
 
     if (((context & Keywords.SCHEMA) != 0 || (context & Keywords.MAP) != 0) && isResource) {
@@ -336,5 +354,9 @@ public class SchemaStore {
 
   public URI canonicalUriToResourceUri(URI uri) {
     return canonicalUriToResourceUri.get(uri);
+  }
+
+  public Set<String> getDynamicAnchorsForSchemaResource(URI uri) {
+    return dynamicAnchorsBySchemaResource.get(uri);
   }
 }

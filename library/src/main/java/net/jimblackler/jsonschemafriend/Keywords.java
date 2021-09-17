@@ -31,6 +31,8 @@ public class Keywords {
     keyTypes.put("$anchor", 0);
     keyTypes.put("$comment", 0);
     keyTypes.put("$defs", MAP_OF_SCHEMAS);
+    keyTypes.put("$dynamicAnchor", 0);
+    keyTypes.put("$dynamicRef", 0);
     keyTypes.put("$id", 0);
     keyTypes.put("$recursiveAnchor", 0);
     keyTypes.put("$recursiveRef", 0);

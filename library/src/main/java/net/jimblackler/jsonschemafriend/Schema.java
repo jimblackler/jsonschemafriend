@@ -10,6 +10,7 @@ import static net.jimblackler.jsonschemafriend.Utils.getOrDefault;
 import static net.jimblackler.jsonschemafriend.Utils.setOf;
 
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -92,8 +93,11 @@ public class Schema {
   private final Schema not;
   private final Schema ref;
   private final Schema recursiveRef;
+  private final URI dynamicRefURI;
+  private final Schema defaultDynamicRef;
+  private final String dynamicAnchor;
   private final boolean recursiveAnchor;
-
+  private final Map<String, Schema> dynamicAnchorsInResource = new HashMap<>();
   private final List<Object> examples;
   private final String title;
   private final String description;
@@ -360,6 +364,42 @@ public class Schema {
     }
 
     recursiveAnchor = getOrDefault(jsonObject, "$recursiveAnchor", false);
+
+    try {
+      URI schemaResource = new URI(uri.getScheme(), uri.getHost(), uri.getPath(), null);
+      Set<String> dynamicAnchorsInResource =
+          schemaStore.getDynamicAnchorsForSchemaResource(schemaResource);
+      if (dynamicAnchorsInResource != null) {
+        for (String anchor : dynamicAnchorsInResource) {
+          try {
+            Schema schema = schemaStore.loadSchema(
+                new URI(uri.getScheme(), uri.getHost(), uri.getPath(), anchor), false);
+            this.dynamicAnchorsInResource.put(anchor, schema);
+          } catch (URISyntaxException e) {
+            throw new RuntimeException(e);
+          }
+        }
+      }
+    } catch (URISyntaxException e) {
+      throw new IllegalStateException(e);
+    }
+
+    Object dynamicRefObject = jsonObject.get("$dynamicRef");
+    if (dynamicRefObject instanceof String) {
+      // Refs should be URL Escaped already; but in practice they are sometimes not.
+      dynamicRefURI = URI.create(fixUnescaped((String) dynamicRefObject));
+      defaultDynamicRef = schemaStore.loadSchema(resolve(uri, dynamicRefURI), false);
+    } else {
+      dynamicRefURI = null;
+      defaultDynamicRef = null;
+    }
+
+    Object dynamicAnchorObject = jsonObject.get("$dynamicAnchor");
+    if (dynamicAnchorObject instanceof String) {
+      dynamicAnchor = (String) dynamicAnchorObject;
+    } else {
+      dynamicAnchor = null;
+    }
 
     Object anyOfObject = jsonObject.get("anyOf");
     if (anyOfObject instanceof List) {
@@ -678,6 +718,22 @@ public class Schema {
 
   public Schema getRecursiveRef() {
     return recursiveRef;
+  }
+
+  public Map<String, Schema> getDynamicAnchorsInResource() {
+    return unmodifiableMap(dynamicAnchorsInResource);
+  }
+
+  public URI getDynamicRefURI() {
+    return dynamicRefURI;
+  }
+
+  public Schema getDefaultDynamicRef() {
+    return defaultDynamicRef;
+  }
+
+  public String getDynamicAnchor() {
+    return dynamicAnchor;
   }
 
   public Collection<String> getDisallow() {

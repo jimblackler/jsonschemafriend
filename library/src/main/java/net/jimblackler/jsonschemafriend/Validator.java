@@ -22,6 +22,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
@@ -68,17 +69,20 @@ public class Validator {
 
   public void validate(
       Schema schema, Object document, URI uri, Consumer<ValidationError> errorConsumer) {
-    validate(schema, document, uri, errorConsumer, property -> {}, item -> {}, null);
+    validate(
+        schema, document, uri, errorConsumer, property -> {}, item -> {}, null, new HashMap<>());
   }
 
   public void validate(Schema schema, Object document, URI uri,
-      Consumer<ValidationError> errorConsumer, Schema recursiveRef) {
-    validate(schema, document, uri, errorConsumer, property -> {}, item -> {}, recursiveRef);
+      Consumer<ValidationError> errorConsumer, Schema recursiveRef,
+      Map<String, Schema> dynamicAnchors) {
+    validate(schema, document, uri, errorConsumer,
+        property -> {}, item -> {}, recursiveRef, dynamicAnchors);
   }
 
   public void validate(Schema schema, Object document, URI uri,
       Consumer<ValidationError> errorConsumer, Consumer<String> propertyConsumer,
-      Consumer<Integer> itemConsumer, Schema recursiveRef) {
+      Consumer<Integer> itemConsumer, Schema recursiveRef, Map<String, Schema> dynamicAnchorsIn) {
     Object object;
     try {
       object = getObject(document, uri);
@@ -109,11 +113,22 @@ public class Validator {
       evaluatedItems.add(property);
     };
 
+    Map<String, Schema> dynamicAnchors = new HashMap<>(dynamicAnchorsIn);
+    for (Map.Entry<String, Schema> entry : schema.getDynamicAnchorsInResource().entrySet()) {
+      String anchor = entry.getKey();
+      // We don't overwrite existing anchors, becuase "A $dynamicRef should resolve to the *first*
+      // $dynamicAnchor still in scope that is encountered when the schema is evaluated."
+      if (dynamicAnchors.containsKey(anchor)) {
+        continue;
+      }
+      dynamicAnchors.put(anchor, entry.getValue());
+    }
+
     Schema recursiveRef1 = schema.getRecursiveRef();
     if (recursiveRef1 != null) {
       validate(
           recursiveRef == null || !recursiveRef1.isRecursiveAnchor() ? recursiveRef1 : recursiveRef,
-          document, uri, errorConsumer, selfPropertyHandler, selfItemHandler, null);
+          document, uri, errorConsumer, selfPropertyHandler, selfItemHandler, null, dynamicAnchors);
     }
 
     if (recursiveRef == null && schema.isRecursiveAnchor()) {
@@ -129,7 +144,7 @@ public class Validator {
       Collection<String> unevaluatedProperties = new HashSet<>();
       Collection<Integer> unevaluatedItems = new HashSet<>();
       validate(_if, document, uri, errors::add, unevaluatedProperties::add, unevaluatedItems::add,
-          recursiveRef);
+          recursiveRef, dynamicAnchors);
       Schema useSchema;
       if (errors.isEmpty()) {
         useSchema = _then;
@@ -140,20 +155,37 @@ public class Validator {
       }
       if (useSchema != null) {
         validate(useSchema, document, uri, errorConsumer, selfPropertyHandler, selfItemHandler,
-            recursiveRef);
+            recursiveRef, dynamicAnchors);
       }
     }
 
     Schema ref = schema.getRef();
     if (ref != null) {
-      validate(
-          ref, document, uri, errorConsumer, selfPropertyHandler, selfItemHandler, recursiveRef);
+      validate(ref, document, uri, errorConsumer, selfPropertyHandler, selfItemHandler,
+          recursiveRef, dynamicAnchors);
+    }
+
+    URI dynamicRefURI = schema.getDynamicRefURI();
+    if (dynamicRefURI != null) {
+      String anchor = dynamicRefURI.getFragment();
+      // "A $dynamicRef without a matching $dynamicAnchor in the same schema resource should behave
+      // like a normal $ref to $anchor."
+      Schema toValidate = schema.getDynamicAnchorsInResource().containsKey(anchor)
+          ? dynamicAnchors.get(anchor)
+          : schema.getDefaultDynamicRef();
+      // "A $dynamicRef that initially resolves to a schema with a matching $dynamicAnchor should
+      // resolve to the first $dynamicAnchor in the dynamic scope."
+      if (anchor.equals(toValidate.getDynamicAnchor())) {
+        toValidate = dynamicAnchors.get(anchor);
+      }
+      validate(toValidate, document, uri, errorConsumer, selfPropertyHandler, selfItemHandler,
+          recursiveRef, dynamicAnchors);
     }
 
     Collection<Schema> allOf = schema.getAllOf();
     for (Schema schema1 : allOf) {
       validate(schema1, document, uri, errorConsumer, selfPropertyHandler, selfItemHandler,
-          recursiveRef);
+          recursiveRef, dynamicAnchors);
     }
 
     Collection<Schema> anyOf = schema.getAnyOf();
@@ -165,7 +197,7 @@ public class Validator {
         Collection<String> unevaluatedProperties = new HashSet<>();
         Collection<Integer> unevaluatedItems = new HashSet<>();
         validate(schema1, document, uri, errors::add, unevaluatedProperties::add,
-            unevaluatedItems::add, recursiveRef);
+            unevaluatedItems::add, recursiveRef, dynamicAnchors);
         if (errors.isEmpty()) {
           numberPassed++;
           unevaluatedProperties.forEach(selfPropertyHandler);
@@ -185,7 +217,7 @@ public class Validator {
       for (Schema schema1 : oneOf) {
         List<ValidationError> errors = new ArrayList<>();
         validate(schema1, document, uri, errors::add, selfPropertyHandler, selfItemHandler,
-            recursiveRef);
+            recursiveRef, dynamicAnchors);
         if (errors.isEmpty()) {
           passed.add(schema1);
         }
@@ -199,7 +231,7 @@ public class Validator {
     Schema not = schema.getNot();
     if (not != null) {
       List<ValidationError> errors = new ArrayList<>();
-      validate(not, document, uri, errors::add, recursiveRef);
+      validate(not, document, uri, errors::add, recursiveRef, dynamicAnchors);
       if (errors.isEmpty()) {
         error.accept(new NotError(uri, document, schema));
       }
@@ -209,7 +241,7 @@ public class Validator {
     for (Schema disallowSchema : disallowSchemas) {
       List<ValidationError> errors = new ArrayList<>();
       validate(disallowSchema, document, uri, errors::add, selfPropertyHandler, selfItemHandler,
-          recursiveRef);
+          recursiveRef, dynamicAnchors);
       if (errors.isEmpty()) {
         error.accept(new DisallowError(uri, document, schema));
       }
@@ -350,7 +382,7 @@ public class Validator {
         itemStart = prefixItems.size();
         for (int idx = 0; idx != Math.min(prefixItems.size(), jsonArray.size()); idx++) {
           validate(prefixItems.get(idx), document, PathUtils.append(uri, String.valueOf(idx)),
-              errorConsumer, recursiveRef);
+              errorConsumer, recursiveRef, dynamicAnchors);
           selfItemHandler.accept(idx);
         }
       } else {
@@ -360,13 +392,13 @@ public class Validator {
           if (jsonArray.size() > itemsTuple.size() && additionalItems != null) {
             for (int idx = itemsTuple.size(); idx != jsonArray.size(); idx++) {
               validate(additionalItems, document, PathUtils.append(uri, String.valueOf(idx)),
-                  errorConsumer, recursiveRef);
+                  errorConsumer, recursiveRef, dynamicAnchors);
               selfItemHandler.accept(idx);
             }
           }
           for (int idx = 0; idx != Math.min(itemsTuple.size(), jsonArray.size()); idx++) {
             validate(itemsTuple.get(idx), document, PathUtils.append(uri, String.valueOf(idx)),
-                errorConsumer, recursiveRef);
+                errorConsumer, recursiveRef, dynamicAnchors);
             selfItemHandler.accept(idx);
           }
         }
@@ -376,7 +408,7 @@ public class Validator {
       if (_items != null) {
         for (int idx = itemStart; idx < jsonArray.size(); idx++) {
           validate(_items, document, PathUtils.append(uri, String.valueOf(idx)), errorConsumer,
-              recursiveRef);
+              recursiveRef, dynamicAnchors);
           selfItemHandler.accept(idx);
         }
       }
@@ -386,7 +418,7 @@ public class Validator {
         for (int idx = 0; idx != jsonArray.size(); idx++) {
           List<ValidationError> errors = new ArrayList<>();
           validate(contains, document, PathUtils.append(uri, String.valueOf(idx)), errors::add,
-              recursiveRef);
+              recursiveRef, dynamicAnchors);
           if (errors.isEmpty()) {
             selfItemHandler.accept(idx);
             numberPassed++;
@@ -409,7 +441,7 @@ public class Validator {
             continue;
           }
           validate(unevaluatedItems, document, PathUtils.append(uri, String.valueOf(idx)),
-              errorConsumer, recursiveRef);
+              errorConsumer, recursiveRef, dynamicAnchors);
           selfItemHandler.accept(idx);
         }
       }
@@ -469,7 +501,7 @@ public class Validator {
       for (String property : jsonObject.keySet()) {
         if (_properties.containsKey(property)) {
           validate(_properties.get(property), document, PathUtils.append(uri, property),
-              errorConsumer, recursiveRef);
+              errorConsumer, recursiveRef, dynamicAnchors);
           remainingProperties.remove(property);
           selfPropertyHandler.accept(property);
         }
@@ -481,8 +513,8 @@ public class Validator {
           Schema schema1 = it1.next();
           try {
             if (regExPatternSupplier.newPattern(pattern1).matches(property)) {
-              validate(
-                  schema1, document, PathUtils.append(uri, property), errorConsumer, recursiveRef);
+              validate(schema1, document, PathUtils.append(uri, property), errorConsumer,
+                  recursiveRef, dynamicAnchors);
               remainingProperties.remove(property);
               selfPropertyHandler.accept(property);
             }
@@ -503,7 +535,8 @@ public class Validator {
             // part of the URL to carry the property name into the child iteration of the validator.
             URI propertyPath = new URI(
                 uri.getScheme(), uri.getAuthority(), uri.getPath(), property, uri.getRawFragment());
-            validate(propertyNames, document, propertyPath, errorConsumer, recursiveRef);
+            validate(
+                propertyNames, document, propertyPath, errorConsumer, recursiveRef, dynamicAnchors);
           } catch (URISyntaxException e) {
             throw new IllegalStateException(e);
           }
@@ -516,14 +549,14 @@ public class Validator {
           continue;
         }
         validate(entry.getValue(), document, uri, errorConsumer, selfPropertyHandler,
-            selfItemHandler, recursiveRef);
+            selfItemHandler, recursiveRef, dynamicAnchors);
       }
 
       Schema additionalProperties = schema.getAdditionalProperties();
       if (additionalProperties != null) {
         for (String property : remainingProperties) {
           validate(additionalProperties, document, PathUtils.append(uri, property), errorConsumer,
-              recursiveRef);
+              recursiveRef, dynamicAnchors);
           selfPropertyHandler.accept(property);
         }
       }
@@ -534,7 +567,7 @@ public class Validator {
         remainingProperties2.removeAll(evaluatedProperties);
         for (String property : remainingProperties2) {
           validate(unevaluatedProperties, document, PathUtils.append(uri, property), errorConsumer,
-              recursiveRef);
+              recursiveRef, dynamicAnchors);
           selfPropertyHandler.accept(property);
         }
       }
