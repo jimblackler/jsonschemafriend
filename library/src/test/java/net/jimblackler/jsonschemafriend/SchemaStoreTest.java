@@ -1,6 +1,5 @@
 package net.jimblackler.jsonschemafriend;
 
-import static net.jimblackler.jsonschemafriend.DocumentUtils.loadJson;
 import static net.jimblackler.jsonschemafriend.ReaderUtils.getLines;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -11,6 +10,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Map;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import net.jimblackler.jsonschemafriendextra.Ecma262Pattern;
 import org.junit.jupiter.api.DynamicContainer;
 import org.junit.jupiter.api.DynamicNode;
@@ -48,7 +48,8 @@ public class SchemaStoreTest {
 
             try {
               tests.add(DynamicTest.dynamicTest(testFileName, testDataUrl.toURI(), () -> {
-                Object o = loadJson(SchemaStoreTest.class.getResourceAsStream(testFile.toString()));
+                Object o = new ObjectMapper().readValue(
+                    SchemaStoreTest.class.getResourceAsStream(testFile.toString()), Object.class);
                 SchemaStore schemaStore = new SchemaStore(true);
                 Schema schema = schemaStore.loadSchema(resource1);
                 Map<String, Object> output = validator.validateWithOutput(schema, o);

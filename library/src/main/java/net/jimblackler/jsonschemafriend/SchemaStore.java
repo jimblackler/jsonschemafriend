@@ -1,7 +1,6 @@
 package net.jimblackler.jsonschemafriend;
 
 import static net.jimblackler.jsonschemafriend.CacheLoader.load;
-import static net.jimblackler.jsonschemafriend.DocumentUtils.parseJson;
 import static net.jimblackler.jsonschemafriend.MetaSchemaDetector.detectMetaSchema;
 import static net.jimblackler.jsonschemafriend.MetaSchemaUris.DRAFT_3;
 import static net.jimblackler.jsonschemafriend.MetaSchemaUris.DRAFT_4;
@@ -25,7 +24,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.logging.Logger;
-import net.jimblackler.usejson.SyntaxError;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -115,8 +115,8 @@ public class SchemaStore {
           if (!mapped.contains(documentUri)) {
             String content = getContent(documentUri);
             try {
-              store(documentUri, parseJson(content));
-            } catch (SyntaxError e) {
+              store(documentUri, new ObjectMapper().readValue(content, Object.class));
+            } catch (JsonProcessingException e) {
               // This is a special method designed to handle the JavaScript-based redirection (not
               // http) on the web page at http://json-schema.org/schema.
               // If the loaded content is an HTML page with a canonical reference to another

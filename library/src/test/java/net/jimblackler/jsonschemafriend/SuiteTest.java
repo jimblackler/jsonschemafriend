@@ -57,7 +57,7 @@ public class SuiteTest {
           URI testSourceUri = SuiteTest.class.getResource(resourcePath.toString()).toURI();
           try (InputStream inputStream1 =
                    SuiteTest.class.getResourceAsStream(resourcePath.toString())) {
-            List<Object> data = DocumentUtils.loadJson(inputStream1);
+            List<Object> data = (List<Object>) objectMapper.readValue(inputStream1, Object.class);
             for (int idx = 0; idx != data.size(); idx++) {
               Map<String, Object> testSet = (Map<String, Object>) data.get(idx);
               if (!testSet.containsKey("schema")) {

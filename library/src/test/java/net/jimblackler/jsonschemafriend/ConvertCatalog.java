@@ -1,6 +1,5 @@
 package net.jimblackler.jsonschemafriend;
 
-import static net.jimblackler.jsonschemafriend.DocumentUtils.loadJson;
 import static net.jimblackler.jsonschemafriend.ReaderUtils.getLines;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -44,7 +43,7 @@ public class ConvertCatalog {
         return;
       }
       try {
-        schemas.put(resource, loadJson(resourceAsStream));
+        schemas.put(resource, objectMapper.readValue(resourceAsStream, Object.class));
       } catch (IOException e) {
         e.printStackTrace();
         return;
@@ -61,7 +60,8 @@ public class ConvertCatalog {
         try {
           Map<String, Object> demo = new LinkedHashMap<>();
           demo.put("schema", resource);
-          demo.put("data", loadJson(ConvertCatalog.class.getResourceAsStream(testFile.toString())));
+          demo.put("data", objectMapper.readValue(
+              ConvertCatalog.class.getResourceAsStream(testFile.toString()), Object.class));
           demos.put(testFileName, demo);
           allDemos.add(testFileName);
         } catch (IOException e) {

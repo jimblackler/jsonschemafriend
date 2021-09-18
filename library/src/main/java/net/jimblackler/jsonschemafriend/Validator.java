@@ -2,7 +2,6 @@ package net.jimblackler.jsonschemafriend;
 
 import static java.util.Base64.getUrlDecoder;
 import static net.jimblackler.jsonschemafriend.ComparableUtils.makeComparable;
-import static net.jimblackler.jsonschemafriend.DocumentUtils.loadJson;
 import static net.jimblackler.jsonschemafriend.MetaSchemaUris.DRAFT_3;
 import static net.jimblackler.jsonschemafriend.MetaSchemaUris.DRAFT_4;
 import static net.jimblackler.jsonschemafriend.MetaSchemaUris.DRAFT_6;
@@ -699,12 +698,12 @@ public class Validator {
 
   public void validate(Schema schema, InputStream inputStream)
       throws ValidationException, IOException {
-    validate(schema, (Object) loadJson(inputStream));
+    validate(schema, new ObjectMapper().readValue(inputStream, Object.class));
   }
 
   public void validate(Schema schema, URL url, Consumer<ValidationError> errorConsumer)
       throws IOException {
-    validate(schema, (Object) loadJson(url.openStream()), errorConsumer);
+    validate(schema, new ObjectMapper().readValue(url.openStream(), Object.class), errorConsumer);
   }
 
   public void validate(Schema schema, URI uri, Consumer<ValidationError> errorConsumer)
