@@ -30,6 +30,7 @@ import org.junit.jupiter.api.TestFactory;
 
 public class SuiteTest {
   public static final FileSystem FILE_SYSTEM = FileSystems.getDefault();
+  public static final boolean OPTIONAL_TESTS = false;
 
   private static Collection<DynamicNode> scan(
       Iterable<Path> testDirs, Path remotes, URI metaSchema) {
@@ -131,8 +132,10 @@ public class SuiteTest {
     Path optional = tests.resolve("optional");
     List<Path> paths = new ArrayList<>();
     paths.add(tests);
-    paths.add(optional);
-    paths.add(optional.resolve("format"));
+    if (OPTIONAL_TESTS) {
+      paths.add(optional);
+      paths.add(optional.resolve("format"));
+    }
     Path remotes = suite.resolve("remotes");
     return scan(paths, remotes, URI.create(metaSchema));
   }
