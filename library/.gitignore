@@ -1,1 +1,5 @@
-cache
+/.classpath
+/.project
+/.settings
+/cache
+/build
