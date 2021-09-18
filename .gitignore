@@ -1,5 +1,8 @@
+.classpath
 .gradle
 .idea
+.project
+.settings
 build
 cache
 out
