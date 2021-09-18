@@ -33,6 +33,7 @@ public class Schema {
   private final Object baseObject; // Kept to infer the metaschema if required.
 
   private final URI uri;
+  private final URI resourceUri;
   private final boolean isFalse;
 
   // number checks
@@ -109,6 +110,7 @@ public class Schema {
 
   Schema(SchemaStore schemaStore, URI uri) throws GenerationException {
     this.uri = uri;
+    resourceUri = schemaStore.canonicalUriToResourceUri(uri);
 
     schemaStore.register(uri, this);
 
@@ -509,6 +511,10 @@ public class Schema {
 
   public URI getUri() {
     return uri;
+  }
+
+  public Object getResourceUri() {
+    return resourceUri;
   }
 
   public Number getMultipleOf() {
