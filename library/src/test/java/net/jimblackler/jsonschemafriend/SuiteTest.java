@@ -68,7 +68,9 @@ public class SuiteTest {
               Object schemaObject = testSet.get("schema");
               if (schemaObject instanceof Map) {
                 Map<String, Object> schema1 = (Map<String, Object>) schemaObject;
-                schema1.put("$schema", metaSchema.toString());
+                if (!schema1.containsKey("$schema")) {
+                  schema1.put("$schema", metaSchema.toString());
+                }
               }
               List<Object> tests1 = (List<Object>) testSet.get("tests");
               for (int idx2 = 0; idx2 != tests1.size(); idx2++) {
