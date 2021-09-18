@@ -113,7 +113,7 @@ public class Validator {
     Map<String, Schema> dynamicAnchors = new HashMap<>(dynamicAnchorsIn);
     for (Map.Entry<String, Schema> entry : schema.getDynamicAnchorsInResource().entrySet()) {
       String anchor = entry.getKey();
-      // We don't overwrite existing anchors, becuase "A $dynamicRef should resolve to the *first*
+      // We don't overwrite existing anchors, because "A $dynamicRef should resolve to the *first*
       // $dynamicAnchor still in scope that is encountered when the schema is evaluated."
       if (dynamicAnchors.containsKey(anchor)) {
         continue;
