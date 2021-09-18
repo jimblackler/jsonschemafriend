@@ -3,8 +3,8 @@ package net.jimblackler.jsonschemafriend;
 import static net.jimblackler.jsonschemafriend.DocumentUtils.loadJson;
 import static net.jimblackler.jsonschemafriend.ReaderUtils.getLines;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintWriter;
@@ -23,7 +23,7 @@ public class ConvertCatalog {
   private static final FileSystem FILE_SYSTEM = FileSystems.getDefault();
 
   public static void main(String[] args) throws IOException {
-    Gson gson = new GsonBuilder().setPrettyPrinting().create();
+    ObjectMapper objectMapper = new ObjectMapper().enable(SerializationFeature.INDENT_OUTPUT);
     Map<String, Object> out = new LinkedHashMap<>();
     Map<String, Object> demos = new LinkedHashMap<>();
     out.put("demos", demos);
@@ -71,12 +71,12 @@ public class ConvertCatalog {
     });
 
     try (PrintWriter writer = new PrintWriter(Files.newBufferedWriter(Paths.get("demos.json")))) {
-      writer.print(gson.toJson(out));
+      writer.print(objectMapper.writeValueAsString(out));
     }
 
     try (
         PrintWriter writer = new PrintWriter(Files.newBufferedWriter(Paths.get("allDemos.json")))) {
-      writer.print(gson.toJson(allDemos));
+      writer.print(objectMapper.writeValueAsString(allDemos));
     }
   }
 }

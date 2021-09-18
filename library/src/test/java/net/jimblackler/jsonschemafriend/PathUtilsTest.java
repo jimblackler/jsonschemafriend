@@ -4,7 +4,9 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.DynamicTest.dynamicTest;
 
-import com.google.gson.GsonBuilder;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import java.net.URI;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
@@ -33,13 +35,15 @@ public class PathUtilsTest {
     return allFileTests;
   }
 
-  private void test(Random random) throws MissingPathException {
+  private void test(Random random) throws MissingPathException, JsonProcessingException {
     Map<String, Object> jsonObject = new LinkedHashMap<>();
     String str = randomString(random, random.nextInt(MAX_LENGTH) + 1);
     String testInsertion = "hello";
     jsonObject.put(str, testInsertion);
 
-    System.out.println(new GsonBuilder().setPrettyPrinting().create().toJson(jsonObject));
+    System.out.println(new ObjectMapper()
+        .enable(SerializationFeature.INDENT_OUTPUT)
+        .writeValueAsString(jsonObject));
 
     URI uri = URI.create("");
     URI appended = PathUtils.append(uri, str);

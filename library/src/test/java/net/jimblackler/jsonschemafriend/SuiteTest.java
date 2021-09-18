@@ -5,8 +5,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.DynamicContainer.dynamicContainer;
 import static org.junit.jupiter.api.DynamicTest.dynamicTest;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -34,7 +34,7 @@ public class SuiteTest {
 
   private static Collection<DynamicNode> scan(
       Iterable<Path> testDirs, Path remotes, URI metaSchema) {
-    Gson gson = new GsonBuilder().setPrettyPrinting().serializeNulls().create();
+    ObjectMapper objectMapper = new ObjectMapper().enable(SerializationFeature.INDENT_OUTPUT);
     Collection<DynamicNode> allFileTests = new ArrayList<>();
     URL resource1 = SuiteTest.class.getResource(remotes.toString());
     UrlRewriter urlRewriter =
@@ -84,7 +84,7 @@ public class SuiteTest {
 
                 tests.add(dynamicTest(description, testSourceUri, () -> {
                   System.out.println("Schema:");
-                  System.out.println(gson.toJson(schemaObject));
+                  System.out.println(objectMapper.writeValueAsString(schemaObject));
                   System.out.println();
 
                   SchemaStore schemaStore = new SchemaStore(urlRewriter, true);
@@ -92,7 +92,7 @@ public class SuiteTest {
                       schemaStore.loadSchema(schemaObject);
 
                   System.out.println("Test:");
-                  System.out.println(gson.toJson(test));
+                  System.out.println(objectMapper.writeValueAsString(test));
                   System.out.println();
 
                   List<ValidationError> errors = new ArrayList<>();
