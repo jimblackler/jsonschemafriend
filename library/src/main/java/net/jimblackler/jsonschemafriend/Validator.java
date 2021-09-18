@@ -740,8 +740,7 @@ public class Validator {
       ((Collection<Object>) output.get("errors")).add(error);
     });
     Schema metaSchema = schemaStore.loadSchema(
-        URI.create("https://json-schema.org/draft/2019-09/output/schema"), false);
-
+        URI.create("https://json-schema.org/draft/2020-12/output/schema"), false);
     try {
       new Validator().validate(metaSchema, output);
     } catch (ValidationException e) {
