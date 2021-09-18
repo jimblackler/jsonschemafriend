@@ -176,8 +176,7 @@ public class SchemaStore {
         URI metaSchemaUri = detectMetaSchema(canonicalUriToBaseObject.get(uri));
         if (!normalize(metaSchemaUri).equals(uri)) {
           Schema metaSchema = loadSchema(metaSchemaUri, false);
-          Map<String, Object> validation =
-              validator.validateWithOutput(this, metaSchema, schemaObject);
+          Map<String, Object> validation = validator.validateWithOutput(metaSchema, schemaObject);
           if (!(boolean) validation.get("valid")) {
             throw new StandardGenerationException(validation);
           }

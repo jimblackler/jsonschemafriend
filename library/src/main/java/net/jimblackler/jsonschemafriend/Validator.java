@@ -721,17 +721,20 @@ public class Validator {
     validate(schema, document, URI.create(""), errorConsumer);
   }
 
-  public Map<String, Object> validateWithOutput(
-      SchemaStore schemaStore, Schema schema, Object document) throws GenerationException {
+  public Map<String, Object> validateWithOutput(Schema schema, Object document) throws GenerationException {
     Map<String, Object> output = new LinkedHashMap<>();
     output.put("valid", true);
+    output.put("keywordLocation", schema.getUri().toString());
+    output.put("absoluteKeywordLocation", schema.getResourceUri().toString());
+    output.put("instanceLocation", "");
     validate(schema, document, validationError -> {
       output.put("valid", false);
       Map<String, Object> error = new LinkedHashMap<>();
       error.put("error", validationError.getMessage());
-      error.put("keywordLocation", validationError.getSchema().getUri());
-      error.put("absoluteKeywordLocation",
-          schemaStore.canonicalUriToResourceUri(validationError.getSchema().getUri()));
+      Schema failedSubSchema = validationError.getSchema();
+      error.put("keywordLocation", failedSubSchema.getUri().toString());
+      error.put("absoluteKeywordLocation", failedSubSchema.getResourceUri().toString());
+      error.put("valid", false);
       String rawFragment = validationError.getUri().getRawFragment();
       error.put("instanceLocation", "#" + (rawFragment == null ? "" : rawFragment));
       if (!output.containsKey("errors")) {
@@ -739,13 +742,6 @@ public class Validator {
       }
       ((Collection<Object>) output.get("errors")).add(error);
     });
-    Schema metaSchema = schemaStore.loadSchema(
-        URI.create("https://json-schema.org/draft/2020-12/output/schema"), false);
-    try {
-      new Validator().validate(metaSchema, output);
-    } catch (ValidationException e) {
-      throw new GenerationException(e);
-    }
     return output;
   }
 }

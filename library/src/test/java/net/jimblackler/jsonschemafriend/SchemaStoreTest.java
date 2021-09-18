@@ -2,7 +2,7 @@ package net.jimblackler.jsonschemafriend;
 
 import static net.jimblackler.jsonschemafriend.DocumentUtils.loadJson;
 import static net.jimblackler.jsonschemafriend.ReaderUtils.getLines;
-
+import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.file.FileSystem;
@@ -51,9 +51,12 @@ public class SchemaStoreTest {
                 Object o = loadJson(SchemaStoreTest.class.getResourceAsStream(testFile.toString()));
                 SchemaStore schemaStore = new SchemaStore(true);
                 Schema schema = schemaStore.loadSchema(resource1);
-
-                Map<String, Object> output = validator.validateWithOutput(schemaStore, schema, o);
-
+                Map<String, Object> output = validator.validateWithOutput(schema, o);
+                URI outputSchema =
+                    URI.create("https://json-schema.org/draft/2020-12/output/schema#/$defs/basic");
+                Schema outputValidator = schemaStore.loadSchema(
+                    outputSchema, false);
+                new Validator().validate(outputValidator, output);
                 if (!(Boolean) output.get("valid")) {
                   throw new StandardValidationException(output);
                 }
