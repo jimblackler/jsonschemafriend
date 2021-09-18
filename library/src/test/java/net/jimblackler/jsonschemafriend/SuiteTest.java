@@ -172,4 +172,9 @@ public class SuiteTest {
   Collection<DynamicNode> draft2019_09() {
     return test("draft2019-09", "https://json-schema.org/draft/2019-09/schema");
   }
+
+  @TestFactory
+  Collection<DynamicNode> draft2020_12() {
+    return test("draft2020-12", "https://json-schema.org/draft/2020-12/schema");
+  }
 }
