@@ -8,4 +8,5 @@ public class MetaSchemaUris {
   static final URI DRAFT_6 = URI.create("http://json-schema.org/draft-06/schema#");
   static final URI DRAFT_7 = URI.create("http://json-schema.org/draft-07/schema#");
   static final URI DRAFT_2019_09 = URI.create("https://json-schema.org/draft/2019-09/schema");
+  static final URI DRAFT_2020_12 = URI.create("https://json-schema.org/draft/2020-12/schema");
 }
