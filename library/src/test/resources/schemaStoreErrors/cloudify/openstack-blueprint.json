@@ -1,0 +1,10 @@
+[
+  "#/node_templates/external-network/properties/use_external_resource",
+  "#/node_templates/public-network-router/properties",
+  "#/node_templates/public-subnet/properties/resource_config/ip_version",
+  "#/node_templates/public-subnet/properties/resource_config/dns_nameservers",
+  "#/node_templates/public-subnet/properties/resource_config/allocation_pools",
+  "#/node_templates/private-subnet/properties/resource_config/ip_version",
+  "#/node_templates/private-subnet/properties/resource_config/dns_nameservers",
+  "#/node_templates/private-subnet/properties/resource_config/allocation_pools"
+]

@@ -1,0 +1,5 @@
+[
+  "#/node_templates/docker_terraform_container_files/properties/terraform_plugins",
+  "#/node_templates/docker_terraform_container_files/properties/resource_config/source",
+  "#/node_templates/docker_terraform_container/interfaces/cloudify.interfaces.lifecycle/stop/implementation"
+]

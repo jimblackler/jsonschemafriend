@@ -1,0 +1,13 @@
+[
+  "#/modulesContent/$edgeAgent/properties.desired/modules/loadGen1/settings/createOptions",
+  "#/modulesContent/$edgeAgent/properties.desired/modules/loadGen2/settings/createOptions",
+  "#/modulesContent/$edgeAgent/properties.desired/modules/directMethodReceiver1/settings/createOptions",
+  "#/modulesContent/$edgeAgent/properties.desired/modules/directMethodReceiver2/settings/createOptions",
+  "#/modulesContent/$edgeAgent/properties.desired/modules/relayer1/settings/createOptions",
+  "#/modulesContent/$edgeAgent/properties.desired/modules/relayer2/settings/createOptions",
+  "#/modulesContent/$edgeAgent/properties.desired/modules/twinTester2/settings/createOptions",
+  "#/modulesContent/$edgeAgent/properties.desired/modules/twinTester4/settings/createOptions",
+  "#/modulesContent/$edgeAgent/properties.desired/modules/deploymentTester2/settings/createOptions",
+  "#/modulesContent/$edgeAgent/properties.desired/modules/cloudToDeviceMessageReceiver1/settings/createOptions",
+  "#/modulesContent/$edgeAgent/properties.desired/modules/cloudToDeviceMessageReceiver2/settings/createOptions"
+]

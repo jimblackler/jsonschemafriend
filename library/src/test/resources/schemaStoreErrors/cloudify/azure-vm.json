@@ -1,0 +1,10 @@
+[
+  "#/node_templates/vm/properties",
+  "#/node_templates/network_security_group/properties",
+  "#/node_templates/network_security_group/properties/resource_config/securityRules",
+  "#/node_templates/ip/properties",
+  "#/node_templates/availability_set/properties",
+  "#/node_templates/subnet/properties",
+  "#/node_templates/subnet/properties/resource_config/addressPrefix",
+  "#/node_templates/network/properties"
+]

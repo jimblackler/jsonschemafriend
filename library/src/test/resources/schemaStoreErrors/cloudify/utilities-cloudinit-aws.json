@@ -1,0 +1,7 @@
+[
+  "#/node_templates/host/properties/resource_config",
+  "#/node_templates/host/properties/resource_config/kwargs/BlockDeviceMappings",
+  "#/node_templates/security_group/properties/resource_config",
+  "#/node_templates/ami/properties/resource_config/kwargs/Filters/0/Values/0",
+  "#/node_templates/ami/properties/resource_config/kwargs/Filters/1/Values/0"
+]

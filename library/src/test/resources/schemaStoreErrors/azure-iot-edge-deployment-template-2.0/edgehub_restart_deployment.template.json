@@ -1,0 +1,6 @@
+[
+  "#/modulesContent/$edgeAgent/properties.desired/modules/directMethodReceiver1/settings/createOptions",
+  "#/modulesContent/$edgeAgent/properties.desired/modules/directMethodReceiver2/settings/createOptions",
+  "#/modulesContent/$edgeAgent/properties.desired/modules/relayer1/settings/createOptions",
+  "#/modulesContent/$edgeAgent/properties.desired/modules/relayer2/settings/createOptions"
+]

@@ -1,0 +1,5 @@
+[
+  "#/modulesContent/$edgeAgent/properties.desired/systemModules/edgeAgent/settings/createOptions",
+  "#/modulesContent/$edgeAgent/properties.desired/systemModules/edgeHub/settings/createOptions",
+  "#/modulesContent/$edgeAgent/properties.desired/modules/image-classifier-service/settings/createOptions"
+]

@@ -1,0 +1,13 @@
+[
+  "#/node_templates/external-network/properties/use_external_resource",
+  "#/node_templates/port/properties/resource_config/fixed_ips/0",
+  "#/node_templates/subnet/properties/resource_config/ip_version",
+  "#/node_templates/subnet/properties/resource_config/allocation_pools/0",
+  "#/node_templates/security_group/properties/security_group_rules/0",
+  "#/node_templates/security_group/properties/security_group_rules/1",
+  "#/node_templates/security_group/properties/security_group_rules/2",
+  "#/node_templates/security_group/properties/security_group_rules/3",
+  "#/node_templates/security_group/properties/security_group_rules/4",
+  "#/node_templates/security_group/properties/security_group_rules/5",
+  "#/node_templates/ip/properties"
+]

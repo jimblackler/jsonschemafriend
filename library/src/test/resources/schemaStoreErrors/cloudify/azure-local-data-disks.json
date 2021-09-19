@@ -1,0 +1,12 @@
+[
+  "#/node_templates/host/properties",
+  "#/node_templates/data_disk_0/properties",
+  "#/node_templates/data_disk_1/properties",
+  "#/node_templates/file_share_1/properties",
+  "#/node_templates/virtual_network/properties",
+  "#/node_templates/virtual_network/properties/resource_config",
+  "#/node_templates/subnet/properties",
+  "#/node_templates/subnet/properties/resource_config/addressPrefix",
+  "#/node_templates/availability_set/properties",
+  "#/node_templates/pip/properties"
+]

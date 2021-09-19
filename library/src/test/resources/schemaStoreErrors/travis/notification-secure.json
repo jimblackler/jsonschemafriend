@@ -1,0 +1,9 @@
+[
+  "#/notifications/campfire",
+  "#/notifications/irc",
+  "#/notifications/flowdock",
+  "#/notifications/hipchat",
+  "#/notifications/slack",
+  "#/notifications/webhooks",
+  "#/notifications/email"
+]

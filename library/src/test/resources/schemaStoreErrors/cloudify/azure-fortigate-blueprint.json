@@ -1,0 +1,9 @@
+[
+  "#/node_templates/availability_set/properties",
+  "#/node_templates/virtual_network/properties",
+  "#/node_templates/virtual_network/properties/resource_config",
+  "#/node_templates/subnet_public/properties",
+  "#/node_templates/public_ip/properties",
+  "#/node_templates/subnet_private/properties",
+  "#/node_templates/fortigate_vm/properties"
+]

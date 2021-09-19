@@ -1,0 +1,12 @@
+[
+  "#/modulesContent/$edgeAgent/properties.desired/systemModules/edgeAgent/settings/createOptions",
+  "#/modulesContent/$edgeAgent/properties.desired/modules/loadGen1/settings/createOptions",
+  "#/modulesContent/$edgeAgent/properties.desired/modules/loadGen2/settings/createOptions",
+  "#/modulesContent/$edgeAgent/properties.desired/modules/loadGen3/settings/createOptions",
+  "#/modulesContent/$edgeAgent/properties.desired/modules/loadGen4/settings/createOptions",
+  "#/modulesContent/$edgeAgent/properties.desired/modules/twinTester1/settings/createOptions",
+  "#/modulesContent/$edgeAgent/properties.desired/modules/twinTester2/settings/createOptions",
+  "#/modulesContent/$edgeAgent/properties.desired/modules/twinTester3/settings/createOptions",
+  "#/modulesContent/$edgeAgent/properties.desired/modules/twinTester4/settings/createOptions",
+  "#/modulesContent/$edgeAgent/properties.desired/modules/metricsCollector/settings/createOptions"
+]

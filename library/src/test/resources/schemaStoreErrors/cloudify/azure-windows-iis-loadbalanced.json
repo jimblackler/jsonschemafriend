@@ -1,0 +1,13 @@
+[
+  "#/node_templates/network_security_group/properties",
+  "#/node_templates/network_security_group/properties/resource_config/securityRules",
+  "#/node_templates/availability_set/properties",
+  "#/node_templates/vm/properties",
+  "#/node_templates/vm_webserver/properties",
+  "#/node_templates/lb_public_ip/properties",
+  "#/node_templates/load_balancer/properties",
+  "#/node_templates/load_balancer_backend_pool/properties",
+  "#/node_templates/load_balancer_probe/properties",
+  "#/node_templates/load_balancer_probe/properties/resource_config",
+  "#/node_templates/load_balancer_rule/properties"
+]
