@@ -2,7 +2,6 @@ package net.jimblackler.jsonschemafriend;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-
 import java.net.URI;
 
 public abstract class ValidationError {
@@ -31,10 +30,9 @@ public abstract class ValidationError {
     URI schemaPath = schema.getUri();
     try {
       String str = objectMapper.writeValueAsString(object);
-      return (truncate(str, 60)
-          + (uri.toString().isEmpty() ? " at root " : " at " + uri + " ") + "failed "
-          + (schemaPath.toString().isEmpty() ? "" : "against " + schemaPath + " ") + "with \""
-          + getMessage() + "\"");
+      return (truncate(str, 60) + (uri.toString().isEmpty() ? " at root " : " at " + uri + " ")
+          + "failed " + (schemaPath.toString().isEmpty() ? "" : "against " + schemaPath + " ")
+          + "with \"" + getMessage() + "\"");
     } catch (JsonProcessingException e) {
       throw new IllegalStateException(e);
     }
