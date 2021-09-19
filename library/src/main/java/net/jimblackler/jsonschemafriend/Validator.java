@@ -720,20 +720,20 @@ public class Validator {
     validate(schema, document, URI.create(""), errorConsumer);
   }
 
-  public Map<String, Object> validateWithOutput(Schema schema, Object document) throws GenerationException {
+  public Map<String, Object> validateWithOutput(Schema schema, Object document)
+      throws GenerationException {
     Map<String, Object> output = new LinkedHashMap<>();
     output.put("valid", true);
     output.put("keywordLocation", schema.getUri().toString());
     output.put("absoluteKeywordLocation", schema.getResourceUri().toString());
     output.put("instanceLocation", "");
     validate(schema, document, validationError -> {
-      output.put("valid", false);
       Map<String, Object> error = new LinkedHashMap<>();
+      error.put("valid", false);
       error.put("error", validationError.getMessage());
       Schema failedSubSchema = validationError.getSchema();
       error.put("keywordLocation", failedSubSchema.getUri().toString());
       error.put("absoluteKeywordLocation", failedSubSchema.getResourceUri().toString());
-      error.put("valid", false);
       String rawFragment = validationError.getUri().getRawFragment();
       error.put("instanceLocation", "#" + (rawFragment == null ? "" : rawFragment));
       if (!output.containsKey("errors")) {
