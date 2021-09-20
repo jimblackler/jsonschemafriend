@@ -60,8 +60,9 @@ public class ConvertCatalog {
         try {
           Map<String, Object> demo = new LinkedHashMap<>();
           demo.put("schema", resource);
-          demo.put("data", objectMapper.readValue(
-              ConvertCatalog.class.getResourceAsStream(testFile.toString()), Object.class));
+          demo.put("data",
+              objectMapper.readValue(
+                  ConvertCatalog.class.getResourceAsStream(testFile.toString()), Object.class));
           demos.put(testFileName, demo);
           allDemos.add(testFileName);
         } catch (IOException e) {
