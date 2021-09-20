@@ -216,6 +216,24 @@ public class Schema {
     additionalProperties = getSubSchema(schemaStore, jsonObject, uri, "additionalProperties");
     unevaluatedProperties = getSubSchema(schemaStore, jsonObject, uri, "unevaluatedProperties");
 
+    Object definitionsObject = jsonObject.get("definitions");
+    if (definitionsObject instanceof Map) {
+      Map<String, Object> definitions = (Map<String, Object>) definitionsObject;
+      URI propertiesPointer = append(uri, "definitions");
+      for (String key : definitions.keySet()) {
+        getSubSchema(schemaStore, append(propertiesPointer, key));
+      }
+    }
+
+    Object defsObject = jsonObject.get("$defs");
+    if (defsObject instanceof Map) {
+      Map<String, Object> defs = (Map<String, Object>) defsObject;
+      URI propertiesPointer = append(uri, "$defs");
+      for (String key : defs.keySet()) {
+        getSubSchema(schemaStore, append(propertiesPointer, key));
+      }
+    }
+
     Object propertiesObject = jsonObject.get("properties");
     if (propertiesObject instanceof Map) {
       Map<String, Object> properties = (Map<String, Object>) propertiesObject;
