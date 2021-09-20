@@ -352,7 +352,7 @@ public class Schema {
     if (refObject instanceof String) {
       // Refs should be URL Escaped already; but in practice they are sometimes not.
       URI resolved = resolve(uri, URI.create(fixUnescaped((String) refObject)));
-      ref = schemaStore.loadSchema(resolved, false);
+      ref = schemaStore.loadSchema(resolved, null);
     } else {
       ref = null;
     }
@@ -360,7 +360,7 @@ public class Schema {
     Object recursiveRefObject = jsonObject.get("$recursiveRef");
     if (recursiveRefObject instanceof String) {
       URI resolved = resolve(uri, URI.create((String) recursiveRefObject));
-      recursiveRef = schemaStore.loadSchema(resolved, false);
+      recursiveRef = schemaStore.loadSchema(resolved, null);
     } else {
       recursiveRef = null;
     }
@@ -375,7 +375,7 @@ public class Schema {
         for (String anchor : dynamicAnchorsInResource) {
           try {
             Schema schema = schemaStore.loadSchema(
-                new URI(uri.getScheme(), uri.getHost(), uri.getPath(), anchor), false);
+                new URI(uri.getScheme(), uri.getHost(), uri.getPath(), anchor), null);
             this.dynamicAnchorsInResource.put(anchor, schema);
           } catch (URISyntaxException e) {
             throw new RuntimeException(e);
@@ -390,7 +390,7 @@ public class Schema {
     if (dynamicRefObject instanceof String) {
       // Refs should be URL Escaped already; but in practice they are sometimes not.
       dynamicRefURI = URI.create(fixUnescaped((String) dynamicRefObject));
-      defaultDynamicRef = schemaStore.loadSchema(resolve(uri, dynamicRefURI), false);
+      defaultDynamicRef = schemaStore.loadSchema(resolve(uri, dynamicRefURI), null);
     } else {
       dynamicRefURI = null;
       defaultDynamicRef = null;
@@ -475,7 +475,7 @@ public class Schema {
   }
 
   private Schema getSubSchema(SchemaStore schemaStore, URI uri) throws GenerationException {
-    Schema subSchema = schemaStore.loadSchema(uri, false);
+    Schema subSchema = schemaStore.loadSchema(uri, null);
     if (subSchema != null && subSchema.getUri().equals(uri)) {
       subSchema.setParent(this);
     }

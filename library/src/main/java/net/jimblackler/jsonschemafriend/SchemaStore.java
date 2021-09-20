@@ -87,11 +87,7 @@ public class SchemaStore {
   }
 
   public Schema loadSchema(URI uri) throws GenerationException {
-    return loadSchema(uri, true);
-  }
-
-  public Schema loadSchema(URI uri, boolean prevalidate) throws GenerationException {
-    return loadSchema(uri, prevalidate ? new Validator() : null);
+    return loadSchema(uri, new Validator());
   }
 
   public Schema loadSchema(URI uri, Validator validator) throws GenerationException {
@@ -175,7 +171,7 @@ public class SchemaStore {
       if (schemaObject != null) {
         URI metaSchemaUri = detectMetaSchema(canonicalUriToBaseObject.get(uri));
         if (!normalize(metaSchemaUri).equals(uri)) {
-          Schema metaSchema = loadSchema(metaSchemaUri, false);
+          Schema metaSchema = loadSchema(metaSchemaUri, null);
           Map<String, Object> validation = validator.validateWithOutput(metaSchema, schemaObject);
           if (!(boolean) validation.get("valid")) {
             throw new StandardGenerationException(validation);

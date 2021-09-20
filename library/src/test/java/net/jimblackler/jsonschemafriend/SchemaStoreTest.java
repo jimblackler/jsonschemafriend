@@ -83,7 +83,8 @@ public class SchemaStoreTest {
           Map<String, Object> output = validator.validateWithOutput(schema, o);
           URI outputSchema =
               URI.create("https://json-schema.org/draft/2020-12/output/schema#/$defs/basic");
-          Schema outputValidator = schemaStore.loadSchema(outputSchema, false);
+          Schema outputValidator =
+              schemaStore.loadSchema(outputSchema, false ? new Validator() : null);
           new Validator().validate(outputValidator, output);
           Collection<String> allErrors = new ArrayList<>();
           validator.validate(schema, o, error -> {
