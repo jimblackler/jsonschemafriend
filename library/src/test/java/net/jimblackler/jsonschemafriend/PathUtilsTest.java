@@ -42,8 +42,8 @@ public class PathUtilsTest {
     jsonObject.put(str, testInsertion);
 
     System.out.println(new ObjectMapper()
-        .enable(SerializationFeature.INDENT_OUTPUT)
-        .writeValueAsString(jsonObject));
+                           .enable(SerializationFeature.INDENT_OUTPUT)
+                           .writeValueAsString(jsonObject));
 
     URI uri = URI.create("");
     URI appended = PathUtils.append(uri, str);
