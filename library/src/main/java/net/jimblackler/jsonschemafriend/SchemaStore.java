@@ -12,6 +12,8 @@ import static net.jimblackler.jsonschemafriend.PathUtils.fixUnescaped;
 import static net.jimblackler.jsonschemafriend.PathUtils.normalize;
 import static net.jimblackler.jsonschemafriend.PathUtils.resolve;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
@@ -24,8 +26,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.logging.Logger;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
