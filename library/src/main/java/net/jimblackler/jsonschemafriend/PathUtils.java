@@ -1,10 +1,12 @@
 package net.jimblackler.jsonschemafriend;
 
 import com.fasterxml.jackson.core.JsonPointer;
+import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
@@ -69,7 +71,13 @@ public class PathUtils {
     }
     if (object instanceof Map) {
       Map<String, Object> map = (Map<String, Object>) object;
-      String property = URLDecoder.decode(jsonPointer.getMatchingProperty());
+      String property;
+      try {
+        property =
+            URLDecoder.decode(jsonPointer.getMatchingProperty(), StandardCharsets.UTF_8.name());
+      } catch (UnsupportedEncodingException e) {
+        throw new MissingPathException(e);
+      }
       if (!map.containsKey(property)) {
         throw new MissingPathException(jsonPointer.toString());
       }
@@ -154,7 +162,12 @@ public class PathUtils {
   }
 
   static String uriComponentEncode(String value) {
-    String encoded = URLEncoder.encode(value);
+    String encoded;
+    try {
+      encoded = URLEncoder.encode(value, StandardCharsets.UTF_8.name());
+    } catch (UnsupportedEncodingException e) {
+      throw new IllegalStateException(e);
+    }
 
     // $ is a common character in schema paths, and it doesn't strictly require escaping, so for
     // aesthetic reasons we don't escape it.
