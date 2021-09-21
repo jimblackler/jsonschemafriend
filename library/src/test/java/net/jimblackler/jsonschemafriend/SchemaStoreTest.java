@@ -21,6 +21,7 @@ import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 import net.jimblackler.jsonschemafriendextra.Ecma262Pattern;
 import org.junit.jupiter.api.DynamicContainer;
 import org.junit.jupiter.api.DynamicNode;
@@ -83,11 +84,10 @@ public class SchemaStoreTest {
           Map<String, Object> output = validator.validateWithOutput(schema, o);
           URI outputSchema =
               URI.create("https://json-schema.org/draft/2020-12/output/schema#/$defs/basic");
-          Schema outputValidator =
-              schemaStore.loadSchema(outputSchema, false ? new Validator() : null);
+          Schema outputValidator = schemaStore.loadSchema(outputSchema, null);
           new Validator().validate(outputValidator, output);
           Collection<String> allErrors = new ArrayList<>();
-          validator.validate(schema, o, error -> {
+          Consumer<ValidationError> errorHandler = error -> {
             String e = error.getUri().toString();
             if (allErrors.contains(e)) {
               return;
@@ -96,7 +96,12 @@ public class SchemaStoreTest {
             if (!notReported.remove(e)) {
               extraReported.add(e);
             }
+          };
+          schema.validateExamplesRecursive(validator, validationError -> {
+            System.out.println(validationError);
+            errorHandler.accept(validationError);
           });
+          validator.validate(schema, o, errorHandler);
           if (new File("schemaStoreErrors").exists()) {
             if (allErrors.isEmpty()) {
               errorsPath.toFile().delete();
@@ -112,8 +117,8 @@ public class SchemaStoreTest {
 
           System.out.println(objectWriter.writeValueAsString(output));
 
-          assertTrue(extraReported.isEmpty());
-          assertTrue(notReported.isEmpty());
+          assertTrue(extraReported.isEmpty(), "Errors reported not seen in reference file");
+          assertTrue(notReported.isEmpty(), "Errors in reference file not reported");
         }));
       });
       testsOut.add(

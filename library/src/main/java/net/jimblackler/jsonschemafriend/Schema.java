@@ -17,9 +17,11 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Consumer;
 import java.util.logging.Logger;
 
 /**
@@ -106,6 +108,7 @@ public class Schema {
   private URI metaSchema;
 
   // Own
+  private Map<URI, Schema> subSchemas = new LinkedHashMap<>();
   private Schema parent;
 
   Schema(SchemaStore schemaStore, URI uri) throws GenerationException {
@@ -171,14 +174,14 @@ public class Schema {
       prefixItems = new ArrayList<>();
       Collection<Object> jsonArray = (Collection<Object>) prefixItemsObject;
       for (int idx = 0; idx != jsonArray.size(); idx++) {
-        prefixItems.add(getSubSchema(schemaStore, append(prefixItemsPath, String.valueOf(idx))));
+        prefixItems.add(getChildSchema(schemaStore, append(prefixItemsPath, String.valueOf(idx))));
       }
     } else {
       prefixItems = null;
     }
 
-    additionalItems = getSubSchema(schemaStore, jsonObject, uri, "additionalItems");
-    unevaluatedItems = getSubSchema(schemaStore, jsonObject, uri, "unevaluatedItems");
+    additionalItems = getChildSchema(schemaStore, jsonObject, uri, "additionalItems");
+    unevaluatedItems = getChildSchema(schemaStore, jsonObject, uri, "unevaluatedItems");
 
     Object itemsObject = jsonObject.get("items");
     URI itemsPath = append(uri, "items");
@@ -186,18 +189,18 @@ public class Schema {
       itemsTuple = new ArrayList<>();
       Collection<Object> jsonArray = (Collection<Object>) itemsObject;
       for (int idx = 0; idx != jsonArray.size(); idx++) {
-        itemsTuple.add(getSubSchema(schemaStore, append(itemsPath, String.valueOf(idx))));
+        itemsTuple.add(getChildSchema(schemaStore, append(itemsPath, String.valueOf(idx))));
       }
       _items = null;
     } else {
       itemsTuple = null;
-      _items = getSubSchema(schemaStore, jsonObject, uri, "items");
+      _items = getChildSchema(schemaStore, jsonObject, uri, "items");
     }
 
     maxItems = (Number) jsonObject.get("maxItems");
     minItems = (Number) jsonObject.get("minItems");
     uniqueItems = getOrDefault(jsonObject, "uniqueItems", false);
-    contains = getSubSchema(schemaStore, jsonObject, uri, "contains");
+    contains = getChildSchema(schemaStore, jsonObject, uri, "contains");
     minContains = (Number) jsonObject.get("minContains");
     maxContains = (Number) jsonObject.get("maxContains");
 
@@ -213,15 +216,15 @@ public class Schema {
     }
     required = requiredObject instanceof Boolean && (Boolean) requiredObject;
 
-    additionalProperties = getSubSchema(schemaStore, jsonObject, uri, "additionalProperties");
-    unevaluatedProperties = getSubSchema(schemaStore, jsonObject, uri, "unevaluatedProperties");
+    additionalProperties = getChildSchema(schemaStore, jsonObject, uri, "additionalProperties");
+    unevaluatedProperties = getChildSchema(schemaStore, jsonObject, uri, "unevaluatedProperties");
 
     Object definitionsObject = jsonObject.get("definitions");
     if (definitionsObject instanceof Map) {
       Map<String, Object> definitions = (Map<String, Object>) definitionsObject;
       URI propertiesPointer = append(uri, "definitions");
       for (String key : definitions.keySet()) {
-        getSubSchema(schemaStore, append(propertiesPointer, key));
+        getChildSchema(schemaStore, append(propertiesPointer, key));
       }
     }
 
@@ -230,7 +233,7 @@ public class Schema {
       Map<String, Object> defs = (Map<String, Object>) defsObject;
       URI propertiesPointer = append(uri, "$defs");
       for (String key : defs.keySet()) {
-        getSubSchema(schemaStore, append(propertiesPointer, key));
+        getChildSchema(schemaStore, append(propertiesPointer, key));
       }
     }
 
@@ -240,7 +243,7 @@ public class Schema {
       URI propertiesPointer = append(uri, "properties");
       for (String propertyName : properties.keySet()) {
         URI propertyUri = append(propertiesPointer, propertyName);
-        _properties.put(propertyName, getSubSchema(schemaStore, propertyUri));
+        _properties.put(propertyName, getChildSchema(schemaStore, propertyUri));
       }
     }
 
@@ -251,7 +254,7 @@ public class Schema {
       for (String propertyPattern : patternProperties.keySet()) {
         patternPropertiesPatterns.add(propertyPattern);
         URI patternPointer = append(propertiesPointer, propertyPattern);
-        patternPropertiesSchemas.add(getSubSchema(schemaStore, patternPointer));
+        patternPropertiesSchemas.add(getChildSchema(schemaStore, patternPointer));
       }
     }
 
@@ -270,7 +273,7 @@ public class Schema {
         } else if (dependencyObject instanceof Map || dependencyObject instanceof Boolean) {
           URI dependenciesPointer = append(uri, "dependencies");
           dependentSchemas.put(
-              dependency, getSubSchema(schemaStore, append(dependenciesPointer, dependency)));
+              dependency, getChildSchema(schemaStore, append(dependenciesPointer, dependency)));
         } else {
           Collection<String> objects = new ArrayList<>();
           objects.add((String) dependencyObject);
@@ -297,11 +300,11 @@ public class Schema {
       for (String dependency : dependentSchemasJsonObject.keySet()) {
         URI dependenciesPointer = append(uri, "dependentSchemas");
         dependentSchemas.put(
-            dependency, getSubSchema(schemaStore, append(dependenciesPointer, dependency)));
+            dependency, getChildSchema(schemaStore, append(dependenciesPointer, dependency)));
       }
     }
 
-    propertyNames = getSubSchema(schemaStore, jsonObject, uri, "propertyNames");
+    propertyNames = getChildSchema(schemaStore, jsonObject, uri, "propertyNames");
 
     // all types checks
     if (jsonObject.containsKey("const")) {
@@ -328,7 +331,7 @@ public class Schema {
       for (int idx = 0; idx != array.size(); idx++) {
         Object arrayEntryObject = array.get(idx);
         if (arrayEntryObject instanceof Boolean || arrayEntryObject instanceof Map) {
-          typesSchema.add(getSubSchema(schemaStore, append(typePointer, String.valueOf(idx))));
+          typesSchema.add(getChildSchema(schemaStore, append(typePointer, String.valueOf(idx))));
         } else {
           explicitTypes.add((String) arrayEntryObject);
         }
@@ -339,9 +342,9 @@ public class Schema {
       explicitTypes = null;
     }
 
-    _if = getSubSchema(schemaStore, jsonObject, uri, "if");
-    _then = getSubSchema(schemaStore, jsonObject, uri, "then");
-    _else = getSubSchema(schemaStore, jsonObject, uri, "else");
+    _if = getChildSchema(schemaStore, jsonObject, uri, "if");
+    _then = getChildSchema(schemaStore, jsonObject, uri, "then");
+    _else = getChildSchema(schemaStore, jsonObject, uri, "else");
 
     Object allOfObject = jsonObject.get("allOf");
     if (allOfObject instanceof List) {
@@ -349,7 +352,7 @@ public class Schema {
       URI arrayPath = append(uri, "allOf");
       for (int idx = 0; idx != array.size(); idx++) {
         URI indexPointer = append(arrayPath, String.valueOf(idx));
-        allOf.add(getSubSchema(schemaStore, indexPointer));
+        allOf.add(getChildSchema(schemaStore, indexPointer));
       }
     }
 
@@ -359,18 +362,18 @@ public class Schema {
       Collection<Object> array = (Collection<Object>) extendsObject;
       for (int idx = 0; idx != array.size(); idx++) {
         URI indexPointer = append(arrayPath, String.valueOf(idx));
-        allOf.add(getSubSchema(schemaStore, indexPointer));
+        allOf.add(getChildSchema(schemaStore, indexPointer));
       }
     } else if (extendsObject instanceof Map || extendsObject instanceof Boolean) {
       URI arrayPath = append(uri, "extends");
-      allOf.add(getSubSchema(schemaStore, arrayPath));
+      allOf.add(getChildSchema(schemaStore, arrayPath));
     }
 
     Object refObject = jsonObject.get("$ref");
     if (refObject instanceof String) {
       // Refs should be URL Escaped already; but in practice they are sometimes not.
       URI resolved = resolve(uri, URI.create(fixUnescaped((String) refObject)));
-      ref = schemaStore.loadSchema(resolved, null);
+      ref = getSubSchema(schemaStore, resolved);
     } else {
       ref = null;
     }
@@ -378,7 +381,7 @@ public class Schema {
     Object recursiveRefObject = jsonObject.get("$recursiveRef");
     if (recursiveRefObject instanceof String) {
       URI resolved = resolve(uri, URI.create((String) recursiveRefObject));
-      recursiveRef = schemaStore.loadSchema(resolved, null);
+      recursiveRef = getSubSchema(schemaStore, resolved);
     } else {
       recursiveRef = null;
     }
@@ -392,8 +395,8 @@ public class Schema {
       if (dynamicAnchorsInResource != null) {
         for (String anchor : dynamicAnchorsInResource) {
           try {
-            Schema schema = schemaStore.loadSchema(
-                new URI(uri.getScheme(), uri.getHost(), uri.getPath(), anchor), null);
+            URI uri1 = new URI(uri.getScheme(), uri.getHost(), uri.getPath(), anchor);
+            Schema schema = getSubSchema(schemaStore, uri1);
             this.dynamicAnchorsInResource.put(anchor, schema);
           } catch (URISyntaxException e) {
             throw new RuntimeException(e);
@@ -408,7 +411,7 @@ public class Schema {
     if (dynamicRefObject instanceof String) {
       // Refs should be URL Escaped already; but in practice they are sometimes not.
       dynamicRefURI = URI.create(fixUnescaped((String) dynamicRefObject));
-      defaultDynamicRef = schemaStore.loadSchema(resolve(uri, dynamicRefURI), null);
+      defaultDynamicRef = getSubSchema(schemaStore, resolve(uri, dynamicRefURI));
     } else {
       dynamicRefURI = null;
       defaultDynamicRef = null;
@@ -428,7 +431,7 @@ public class Schema {
       URI arrayPath = append(uri, "anyOf");
       for (int idx = 0; idx != array.size(); idx++) {
         URI indexPointer = append(arrayPath, String.valueOf(idx));
-        anyOf.add(getSubSchema(schemaStore, indexPointer));
+        anyOf.add(getChildSchema(schemaStore, indexPointer));
       }
     } else {
       anyOf = null;
@@ -441,13 +444,13 @@ public class Schema {
       URI arrayPath = append(uri, "oneOf");
       for (int idx = 0; idx != array.size(); idx++) {
         URI indexPointer = append(arrayPath, String.valueOf(idx));
-        oneOf.add(getSubSchema(schemaStore, indexPointer));
+        oneOf.add(getChildSchema(schemaStore, indexPointer));
       }
     } else {
       oneOf = null;
     }
 
-    not = getSubSchema(schemaStore, jsonObject, uri, "not");
+    not = getChildSchema(schemaStore, jsonObject, uri, "not");
 
     Object disallowObject = jsonObject.get("disallow");
     if (disallowObject instanceof String) {
@@ -461,7 +464,7 @@ public class Schema {
           disallow.add((String) array.get(idx));
         } else {
           disallowSchemas.add(
-              getSubSchema(schemaStore, append(disallowPointer, String.valueOf(idx))));
+              getChildSchema(schemaStore, append(disallowPointer, String.valueOf(idx))));
         }
       }
     }
@@ -470,32 +473,33 @@ public class Schema {
     title = (String) jsonObject.get("title");
     description = (String) jsonObject.get("description");
     examples = (List<Object>) jsonObject.get("examples");
-
-    if (examples != null) {
-      Validator validator = new Validator();
-      for (int idx = 0; idx != examples.size(); idx++) {
-        try {
-          validator.validate(this, jsonObject, URI.create("#/examples/" + idx));
-        } catch (ValidationException e) {
-          throw new GenerationException(e);
-        }
-      }
-    }
   }
 
-  private Schema getSubSchema(SchemaStore schemaStore, Map<String, Object> jsonObject, URI uri,
+  private Schema getChildSchema(SchemaStore schemaStore, Map<String, Object> jsonObject, URI uri,
       String name) throws GenerationException {
     Object childObject = jsonObject.get(name);
     if (childObject instanceof Map || childObject instanceof Boolean) {
-      return getSubSchema(schemaStore, append(uri, name));
+      return getChildSchema(schemaStore, append(uri, name));
     }
     return null;
   }
 
-  private Schema getSubSchema(SchemaStore schemaStore, URI uri) throws GenerationException {
-    Schema subSchema = schemaStore.loadSchema(uri, null);
+  private Schema getChildSchema(SchemaStore schemaStore, URI uri) throws GenerationException {
+    // A 'child' schema is a subSchema that can be a value or (a value or item of a container) in
+    // the schema object *directly*. Schemas included via $ref, $dynamicRef are not child schemas.
+    // The distinction is for clients that might benefit from knowledge of where a schema is
+    // to be found in the network of schemas, where it can be given via 'getParent()'.
+    Schema subSchema = getSubSchema(schemaStore, uri);
     if (subSchema != null && subSchema.getUri().equals(uri)) {
       subSchema.setParent(this);
+    }
+    return subSchema;
+  }
+
+  private Schema getSubSchema(SchemaStore schemaStore, URI uri) throws GenerationException {
+    Schema subSchema = schemaStore.loadSchema(uri, null);
+    if (subSchema != null) {
+      subSchemas.put(subSchema.getUri(), subSchema);
     }
     return subSchema;
   }
@@ -813,5 +817,38 @@ public class Schema {
       return false;
     }
     return uri.equals(((Schema) obj).getUri());
+  }
+
+  public Map<URI, Schema> getSubSchemas() {
+    return unmodifiableMap(subSchemas);
+  }
+
+  public void validateExamples(Validator validator, Consumer<ValidationError> errorConsumer) {
+    if (examples == null) {
+      return;
+    }
+    for (int idx = 0; idx != examples.size(); idx++) {
+      URI resourceUri = URI.create("#" + this.resourceUri.getRawFragment());
+      URI example = append(append(resourceUri, "examples"), String.valueOf(idx));
+      validator.validate(this, baseObject, example, errorConsumer);
+    }
+  }
+
+  public void validateExamplesRecursive(
+      Validator validator, Consumer<ValidationError> errorConsumer) {
+    Map<URI, Schema> unevaluated = new LinkedHashMap<>(subSchemas);
+    Collection<URI> evaluated = new LinkedHashSet<>();
+    while (!unevaluated.isEmpty()) {
+      Map.Entry<URI, Schema> next = unevaluated.entrySet().iterator().next();
+      unevaluated.remove(next.getKey());
+      for (Map.Entry<URI, Schema> entry : next.getValue().getSubSchemas().entrySet()) {
+        if (evaluated.contains(entry.getKey())) {
+          continue;
+        }
+        unevaluated.put(entry.getKey(), entry.getValue());
+      }
+      next.getValue().validateExamples(validator, errorConsumer);
+      evaluated.add(next.getKey());
+    }
   }
 }
