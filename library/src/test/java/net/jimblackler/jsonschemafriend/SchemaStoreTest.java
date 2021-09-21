@@ -33,6 +33,15 @@ public class SchemaStoreTest {
 
   @TestFactory
   Collection<DynamicNode> all() {
+    return test("test");
+  }
+
+  @TestFactory
+  Collection<DynamicNode> allNagative() {
+    return test("negative_test");
+  }
+
+  private Collection<DynamicNode> test(String dirName) {
     ObjectMapper objectMapper = new ObjectMapper();
     DefaultPrettyPrinter prettyPrinter = new DefaultPrettyPrinter();
     prettyPrinter.indentArraysWith(DefaultIndenter.SYSTEM_LINEFEED_INSTANCE);
@@ -42,7 +51,7 @@ public class SchemaStoreTest {
 
     Path path0 = FILE_SYSTEM.getPath("/SchemaStore").resolve("src");
     Path schemaPath = path0.resolve("schemas").resolve("json");
-    Path testDir = path0.resolve("test");
+    Path testDir = path0.resolve(dirName);
     Validator validator =
         new Validator(new CachedRegExPatternSupplier(Ecma262Pattern::new), validationError -> true);
     getLines(SuiteTest.class.getResourceAsStream(testDir.toString()), schemaName -> {
