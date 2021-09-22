@@ -235,8 +235,8 @@ public class SchemaStore {
         URI child = URI.create((String) idObject);
         if (preDraft2019 && jsonObject.containsKey("$ref")) {
           LOG.warning("$id and $ref together are invalid");
-        } else
-        if (!preDraft2019 && child.getRawFragment() != null && !child.getRawFragment().isEmpty()) {
+        } else if (!preDraft2019 && child.getRawFragment() != null
+            && !child.getRawFragment().isEmpty()) {
           LOG.warning("Illegal fragment in ID");
         } else {
           canonicalUri = resolve(canonicalUri, child);

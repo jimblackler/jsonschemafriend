@@ -214,10 +214,14 @@ public class Validator {
       List<List<ValidationError>> allErrors = new ArrayList<>();
       for (Schema schema1 : oneOf) {
         List<ValidationError> errors = new ArrayList<>();
-        validate(schema1, document, uri, errors::add, selfPropertyHandler, selfItemHandler,
-            dynamicAnchors);
+        List<String> unevaluatedProperties = new ArrayList<>();
+        List<Integer> unevaluatedItems = new ArrayList<>();
+        validate(schema1, document, uri, errors::add, unevaluatedProperties::add,
+            unevaluatedItems::add, dynamicAnchors);
         if (errors.isEmpty()) {
           passed.add(schema1);
+          unevaluatedProperties.forEach(selfPropertyHandler);
+          unevaluatedItems.forEach(selfItemHandler);
         }
         allErrors.add(errors);
       }
