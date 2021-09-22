@@ -1,0 +1,19 @@
+[{
+  "description": "oneOf combined with unevaluatedProperties",
+  "schema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "oneOf": [
+      { "type": "object" },
+      { "type": "string", "properties": { "a": "number" } }
+    ],
+    "unevaluatedProperties": false
+  },
+  "tests": [
+    {
+      "description": "oneOf schemas that fail validation don't evaluate properties",
+      "data": { "a": 1 },
+      "valid": false
+    }
+  ]
+}
+]
