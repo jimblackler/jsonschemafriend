@@ -44,7 +44,7 @@ Add the project as a dependency in the module's `build.gradle`.
 
 ```groovy
 dependencies {
-    implementation 'net.jimblackler.jsonschemafriend:core:0.10.6'
+    implementation 'net.jimblackler.jsonschemafriend:core:0.11.0'
     // ...
 }
 ```
