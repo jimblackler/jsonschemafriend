@@ -233,6 +233,9 @@ public class SchemaStore {
       Object idObject = jsonObject.get(idKey);
       if (idObject instanceof String) {
         URI child = URI.create((String) idObject);
+        if (preDraft2019 && jsonObject.containsKey("$ref")) {
+          LOG.warning("$id and $ref together are invalid");
+        } else
         if (!preDraft2019 && child.getRawFragment() != null && !child.getRawFragment().isEmpty()) {
           LOG.warning("Illegal fragment in ID");
         } else {
