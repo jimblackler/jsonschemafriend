@@ -37,7 +37,7 @@ public class SuiteTest {
       Iterable<Path> testDirs, Path remotes, URI metaSchema) {
     ObjectMapper objectMapper = new ObjectMapper().enable(SerializationFeature.INDENT_OUTPUT);
     Collection<DynamicNode> allFileTests = new ArrayList<>();
-    URL resource1 = ResourceUtils.getResource(remotes.toString());
+    URL resource1 = ResourceUtils.getResource(SuiteTest.class, remotes.toString());
     UrlRewriter urlRewriter =
         in -> URI.create(in.toString().replace("http://localhost:1234", resource1.toString()));
     RegExPatternSupplier supplier = true ? Ecma262Pattern::new : JavaRegExPattern::new;
@@ -45,7 +45,7 @@ public class SuiteTest {
         new Validator(new CachedRegExPatternSupplier(supplier), validationError -> true);
     for (Path testDir : testDirs) {
       Collection<DynamicNode> dirTests = new ArrayList<>();
-      try (InputStream inputStream = getResourceAsStream(testDir.toString());
+      try (InputStream inputStream = getResourceAsStream(SuiteTest.class, testDir.toString());
            BufferedReader bufferedReader =
                new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8))) {
         String resource;
@@ -55,8 +55,10 @@ public class SuiteTest {
           }
           Collection<DynamicNode> nodes = new ArrayList<>();
           Path resourcePath = testDir.resolve(resource);
-          URI testSourceUri = ResourceUtils.getResource(resourcePath.toString()).toURI();
-          try (InputStream inputStream1 = getResourceAsStream(resourcePath.toString())) {
+          URI testSourceUri =
+              ResourceUtils.getResource(SuiteTest.class, resourcePath.toString()).toURI();
+          try (InputStream inputStream1 =
+                   getResourceAsStream(SuiteTest.class, resourcePath.toString())) {
             List<Object> data = (List<Object>) objectMapper.readValue(inputStream1, Object.class);
             for (int idx = 0; idx != data.size(); idx++) {
               Map<String, Object> testSet = (Map<String, Object>) data.get(idx);

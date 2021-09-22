@@ -56,29 +56,31 @@ public class SchemaStoreTest {
     Path testDir = path0.resolve(dirName);
     Validator validator =
         new Validator(new CachedRegExPatternSupplier(Ecma262Pattern::new), validationError -> true);
-    getLines(getResourceAsStream(testDir.toString()), schemaName -> {
+    getLines(getResourceAsStream(SchemaStoreTest.class, testDir.toString()), schemaName -> {
       Path testSchema = schemaPath.resolve(schemaName + ".json");
-      URL resource1 = getResource(testSchema.toString());
+      URL resource1 = getResource(SchemaStoreTest.class, testSchema.toString());
       if (resource1 == null) {
         return;
       }
 
       Collection<DynamicTest> tests = new ArrayList<>();
       Path directoryPath = testDir.resolve(schemaName);
-      InputStream resourceAsStream = getResourceAsStream(directoryPath.toString());
+      InputStream resourceAsStream =
+          getResourceAsStream(SchemaStoreTest.class, directoryPath.toString());
       getLines(resourceAsStream, testFileName -> {
         Path testFile = directoryPath.resolve(testFileName);
-        URL testDataUrl = getResource(testFile.toString());
+        URL testDataUrl = getResource(SchemaStoreTest.class, testFile.toString());
         if (testDataUrl == null) {
           return;
         }
 
         URI testSourceUri = URI.create(testDataUrl.toString());
         tests.add(DynamicTest.dynamicTest(testFileName, testSourceUri, () -> {
-          Object o = objectMapper.readValue(getResourceAsStream(testFile.toString()), Object.class);
+          Object o = objectMapper.readValue(
+              getResourceAsStream(SchemaStoreTest.class, testFile.toString()), Object.class);
           Path errorsPath =
               FILE_SYSTEM.getPath("/schemaStoreErrors").resolve(schemaName).resolve(testFileName);
-          InputStream src = getResourceAsStream(errorsPath.toString());
+          InputStream src = getResourceAsStream(SchemaStoreTest.class, errorsPath.toString());
           List<String> errorReference;
           if (src == null) {
             errorReference = new ArrayList<>();

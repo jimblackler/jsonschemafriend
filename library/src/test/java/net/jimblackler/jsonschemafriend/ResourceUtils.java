@@ -4,11 +4,14 @@ import java.io.InputStream;
 import java.net.URL;
 
 public class ResourceUtils {
-  static URL getResource(String resource) {
-    return Thread.currentThread().getContextClassLoader().getResource(resource);
+  static URL getResource(Class clazz, String resource) {
+    URL url = Thread.currentThread().getContextClassLoader().getResource(resource);
+    return url == null ? clazz.getResource(resource) : url;
   }
 
-  static InputStream getResourceAsStream(String resource) {
-    return Thread.currentThread().getContextClassLoader().getResourceAsStream(resource);
+  static InputStream getResourceAsStream(Class clazz, String resource) {
+    InputStream stream =
+        Thread.currentThread().getContextClassLoader().getResourceAsStream(resource);
+    return stream == null ? clazz.getResourceAsStream(resource) : stream;
   }
 }
