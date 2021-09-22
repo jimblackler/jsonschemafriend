@@ -37,7 +37,7 @@ public class SchemaStoreTest {
   }
 
   @TestFactory
-  Collection<DynamicNode> allNagative() {
+  Collection<DynamicNode> allNegative() {
     return test("negative_test");
   }
 
