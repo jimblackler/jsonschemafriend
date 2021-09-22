@@ -103,8 +103,8 @@ public class Main {
 
 ## Via a Map
 
-Schemas and object can be specified in the form of standard Java objects This
-enables the selection of a JSON parser by the client, based on preferences such
+Schemas and objects can be provided in the form of standard Java objects. This
+enables the selection of a JSON parser by the client based on preferences such
 as speed, handling of numbers, and handling of key order, all of which vary
 between libraries. Clients can also chose to construct these document directly
 or on import from different formats such as JSON5 and YAML. It also makes it
