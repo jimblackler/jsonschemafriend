@@ -1,6 +1,8 @@
 package net.jimblackler.jsonschemafriend;
 
 import static net.jimblackler.jsonschemafriend.ReaderUtils.getLines;
+import static net.jimblackler.jsonschemafriend.ResourceUtils.getResource;
+import static net.jimblackler.jsonschemafriend.ResourceUtils.getResourceAsStream;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.fasterxml.jackson.core.util.DefaultIndenter;
@@ -54,31 +56,29 @@ public class SchemaStoreTest {
     Path testDir = path0.resolve(dirName);
     Validator validator =
         new Validator(new CachedRegExPatternSupplier(Ecma262Pattern::new), validationError -> true);
-    getLines(SuiteTest.class.getResourceAsStream(testDir.toString()), schemaName -> {
+    getLines(getResourceAsStream(testDir.toString()), schemaName -> {
       Path testSchema = schemaPath.resolve(schemaName + ".json");
-      URL resource1 = SchemaStoreTest.class.getResource(testSchema.toString());
+      URL resource1 = getResource(testSchema.toString());
       if (resource1 == null) {
         return;
       }
 
       Collection<DynamicTest> tests = new ArrayList<>();
       Path directoryPath = testDir.resolve(schemaName);
-      InputStream resourceAsStream =
-          SchemaStoreTest.class.getResourceAsStream(directoryPath.toString());
+      InputStream resourceAsStream = getResourceAsStream(directoryPath.toString());
       getLines(resourceAsStream, testFileName -> {
         Path testFile = directoryPath.resolve(testFileName);
-        URL testDataUrl = SchemaStoreTest.class.getResource(testFile.toString());
+        URL testDataUrl = getResource(testFile.toString());
         if (testDataUrl == null) {
           return;
         }
 
         URI testSourceUri = URI.create(testDataUrl.toString());
         tests.add(DynamicTest.dynamicTest(testFileName, testSourceUri, () -> {
-          Object o = objectMapper.readValue(
-              SchemaStoreTest.class.getResourceAsStream(testFile.toString()), Object.class);
+          Object o = objectMapper.readValue(getResourceAsStream(testFile.toString()), Object.class);
           Path errorsPath =
               FILE_SYSTEM.getPath("/schemaStoreErrors").resolve(schemaName).resolve(testFileName);
-          InputStream src = SchemaStoreTest.class.getResourceAsStream(errorsPath.toString());
+          InputStream src = getResourceAsStream(errorsPath.toString());
           List<String> errorReference;
           if (src == null) {
             errorReference = new ArrayList<>();
