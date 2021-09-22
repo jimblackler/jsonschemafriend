@@ -16,6 +16,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -88,6 +89,22 @@ public class SchemaStore {
 
   public Schema loadSchema(URI uri) throws GenerationException {
     return loadSchema(uri, new Validator());
+  }
+
+  public Schema loadSchema(InputStream stream) throws GenerationException {
+    try {
+      return loadSchemaJson(StreamUtils.streamToString(stream));
+    } catch (IOException e) {
+      throw new IllegalStateException(e);
+    }
+  }
+
+  public Schema loadSchemaJson(String string) throws GenerationException {
+    try {
+      return loadSchema(new ObjectMapper().readValue(string, Object.class));
+    } catch (JsonProcessingException e) {
+      throw new GenerationException(e);
+    }
   }
 
   public Schema loadSchema(URI uri, Validator validator) throws GenerationException {

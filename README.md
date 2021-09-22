@@ -70,16 +70,42 @@ dependencies {
 # Usage
 
 Javadocs can be found
-[here](https://javadoc.jitpack.io/com/github/jimblackler/jsonschematypes/jsonschemafriend/0.10.0/javadoc/net/jimblackler/jsonschemafriend/package-summary.html).
+[here](https://javadoc.jitpack.io/com/github/jimblackler/jsonschematypes/jsonschemafriend/0.11.0/javadoc/net/jimblackler/jsonschemafriend/package-summary.html).
 
-## Format
+## Basic example using JSON strings
 
-The library is "BYOP"; Bring Your Own Parser. Schemas and objects are received
-not as JSON strings but in the form of standard Java objects, making it
-compatible with all major Java JSON parsers.
+```java
+import net.jimblackler.jsonschemafriend.Schema;
+import net.jimblackler.jsonschemafriend.SchemaException;
+import net.jimblackler.jsonschemafriend.SchemaStore;
+import net.jimblackler.jsonschemafriend.Validator;
 
-This enables the selection of a JSON parser by the client, based on preferences
-such as speed, handling of numbers, and handling of key order, all of which vary
+public class Main {
+  public static void main(String[] args) {
+    // Create a new schema in a JSON string.
+    String schemaString = "{"
+        + "  \"$schema\": \"http://json-schema.org/draft-07/schema#\","
+        + "  \"type\": \"integer\""
+        + "}";
+
+    try {
+      SchemaStore schemaStore = new SchemaStore(); // Initialize a SchemaStore.
+      Schema schema = schemaStore.loadSchemaJson(schemaString); // Load the schema.
+      Validator validator = new Validator(); // Create a validator.
+      validator.validateJson(schema, "1"); // Will not throw an exception.
+      validator.validateJson(schema, "true"); // Will throw a ValidationException.
+    } catch (SchemaException e) {
+      e.printStackTrace();
+    }
+  }
+}
+```
+
+## Via a Map
+
+Schemas and object can be specified in the form of standard Java objects This
+enables the selection of a JSON parser by the client, based on preferences such
+as speed, handling of numbers, and handling of key order, all of which vary
 between libraries. Clients can also chose to construct these document directly
 or on import from different formats such as JSON5 and YAML. It also makes it
 easier to validate documents before serialization.
@@ -113,8 +139,6 @@ including:
 *   [usejson](https://github.com/jimblackler/usejson)
 
     `new Json5Parser().parse(jsonString);`
-
-## Via a Map
 
 This is an example of loading a schema in a `Map`.
 

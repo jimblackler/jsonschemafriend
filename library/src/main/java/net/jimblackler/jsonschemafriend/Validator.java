@@ -696,6 +696,14 @@ public class Validator {
     }
   }
 
+  public void validateJson(Schema schema, String string) throws ValidationException {
+    try {
+      validate(schema, new ObjectMapper().readValue(string, Object.class));
+    } catch (JsonProcessingException e) {
+      throw new IllegalStateException(e);
+    }
+  }
+
   public void validate(Schema schema, InputStream inputStream)
       throws ValidationException, IOException {
     validate(schema, new ObjectMapper().readValue(inputStream, Object.class));
