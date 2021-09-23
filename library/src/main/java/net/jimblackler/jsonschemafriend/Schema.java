@@ -113,7 +113,8 @@ public class Schema {
 
   Schema(SchemaStore schemaStore, URI uri) throws GenerationException {
     this.uri = uri;
-    resourceUri = schemaStore.canonicalUriToResourceUri(uri);
+    URI resourceUri = schemaStore.canonicalUriToResourceUri(uri);
+    this.resourceUri = resourceUri == null ? uri : resourceUri;
 
     schemaStore.register(uri, this);
 
