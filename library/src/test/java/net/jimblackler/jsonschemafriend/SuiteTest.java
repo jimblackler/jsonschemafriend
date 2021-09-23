@@ -3,6 +3,7 @@ package net.jimblackler.jsonschemafriend;
 import static net.jimblackler.jsonschemafriend.ResourceUtils.getResourceAsStream;
 import static net.jimblackler.jsonschemafriend.Utils.getOrDefault;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assumptions.assumeTrue;
 import static org.junit.jupiter.api.DynamicContainer.dynamicContainer;
 import static org.junit.jupiter.api.DynamicTest.dynamicTest;
 
@@ -21,7 +22,7 @@ import java.nio.file.FileSystems;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashSet;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import net.jimblackler.jsonschemafriendextra.Ecma262Pattern;
@@ -34,7 +35,7 @@ public class SuiteTest {
   public static final boolean OPTIONAL_TESTS = false;
 
   private static Collection<DynamicNode> scan(
-      Iterable<Path> testDirs, Path remotes, URI metaSchema) {
+      Map<Path, Boolean> testDirs, Path remotes, URI metaSchema) {
     ObjectMapper objectMapper = new ObjectMapper().enable(SerializationFeature.INDENT_OUTPUT);
     Collection<DynamicNode> allFileTests = new ArrayList<>();
     URL resource1 = ResourceUtils.getResource(SuiteTest.class, remotes.toString());
@@ -43,9 +44,9 @@ public class SuiteTest {
     RegExPatternSupplier supplier = true ? Ecma262Pattern::new : JavaRegExPattern::new;
     Validator validator =
         new Validator(new CachedRegExPatternSupplier(supplier), validationError -> true);
-    for (Path testDir : testDirs) {
+    for (Map.Entry<Path, Boolean> testDir : testDirs.entrySet()) {
       Collection<DynamicNode> dirTests = new ArrayList<>();
-      try (InputStream inputStream = getResourceAsStream(SuiteTest.class, testDir.toString());
+      try (InputStream inputStream = getResourceAsStream(SuiteTest.class, testDir.getKey().toString());
            BufferedReader bufferedReader =
                new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8))) {
         String resource;
@@ -54,7 +55,7 @@ public class SuiteTest {
             continue;
           }
           Collection<DynamicNode> nodes = new ArrayList<>();
-          Path resourcePath = testDir.resolve(resource);
+          Path resourcePath = testDir.getKey().resolve(resource);
           URI testSourceUri =
               ResourceUtils.getResource(SuiteTest.class, resourcePath.toString()).toURI();
           try (InputStream inputStream1 =
@@ -111,7 +112,11 @@ public class SuiteTest {
                     System.out.println();
                   }
 
-                  assertEquals(errors.isEmpty(), valid);
+                  if (testDir.getValue()) {
+                    assertEquals(errors.isEmpty(), valid);
+                  } else {
+                    assumeTrue(errors.isEmpty() == valid);
+                  }
                 }));
               }
               nodes.add(dynamicContainer(
@@ -121,7 +126,7 @@ public class SuiteTest {
           dirTests.add(dynamicContainer(resource, testSourceUri, nodes.stream()));
         }
         allFileTests.add(
-            dynamicContainer(testDir.getName(testDir.getNameCount() - 1).toString(), dirTests));
+            dynamicContainer(testDir.getKey().getName(testDir.getKey().getNameCount() - 1).toString(), dirTests));
       } catch (IOException | URISyntaxException e) {
         throw new IllegalStateException(e);
       }
@@ -134,12 +139,10 @@ public class SuiteTest {
     Path suite = FILE_SYSTEM.getPath("/suites").resolve("JSON-Schema-Test-Suite");
     Path tests = suite.resolve("tests").resolve(set);
     Path optional = tests.resolve("optional");
-    List<Path> paths = new ArrayList<>();
-    paths.add(tests);
-    if (OPTIONAL_TESTS) {
-      paths.add(optional);
-      paths.add(optional.resolve("format"));
-    }
+    Map<Path, Boolean> paths = new HashMap<>();
+    paths.put(tests, true);
+    paths.put(optional, OPTIONAL_TESTS);
+    paths.put(optional.resolve("format"), OPTIONAL_TESTS);
     Path remotes = suite.resolve("remotes");
     return scan(paths, remotes, URI.create(metaSchema));
   }
@@ -148,8 +151,8 @@ public class SuiteTest {
   Collection<DynamicNode> own() {
     Path path = FILE_SYSTEM.getPath("/suites");
     Path own = path.resolve("own");
-    Collection<Path> testDirs = new HashSet<>();
-    testDirs.add(own);
+    Map<Path, Boolean> testDirs = new HashMap<>();
+    testDirs.put(own, true);
     Path remotes = path.resolve("own_remotes");
     URI metaSchema = URI.create("http://json-schema.org/draft-07/schema#");
     return scan(testDirs, remotes, metaSchema);
