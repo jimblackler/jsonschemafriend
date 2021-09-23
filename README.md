@@ -362,10 +362,9 @@ converters or visualizers.
 
 It offers typed accessors for Schema keywords but the main value it offers is to
 build a correctly connected Schema tree. Although JSON Schemas are plain JSON
-objects, locating subschemas from $ref is not trivial. Keywords $id, $anchor,
-$recursiveAnchor, $recursiveRef, $dynamicAnchor, $dynamicRef all require careful
-handling, and requirements differ across JSON Schema standard versions. The library
-can shield clients from these details.
+objects, locating subschemas from $ref is not trivial. Keywords $id, $anchor and
+$ref require careful handling, and requirements differ across JSON Schema
+standard versions. The library can shield clients from these details.
 
 Once a Schema has been loaded, it can be evaluated with accessors in the Schema
 class, for example:
