@@ -740,6 +740,7 @@ public class Validator {
     output.put("absoluteKeywordLocation", schema.getResourceUri().toString());
     output.put("instanceLocation", "");
     validate(schema, document, validationError -> {
+      output.put("valid", false);
       Map<String, Object> error = new LinkedHashMap<>();
       error.put("valid", false);
       error.put("error", validationError.getMessage());
