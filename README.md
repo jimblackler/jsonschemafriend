@@ -11,7 +11,7 @@ An online demonstration
 It is written by <jimblackler@gmail.com> and offered under an
 [Apache 2.0 license](https://www.apache.org/licenses/LICENSE-2.0).
 
-It is compatible with the following metaschemas
+It is compatible with the following versions of the standard.
 
 *   http://json-schema.org/draft-03/schema#
 *   http://json-schema.org/draft-04/schema#
