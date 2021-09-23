@@ -46,7 +46,8 @@ public class SuiteTest {
         new Validator(new CachedRegExPatternSupplier(supplier), validationError -> true);
     for (Map.Entry<Path, Boolean> testDir : testDirs.entrySet()) {
       Collection<DynamicNode> dirTests = new ArrayList<>();
-      try (InputStream inputStream = getResourceAsStream(SuiteTest.class, testDir.getKey().toString());
+      try (InputStream inputStream =
+               getResourceAsStream(SuiteTest.class, testDir.getKey().toString());
            BufferedReader bufferedReader =
                new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8))) {
         String resource;
@@ -125,8 +126,8 @@ public class SuiteTest {
           }
           dirTests.add(dynamicContainer(resource, testSourceUri, nodes.stream()));
         }
-        allFileTests.add(
-            dynamicContainer(testDir.getKey().getName(testDir.getKey().getNameCount() - 1).toString(), dirTests));
+        allFileTests.add(dynamicContainer(
+            testDir.getKey().getName(testDir.getKey().getNameCount() - 1).toString(), dirTests));
       } catch (IOException | URISyntaxException e) {
         throw new IllegalStateException(e);
       }
