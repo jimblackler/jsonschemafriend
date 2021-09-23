@@ -50,6 +50,7 @@ dependencies {
     implementation 'com.sun.mail:javax.mail:1.6.2'
     implementation 'commons-validator:commons-validator:1.7'
     implementation 'com.fasterxml.jackson.core:jackson-databind:2.12.5'
+    implementation 'org.jruby.joni:joni:2.1.41'
     implementation 'org.jsoup:jsoup:1.14.2'
     testImplementation project(path: ':extra')
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.7.2'
