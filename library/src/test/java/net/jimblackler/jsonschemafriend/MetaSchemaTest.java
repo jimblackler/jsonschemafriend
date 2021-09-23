@@ -14,7 +14,7 @@ public class MetaSchemaTest {
   }
 
   static URI[] provideSupportedMetaSchemas() {
-    return new URI[]{MetaSchemaUris.DRAFT_3, MetaSchemaUris.DRAFT_4, MetaSchemaUris.DRAFT_6, MetaSchemaUris.DRAFT_7,
-      MetaSchemaUris.DRAFT_2019_09, MetaSchemaUris.DRAFT_2020_12};
+    return new URI[] {MetaSchemaUris.DRAFT_3, MetaSchemaUris.DRAFT_4, MetaSchemaUris.DRAFT_6,
+        MetaSchemaUris.DRAFT_7, MetaSchemaUris.DRAFT_2019_09, MetaSchemaUris.DRAFT_2020_12};
   }
 }
