@@ -308,8 +308,7 @@ public class SchemaStore {
           Integer mapContext = Keywords.KEY_TYPES.get(key);
           URI nextCanonical = append(canonicalUri, key);
           if (mapContext == null) {
-            LOG.warning("Unexpected keyword: " + nextCanonical);
-            mapContext = Keywords.MAP;
+            mapContext = Keywords.MAP; // Fallback for unexpected keyword.
           }
           if (mapContext == 0) {
             continue;
