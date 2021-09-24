@@ -36,7 +36,7 @@ public class ValidationOutputTest {
       throws GenerationException, ValidationException {
     URI outputSchema =
         URI.create("https://json-schema.org/draft/2020-12/output/schema#/$defs/basic");
-    Schema outputValidator = schemaStore.loadSchema(outputSchema, null);
+    Schema outputValidator = schemaStore.loadSchema(outputSchema);
     new Validator().validate(outputValidator, output);
   }
 }
