@@ -89,14 +89,9 @@ public class SchemaStoreTest {
           Collection<String> extraReported = new LinkedHashSet<>();
 
           SchemaStore schemaStore = new SchemaStore(true);
-          Schema schema = schemaStore.loadSchema(resource1);
-          Map<String, Object> output = validator.validateWithOutput(schema, o);
-          URI outputSchema =
-              URI.create("https://json-schema.org/draft/2020-12/output/schema#/$defs/basic");
-          Schema outputValidator = schemaStore.loadSchema(outputSchema, null);
-          new Validator().validate(outputValidator, output);
           Collection<String> allErrors = new ArrayList<>();
           Consumer<ValidationError> errorHandler = error -> {
+            System.out.println(error);
             String e = error.getUri().toString();
             if (allErrors.contains(e)) {
               return;
@@ -106,10 +101,13 @@ public class SchemaStoreTest {
               extraReported.add(e);
             }
           };
-          schema.validateExamplesRecursive(validator, validationError -> {
-            System.out.println(validationError);
-            errorHandler.accept(validationError);
-          });
+          Schema schema = schemaStore.loadSchema(resource1, validator, errorHandler);
+          Map<String, Object> output = validator.validateWithOutput(schema, o);
+          URI outputSchema =
+              URI.create("https://json-schema.org/draft/2020-12/output/schema#/$defs/basic");
+          Schema outputValidator = schemaStore.loadSchema(outputSchema);
+          new Validator().validate(outputValidator, output, errorHandler);
+          schema.validateExamplesRecursive(validator, errorHandler);
           validator.validate(schema, o, errorHandler);
           if (new File("schemaStoreErrors").exists()) {
             if (allErrors.isEmpty()) {
