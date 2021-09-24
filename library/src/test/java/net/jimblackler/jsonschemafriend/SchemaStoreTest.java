@@ -24,7 +24,6 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
-import net.jimblackler.jsonschemafriendextra.Ecma262Pattern;
 import org.junit.jupiter.api.DynamicContainer;
 import org.junit.jupiter.api.DynamicNode;
 import org.junit.jupiter.api.DynamicTest;
@@ -54,8 +53,7 @@ public class SchemaStoreTest {
     Path path0 = FILE_SYSTEM.getPath("/SchemaStore").resolve("src");
     Path schemaPath = path0.resolve("schemas").resolve("json");
     Path testDir = path0.resolve(dirName);
-    Validator validator =
-        new Validator(new CachedRegExPatternSupplier(Ecma262Pattern::new), validationError -> true);
+    Validator validator = new Validator();
     getLines(getResourceAsStream(SchemaStoreTest.class, testDir.toString()), schemaName -> {
       Path testSchema = schemaPath.resolve(schemaName + ".json");
       URL resource1 = getResource(SchemaStoreTest.class, testSchema.toString());
