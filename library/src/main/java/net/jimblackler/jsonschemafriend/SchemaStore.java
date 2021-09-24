@@ -81,8 +81,13 @@ public class SchemaStore {
   }
 
   public Schema loadSchema(URL url) throws GenerationException {
+    return loadSchema(url, new Validator(), null);
+  }
+
+  public Schema loadSchema(URL url, Validator validator, Consumer<ValidationError> errorConsumer)
+      throws GenerationException {
     try {
-      return loadSchema(url.toURI());
+      return loadSchema(url.toURI(), validator, errorConsumer);
     } catch (URISyntaxException e) {
       throw new GenerationException(e);
     }
