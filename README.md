@@ -68,7 +68,7 @@ dependencies {
 <dependency>
     <groupId>net.jimblackler</groupId>
     <artifactId>jsonschemafriend</artifactId>
-    <version>0.10.6</version>
+    <version>0.11.1</version>
 </dependency>
 ```
 
