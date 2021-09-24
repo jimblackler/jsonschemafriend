@@ -404,34 +404,4 @@ public class Main {
   }
 }
 
-```
-
-## Strict regular expression handling
-
-Strictly ECMA-compliant regular expressions requires an ECMA interpreter,
-GraalJS. This is fairly heavyweight and is not compatible with Android. For this
-mode include both the core library and the extra library, and initialize it as
-shown in the fragment below.
-
-```groovy
-dependencies {
-// ...
-    implementation 'net.jimblackler.jsonschemafriend:core:0.10.5'
-    implementation 'net.jimblackler.jsonschemafriend:extra:0.10.5'
-}
-```
-
-```java
-import net.jimblackler.jsonschemafriend.CachedRegExPatternSupplier;
-import net.jimblackler.jsonschemafriend.Validator;
-import net.jimblackler.jsonschemafriendextra.Ecma262Pattern;
-
-public class Main {
-  public static void main(String[] args) {
-    Validator validator =
-        new Validator(new CachedRegExPatternSupplier(Ecma262Pattern::new), validationError -> true);
-  }
-}
-```
-
 [JSON value]: https://tools.ietf.org/html/rfc7159#section-3
