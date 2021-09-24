@@ -6,7 +6,7 @@ import java.nio.charset.StandardCharsets;
 import org.jcodings.specific.UTF8Encoding;
 import org.joni.Option;
 import org.joni.Regex;
-import org.joni.exception.ValueException;
+import org.joni.exception.SyntaxException;
 
 public class JoniRegExPattern implements RegExPattern {
   private final Regex regex;
@@ -17,7 +17,7 @@ public class JoniRegExPattern implements RegExPattern {
     byte[] bytes = pattern.getBytes(StandardCharsets.UTF_8);
     try {
       regex = new Regex(bytes, 0, bytes.length, Option.NONE, UTF8Encoding.INSTANCE);
-    } catch (ValueException e) {
+    } catch (SyntaxException e) {
       throw new InvalidRegexException(e);
     }
   }
