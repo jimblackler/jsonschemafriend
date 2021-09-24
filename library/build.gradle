@@ -53,8 +53,8 @@ dependencies {
     implementation 'org.jruby.joni:joni:2.1.41'
     implementation 'org.jsoup:jsoup:1.14.2'
     testImplementation project(path: ':extra')
-    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.7.2'
-    testImplementation 'org.junit.jupiter:junit-jupiter-engine:5.7.2'
-    testImplementation 'org.junit.jupiter:junit-jupiter-params:5.7.2'
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.0'
+    testImplementation 'org.junit.jupiter:junit-jupiter-engine:5.8.0'
+    testImplementation 'org.junit.jupiter:junit-jupiter-params:5.8.0'
     testImplementation 'org.json:json:20210307'
 }
