@@ -66,11 +66,15 @@ public class SchemaStore {
   }
 
   public Schema loadSchema(Object document) throws GenerationException {
+    return loadSchema(document, new Validator());
+  }
+
+  public Schema loadSchema(Object document, Validator validator) throws GenerationException {
     // Every document needs a unique, default canonical URI.
     URI uri = URI.create(memorySchemaNumber == 0 ? "" : String.valueOf(memorySchemaNumber));
     memorySchemaNumber++;
     URI canonicalUri = store(uri, document);
-    return loadSchema(canonicalUri);
+    return loadSchema(canonicalUri, validator);
   }
 
   public Schema loadSchema(File file) throws GenerationException {
