@@ -26,6 +26,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Consumer;
 import java.util.logging.Logger;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -108,6 +109,11 @@ public class SchemaStore {
   }
 
   public Schema loadSchema(URI uri, Validator validator) throws GenerationException {
+    return loadSchema(uri, validator, null);
+  }
+
+  public Schema loadSchema(URI uri, Validator validator, Consumer<ValidationError> errorConsumer)
+      throws GenerationException {
     uri = normalize(uri);
     while (true) {
       if (builtSchemas.containsKey(uri)) {
@@ -189,9 +195,13 @@ public class SchemaStore {
         URI metaSchemaUri = detectMetaSchema(canonicalUriToBaseObject.get(uri));
         if (!normalize(metaSchemaUri).equals(uri)) {
           Schema metaSchema = loadSchema(metaSchemaUri, null);
-          Map<String, Object> validation = validator.validateWithOutput(metaSchema, schemaObject);
-          if (!(boolean) validation.get("valid")) {
-            throw new StandardGenerationException(validation);
+          if (errorConsumer == null) {
+            Map<String, Object> validation = validator.validateWithOutput(metaSchema, schemaObject);
+            if (!(boolean) validation.get("valid")) {
+              throw new StandardGenerationException(validation);
+            }
+          } else {
+            validator.validate(metaSchema, schemaObject, errorConsumer);
           }
         }
       }
