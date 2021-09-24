@@ -66,8 +66,8 @@ dependencies {
 
 ```xml
 <dependency>
-    <groupId>net.jimblackler</groupId>
-    <artifactId>jsonschemafriend</artifactId>
+    <groupId>net.jimblackler.jsonschemafriend</groupId>
+    <artifactId>core</artifactId>
     <version>0.11.1</version>
 </dependency>
 ```
