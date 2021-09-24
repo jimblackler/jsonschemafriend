@@ -25,7 +25,6 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import net.jimblackler.jsonschemafriendextra.Ecma262Pattern;
 import org.junit.jupiter.api.DynamicNode;
 import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.TestFactory;
@@ -41,9 +40,7 @@ public class SuiteTest {
     URL resource1 = ResourceUtils.getResource(SuiteTest.class, remotes.toString());
     UrlRewriter urlRewriter =
         in -> URI.create(in.toString().replace("http://localhost:1234", resource1.toString()));
-    RegExPatternSupplier supplier = true ? Ecma262Pattern::new : JavaRegExPattern::new;
-    Validator validator =
-        new Validator(new CachedRegExPatternSupplier(supplier), validationError -> true);
+    Validator validator = new Validator();
     for (Map.Entry<Path, Boolean> testDir : testDirs.entrySet()) {
       Collection<DynamicNode> dirTests = new ArrayList<>();
       try (InputStream inputStream =
