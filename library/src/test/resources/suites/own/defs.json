@@ -1,0 +1,35 @@
+[
+  {
+    "description": "Defs issue",
+    "schema": {
+      "$schema": "https://json-schema.org/draft/2019-09/schema",
+      "$id": "urn:defs-test",
+      "title": "TEST",
+      "type": "object",
+      "properties": {
+        "testReference": {
+          "$ref": "#/$defs/reference"
+        }
+      },
+      "$defs": {
+        "reference": {
+          "type": "string"
+        }
+      }
+    },
+    "tests": [
+      {
+        "valid": true,
+        "data": {
+          "testReference": "a"
+        }
+      },
+      {
+        "valid": false,
+        "data": {
+          "testReference": 0
+        }
+      }
+    ]
+  }
+]

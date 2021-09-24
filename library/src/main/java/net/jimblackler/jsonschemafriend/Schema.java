@@ -389,23 +389,19 @@ public class Schema {
 
     recursiveAnchor = getOrDefault(jsonObject, "$recursiveAnchor", false);
 
-    try {
-      URI schemaResource = new URI(uri.getScheme(), uri.getHost(), uri.getPath(), null);
-      Set<String> dynamicAnchorsInResource =
-          schemaStore.getDynamicAnchorsForSchemaResource(schemaResource);
-      if (dynamicAnchorsInResource != null) {
-        for (String anchor : dynamicAnchorsInResource) {
-          try {
-            URI uri1 = new URI(uri.getScheme(), uri.getHost(), uri.getPath(), anchor);
-            Schema schema = getSubSchema(schemaStore, uri1);
-            this.dynamicAnchorsInResource.put(anchor, schema);
-          } catch (URISyntaxException e) {
-            throw new RuntimeException(e);
-          }
+    URI schemaResource = UriUtils.withoutFragment(uri);
+    Set<String> dynamicAnchorsInResource =
+        schemaStore.getDynamicAnchorsForSchemaResource(schemaResource);
+    if (dynamicAnchorsInResource != null) {
+      for (String anchor : dynamicAnchorsInResource) {
+        try {
+          URI uri1 = new URI(uri.getScheme(), uri.getHost(), uri.getPath(), anchor);
+          Schema schema = getSubSchema(schemaStore, uri1);
+          this.dynamicAnchorsInResource.put(anchor, schema);
+        } catch (URISyntaxException e) {
+          throw new RuntimeException(e);
         }
       }
-    } catch (URISyntaxException e) {
-      throw new IllegalStateException(e);
     }
 
     Object dynamicRefObject = jsonObject.get("$dynamicRef");
