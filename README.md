@@ -117,7 +117,7 @@ easier to validate documents before serialization.
 
 The parser takes documents and schemas as a tree of objects, typed as follows:
 
-[JSON value]() | Java class
+[JSON value][] | Java class
 -------------- | -------------------------------
 object         | `java.util.Map<String, Object>`
 array          | `java.util.List<Object>`
@@ -403,5 +403,6 @@ public class Main {
     }
   }
 }
+```
 
 [JSON value]: https://tools.ietf.org/html/rfc7159#section-3
