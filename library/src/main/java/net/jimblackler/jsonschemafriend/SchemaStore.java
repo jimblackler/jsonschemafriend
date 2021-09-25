@@ -179,8 +179,6 @@ public class SchemaStore {
       Map<String, Object> schemaJsonObject = (Map<String, Object>) schemaObject;
       Object refObject = schemaJsonObject.get("$ref");
       if (refObject instanceof String) {
-        String refString = fixUnescaped((String) refObject);
-        URI pointingTo = normalize(resolve(uri, URI.create(refString)));
         URI metaSchema = detectMetaSchema(canonicalUriToBaseObject.get(uri));
         boolean preDraft4 = metaSchema.equals(DRAFT_3);
         boolean preDraft6 = preDraft4 || metaSchema.equals(DRAFT_4);
@@ -189,7 +187,8 @@ public class SchemaStore {
         if (!preDraft2019 && schemaJsonObject.size() > 1) {
           break;
         }
-        uri = pointingTo;
+        String refString = fixUnescaped((String) refObject);
+        uri = normalize(resolve(uri, URI.create(refString)));;
       } else {
         break;
       }
