@@ -201,19 +201,42 @@ public class PathUtils {
     }
   }
 
-  static <T> URI resolve(URI base, URI child) {
-    if ("jar".equals(base.getScheme())) {
-      // Path.resolve() doesn't like to handle jar: form URLs - a problem if apps directly load
-      // schemas from libraries that cross-reference each other - so we use a little hack.
-      URI converted = URI.create(base.toString().substring("jar:".length()));
-      URI resolved = resolve(converted, child);
-      if ("file".equals(resolved.getScheme())) {
-        return URI.create("jar:" + resolved);
-      }
-      // If the destination URI is not a file, it's not going to be in the jar.
-      return resolved;
+  /**
+   * Generate a resolved URI from a base and child URI.
+   *
+   * This is a replacement for java.net.URI.resolve that can handle 'non-authority' schemes like
+   * urn: or jar:
+   *
+   * @param base The base URI.
+   * @param child The child URI.
+   * @return The resolved URI.
+   */
+  static URI resolve(URI base, URI child) {
+    if (child.getScheme() != null) {
+      return child;
     }
-    return base.resolve(child);
+
+    String childString = child.toString();
+    String baseString = base.toString();
+
+    int i = baseString.indexOf('#');
+    String baseWithoutFragment = i == -1 ? baseString : baseString.substring(0, i);
+
+    if (childString.charAt(0) == '#') {
+      return URI.create(baseWithoutFragment + childString);
+    }
+
+    // Find the 'parent' of the base URI.
+    int i2 = baseWithoutFragment.lastIndexOf('/');
+    if (i2 == -1) {
+      // We can go up to 'non authority' schemes like urn: or jar:.
+      i2 = baseWithoutFragment.lastIndexOf(':');
+      if (i2 == -1) {
+        return child;
+      }
+    }
+    return URI.create(baseWithoutFragment.substring(0, i2 + 1)
+        + (childString.charAt(0) == '/' ? childString.substring(1) : childString));
   }
 
   /**
