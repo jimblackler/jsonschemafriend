@@ -205,11 +205,13 @@ public class SchemaStore {
         if (!normalize(metaSchemaUri).equals(uri)) {
           Schema metaSchema = loadSchema(metaSchemaUri, null);
           if (errorConsumer == null) {
+            // Application wants schema errors validated and an exception to be thrown on error.
             Map<String, Object> validation = validator.validateWithOutput(metaSchema, schemaObject);
             if (!(boolean) validation.get("valid")) {
               throw new StandardGenerationException(validation);
             }
           } else {
+            // Application wants to handle schema errors itself.
             validator.validate(metaSchema, schemaObject, errorConsumer);
           }
         }
