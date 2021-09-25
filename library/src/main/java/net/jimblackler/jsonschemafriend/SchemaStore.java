@@ -185,6 +185,8 @@ public class SchemaStore {
         boolean preDraft7 = preDraft6 || metaSchema.equals(DRAFT_6);
         boolean preDraft2019 = preDraft7 || metaSchema.equals(DRAFT_7);
         if (!preDraft2019 && schemaJsonObject.size() > 1) {
+          // Post 2019, $ref behaves like allOf, but it's only needed if there's something else in
+          // the subschema than just the $ref.
           break;
         }
         String refString = fixUnescaped((String) refObject);
