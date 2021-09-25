@@ -52,6 +52,7 @@
     {
         "description": "Location-independent identifier with base URI change in subschema",
         "schema": {
+            "$schema": "https://json-schema.org/draft/2020-12/schema",
             "$id": "urn:root",
             "$ref": "urn:nested.json#foo",
             "$defs": {
