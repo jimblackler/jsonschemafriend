@@ -180,7 +180,7 @@ public class SchemaStore {
       Object refObject = schemaJsonObject.get("$ref");
       if (refObject instanceof String) {
         String refString = fixUnescaped((String) refObject);
-        URI pointingTo = resolve(uri, URI.create(refString));
+        URI pointingTo = normalize(resolve(uri, URI.create(refString)));
         URI metaSchema = detectMetaSchema(canonicalUriToBaseObject.get(uri));
         boolean preDraft4 = metaSchema.equals(DRAFT_3);
         boolean preDraft6 = preDraft4 || metaSchema.equals(DRAFT_4);
@@ -260,7 +260,7 @@ public class SchemaStore {
             && !child.getRawFragment().isEmpty()) {
           LOG.warning("Illegal fragment in ID");
         } else {
-          canonicalUri = resolve(canonicalUri, child);
+          canonicalUri = normalize(resolve(canonicalUri, child));
         }
       }
       Object anchorObject = jsonObject.get("$anchor");
