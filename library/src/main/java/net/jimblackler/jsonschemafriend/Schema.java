@@ -394,13 +394,9 @@ public class Schema {
         schemaStore.getDynamicAnchorsForSchemaResource(schemaResource);
     if (dynamicAnchorsInResource != null) {
       for (String anchor : dynamicAnchorsInResource) {
-        try {
-          URI uri1 = new URI(uri.getScheme(), uri.getHost(), uri.getPath(), anchor);
-          Schema schema = getSubSchema(schemaStore, uri1);
-          this.dynamicAnchorsInResource.put(anchor, schema);
-        } catch (URISyntaxException e) {
-          throw new RuntimeException(e);
-        }
+        URI uri1 = resolve(uri, URI.create("#" + anchor));
+        Schema schema = getSubSchema(schemaStore, uri1);
+        this.dynamicAnchorsInResource.put(anchor, schema);
       }
     }
 

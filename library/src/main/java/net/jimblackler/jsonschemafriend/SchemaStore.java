@@ -280,8 +280,7 @@ public class SchemaStore {
           URI dynamicAnchorUri = new URI(null, null, null, (String) dynamicAnchorObject);
           // This is for the situations where a $dynamicAnchor should behave like a normal $anchor.
           validUriToCanonicalUri.put(resolve(canonicalUri, dynamicAnchorUri), canonicalUri);
-          URI schemaResource = new URI(
-              canonicalUri.getScheme(), canonicalUri.getHost(), canonicalUri.getPath(), null);
+          URI schemaResource = UriUtils.withoutFragment(canonicalUri);
           dynamicAnchorsBySchemaResource.computeIfAbsent(schemaResource, k -> new HashSet<>())
               .add(dynamicAnchorUri.getFragment());
         } catch (URISyntaxException e) {
