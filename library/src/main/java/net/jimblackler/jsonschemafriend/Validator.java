@@ -176,8 +176,12 @@ public class Validator {
       if (anchor.equals(toValidate.getDynamicAnchor())) {
         toValidate = dynamicAnchors.get(anchor);
       }
-      validate(toValidate, document, uri, errorConsumer, selfPropertyHandler, selfItemHandler,
-          dynamicAnchors);
+      if (toValidate == null) {
+        LOG.warning("Could not resolve dynamic anchor: " + anchor);
+      } else {
+        validate(toValidate, document, uri, errorConsumer, selfPropertyHandler, selfItemHandler,
+            dynamicAnchors);
+      }
     }
 
     Collection<Schema> allOf = schema.getAllOf();
