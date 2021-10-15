@@ -3,7 +3,9 @@ package net.jimblackler.jsonschemafriend;
 import static net.jimblackler.jsonschemafriend.ReaderUtils.getLines;
 import static net.jimblackler.jsonschemafriend.ResourceUtils.getResource;
 import static net.jimblackler.jsonschemafriend.ResourceUtils.getResourceAsStream;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import com.fasterxml.jackson.core.util.DefaultIndenter;
 import com.fasterxml.jackson.core.util.DefaultPrettyPrinter;
@@ -34,15 +36,15 @@ public class SchemaStoreTest {
 
   @TestFactory
   Collection<DynamicNode> all() {
-    return test("test");
+    return test("test", false);
   }
 
   @TestFactory
   Collection<DynamicNode> allNegative() {
-    return test("negative_test");
+    return test("negative_test", true);
   }
 
-  private Collection<DynamicNode> test(String dirName) {
+  private Collection<DynamicNode> test(String dirName, boolean mustFail) {
     ObjectMapper objectMapper = new ObjectMapper();
     DefaultPrettyPrinter prettyPrinter = new DefaultPrettyPrinter();
     prettyPrinter.indentArraysWith(DefaultIndenter.SYSTEM_LINEFEED_INSTANCE);
@@ -106,26 +108,32 @@ public class SchemaStoreTest {
           URI outputSchema =
               URI.create("https://json-schema.org/draft/2020-12/output/schema#/$defs/basic");
           Schema outputValidator = schemaStore.loadSchema(outputSchema);
-          new Validator().validate(outputValidator, output, errorHandler);
+          new Validator().validate(outputValidator, output, validationError -> fail());
           schema.validateExamplesRecursive(validator, errorHandler);
           validator.validate(schema, o, errorHandler);
-          if (new File("schemaStoreErrors").exists()) {
-            if (allErrors.isEmpty()) {
-              errorsPath.toFile().delete();
-            } else {
-              Path schemaStoreErrors = FILE_SYSTEM.getPath("schemaStoreErrors");
-              Files.createDirectories(schemaStoreErrors.resolve(schemaName));
-              try (FileWriter w = new FileWriter(
-                       schemaStoreErrors.resolve(schemaName).resolve(testFileName).toString())) {
-                objectWriter.writeValue(w, allErrors);
-              }
-            }
+          if (mustFail) {
+            assertFalse(allErrors.isEmpty(), "No errors reported in must-fail test");
           }
 
-          System.out.println(objectWriter.writeValueAsString(output));
+          if (!mustFail) {
+            if (new File("schemaStoreErrors").exists()) {
+              if (allErrors.isEmpty()) {
+                errorsPath.toFile().delete();
+              } else {
+                Path schemaStoreErrors = FILE_SYSTEM.getPath("schemaStoreErrors");
+                Files.createDirectories(schemaStoreErrors.resolve(schemaName));
+                try (FileWriter w = new FileWriter(
+                         schemaStoreErrors.resolve(schemaName).resolve(testFileName).toString())) {
+                  objectWriter.writeValue(w, allErrors);
+                }
+              }
+            }
 
-          assertTrue(extraReported.isEmpty(), "Errors reported not seen in reference file");
-          assertTrue(notReported.isEmpty(), "Errors in reference file not reported");
+            System.out.println(objectWriter.writeValueAsString(output));
+
+            assertTrue(extraReported.isEmpty(), "Errors reported not seen in reference file");
+            assertTrue(notReported.isEmpty(), "Errors in reference file not reported");
+          }
         }));
       });
       testsOut.add(
