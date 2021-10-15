@@ -190,7 +190,7 @@ public class SchemaStore {
           break;
         }
         String refString = fixUnescaped((String) refObject);
-        uri = normalize(resolve(uri, URI.create(refString)));;
+        uri = normalize(resolve(uri, URI.create(refString)));
       } else {
         break;
       }
