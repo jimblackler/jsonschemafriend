@@ -1,0 +1,9 @@
+{
+  "validation of Relative JSON Pointers (RJP)" : {
+    "an invalid RJP that is a valid JSON Pointer" : true,
+    "negative prefix" : true,
+    "## is not a valid json-pointer" : true,
+    "zero cannot be followed by other digits, plus json-pointer" : true,
+    "zero cannot be followed by other digits, plus octothorpe" : true
+  }
+}

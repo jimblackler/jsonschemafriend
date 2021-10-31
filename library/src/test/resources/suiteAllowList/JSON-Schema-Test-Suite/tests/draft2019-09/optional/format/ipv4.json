@@ -1,0 +1,11 @@
+{
+  "validation of IP addresses" : {
+    "an IP address with too many components" : true,
+    "an IP address with out-of-range values" : true,
+    "an IP address without 4 components" : true,
+    "an IP address as an integer" : true,
+    "an IP address as an integer (decimal)" : true,
+    "leading zeroes should be rejected, as they are treated as octals" : true,
+    "non-ascii digits should be rejected" : true
+  }
+}

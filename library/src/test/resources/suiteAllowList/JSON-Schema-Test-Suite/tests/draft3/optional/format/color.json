@@ -1,0 +1,7 @@
+{
+  "validation of CSS colors" : {
+    "an invalid CSS color code" : true,
+    "an invalid CSS color name" : true,
+    "a CSS color name containing invalid characters" : true
+  }
+}

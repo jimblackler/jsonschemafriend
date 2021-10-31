@@ -1,0 +1,10 @@
+{
+  "validation of time strings" : {
+    "a valid time string with leap second, Zulu" : true,
+    "valid leap second, zero time-offset" : true,
+    "valid leap second, positive time-offset" : true,
+    "valid leap second, large positive time-offset" : true,
+    "valid leap second, negative time-offset" : true,
+    "valid leap second, large negative time-offset" : true
+  }
+}

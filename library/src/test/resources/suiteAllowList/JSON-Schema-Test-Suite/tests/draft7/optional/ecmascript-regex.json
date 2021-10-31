@@ -1,0 +1,14 @@
+{
+  "ECMA 262 \\s matches whitespace" : {
+    "latin-1 non-breaking-space matches" : true,
+    "zero-width whitespace matches" : true,
+    "paragraph separator matches (line terminator)" : true,
+    "EM SPACE matches (Space_Separator)" : true
+  },
+  "ECMA 262 \\S matches everything but whitespace" : {
+    "latin-1 non-breaking-space does not match" : true,
+    "zero-width whitespace does not match" : true,
+    "paragraph separator does not match (line terminator)" : true,
+    "EM SPACE does not match (Space_Separator)" : true
+  }
+}

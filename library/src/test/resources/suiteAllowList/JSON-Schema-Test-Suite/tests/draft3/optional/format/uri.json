@@ -1,0 +1,5 @@
+{
+  "validation of URIs" : {
+    "an invalid URI though valid URI reference" : true
+  }
+}

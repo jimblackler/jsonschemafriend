@@ -1,0 +1,13 @@
+{
+  "validation of duration strings" : {
+    "an invalid duration string" : true,
+    "no elements present" : true,
+    "no time elements present" : true,
+    "no date or time elements present" : true,
+    "elements out of order" : true,
+    "missing time separator" : true,
+    "time element in the date position" : true,
+    "weeks cannot be combined with other units" : true,
+    "non-ascii digits should be rejected" : true
+  }
+}

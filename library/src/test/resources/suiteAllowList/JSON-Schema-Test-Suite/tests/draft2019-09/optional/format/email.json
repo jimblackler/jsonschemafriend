@@ -1,0 +1,8 @@
+{
+  "validation of e-mail addresses" : {
+    "an invalid e-mail address" : true,
+    "dot before local part is not valid" : true,
+    "dot after local part is not valid" : true,
+    "two subsequent dots inside local part are not valid" : true
+  }
+}

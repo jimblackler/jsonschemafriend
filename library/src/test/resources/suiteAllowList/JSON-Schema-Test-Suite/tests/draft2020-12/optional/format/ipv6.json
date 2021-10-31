@@ -1,0 +1,27 @@
+{
+  "validation of IPv6 addresses" : {
+    "an IPv6 address with out-of-range values" : true,
+    "trailing 5 hex symbols is invalid" : true,
+    "an IPv6 address with too many components" : true,
+    "an IPv6 address containing illegal characters" : true,
+    "missing leading octet is invalid" : true,
+    "missing trailing octet is invalid" : true,
+    "missing leading octet with omitted octets later" : true,
+    "two sets of double colons is invalid" : true,
+    "mixed format with ipv4 section with octet out of range" : true,
+    "mixed format with ipv4 section with a hex octet" : true,
+    "triple colons is invalid" : true,
+    "insufficient octets without double colons" : true,
+    "no colons is invalid" : true,
+    "ipv4 is not ipv6" : true,
+    "ipv4 segment must have 4 octets" : true,
+    "leading whitespace is invalid" : true,
+    "trailing whitespace is invalid" : true,
+    "netmask is not a part of ipv6 address" : true,
+    "zone id is not a part of ipv6 address" : true,
+    "a long invalid ipv6, below length limit, first" : true,
+    "a long invalid ipv6, below length limit, second" : true,
+    "non-ascii digits should be rejected" : true,
+    "non-ascii digits should be rejected in the ipv4 portion also" : true
+  }
+}

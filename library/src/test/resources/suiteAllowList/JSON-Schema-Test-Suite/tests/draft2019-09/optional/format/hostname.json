@@ -1,0 +1,13 @@
+{
+  "validation of host names" : {
+    "a host name starting with an illegal character" : true,
+    "a host name containing illegal characters" : true,
+    "a host name with a component too long" : true,
+    "starts with hyphen" : true,
+    "ends with hyphen" : true,
+    "starts with underscore" : true,
+    "ends with underscore" : true,
+    "contains underscore" : true,
+    "exceeds maximum label length" : true
+  }
+}

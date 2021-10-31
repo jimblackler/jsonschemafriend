@@ -1,0 +1,5 @@
+{
+  "validation of an internationalized e-mail addresses" : {
+    "a valid idn e-mail (example@example.test in Hangul)" : true
+  }
+}

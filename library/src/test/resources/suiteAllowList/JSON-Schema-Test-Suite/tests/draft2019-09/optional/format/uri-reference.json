@@ -1,0 +1,6 @@
+{
+  "validation of URI References" : {
+    "an invalid URI Reference" : true,
+    "an invalid URI fragment" : true
+  }
+}

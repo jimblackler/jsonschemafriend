@@ -1,0 +1,6 @@
+{
+  "validation of IRI References" : {
+    "an invalid IRI Reference" : true,
+    "an invalid IRI fragment" : true
+  }
+}
