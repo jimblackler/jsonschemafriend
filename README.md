@@ -310,7 +310,7 @@ public class Main {
 
 Both schemas and test data can be specified as a `java.io.File`. For example:
 
-```json
+```java
 Schema schema = schemaStore.loadSchema(new File("/tmp/schema.json"));
 new Validator().validate(schema, new File("/tmp/test.json"));
 ```
@@ -353,6 +353,58 @@ public class Main {
   }
 }
 ```
+
+## Custom schema loading
+
+By default the SchemaStore will use a class `CacheLoader` to resolve a schema URI. For http/https URIs this will download the schema and cache it locally for future use. A custom `Loader` can be passed to the SchemaStore to allow alternative methods for retrieving schemas.
+
+```java
+import java.net.URI;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.HashMap;
+import java.util.Map;
+
+import net.jimblackler.jsonschemafriend.Loader;
+import net.jimblackler.jsonschemafriend.MissingPropertyError;
+import net.jimblackler.jsonschemafriend.Schema;
+import net.jimblackler.jsonschemafriend.SchemaException;
+import net.jimblackler.jsonschemafriend.SchemaStore;
+import net.jimblackler.jsonschemafriend.Validator;
+
+public class Main {
+  public static void main(String[] args) {
+    try {
+       // An inefficient example that connects to and loads a schema from a database.
+      Loader databaseLoader = new Loader() {
+        public String load(URI uri, boolean cacheSchema) throws IOException {
+          try (
+            Connection con = DriverManager.getConnection("...", "user", "pass");
+            Statement stmt = con.createStatement();
+            ResultSet resultSet = stmt.executeQuery("..."); // some query that uses the uri
+          ) {
+            resultSet.first();
+            return resultSet.getString("schema");
+          } catch (SQLException e) {
+            throw new IOException("Unable to retrieve schema", e);
+          }
+        }
+      });
+    
+      SchemaStore schemaStore = new SchemaStore(databaseLoader);
+      // Load the schema.
+      Schema schema =
+          schemaStore.loadSchema(URI.create("https://json.schemastore.org/chrome-manifest"));
+    } catch (SchemaException e) {
+      e.printStackTrace();
+    }
+  }
+}
+```
+
 
 ## As a parser
 
