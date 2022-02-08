@@ -10,7 +10,6 @@ import static net.jimblackler.jsonschemafriend.Utils.getOrDefault;
 import static net.jimblackler.jsonschemafriend.Utils.setOf;
 
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
