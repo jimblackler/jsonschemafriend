@@ -1,6 +1,5 @@
 package net.jimblackler.jsonschemafriend;
 
-import static net.jimblackler.jsonschemafriend.CacheLoader.load;
 import static net.jimblackler.jsonschemafriend.MetaSchemaDetector.detectMetaSchema;
 import static net.jimblackler.jsonschemafriend.MetaSchemaUris.DRAFT_3;
 import static net.jimblackler.jsonschemafriend.MetaSchemaUris.DRAFT_4;
@@ -44,25 +43,38 @@ public class SchemaStore {
   private final Map<URI, Set<String>> dynamicAnchorsBySchemaResource = new HashMap<>();
   private final Collection<URI> mapped = new HashSet<>();
   private final UrlRewriter urlRewriter;
+  private final Loader loader;
   private int memorySchemaNumber;
   private boolean cacheSchema;
 
   public SchemaStore() {
-    urlRewriter = null;
+    this(null, false);
   }
 
   public SchemaStore(boolean cacheSchema) {
-    this.cacheSchema = cacheSchema;
-    urlRewriter = null;
+    this(null, cacheSchema);
   }
 
   public SchemaStore(UrlRewriter urlRewriter) {
-    this.urlRewriter = urlRewriter;
+    this(urlRewriter, false);
+  }
+
+  public SchemaStore(Loader loader) {
+    this(null, false, loader);
+  }
+
+  public SchemaStore(UrlRewriter urlRewriter, Loader loader) {
+    this(urlRewriter, false, loader);
   }
 
   public SchemaStore(UrlRewriter urlRewriter, boolean cacheSchema) {
+    this(urlRewriter, cacheSchema, new CacheLoader());
+  }
+
+  public SchemaStore(UrlRewriter urlRewriter, boolean cacheSchema, Loader loader) {
     this.urlRewriter = urlRewriter;
     this.cacheSchema = cacheSchema;
+    this.loader = loader;
   }
 
   public Schema loadSchema(Object document) throws GenerationException {
@@ -224,9 +236,9 @@ public class SchemaStore {
 
   private String getContent(URI documentUri) throws IOException {
     if (urlRewriter == null) {
-      return load(documentUri, cacheSchema);
+      return loader.load(documentUri, cacheSchema);
     }
-    return load(urlRewriter.rewrite(documentUri), cacheSchema);
+    return loader.load(urlRewriter.rewrite(documentUri), cacheSchema);
   }
 
   public void register(URI path, Schema schema) throws GenerationException {
