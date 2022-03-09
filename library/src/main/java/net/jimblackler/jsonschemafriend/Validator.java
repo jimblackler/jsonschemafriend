@@ -38,8 +38,14 @@ public class Validator {
   private final RegExPatternSupplier regExPatternSupplier;
   private final Predicate<? super ValidationError> errorFilter;
 
+  private final boolean validateFormats;
+
   public Validator() {
     this(validationError -> true);
+  }
+
+  public Validator(boolean validateFormats) {
+    this(new CachedRegExPatternSupplier(JoniRegExPattern::new), validationError -> true, validateFormats);
   }
 
   public Validator(Predicate<? super ValidationError> errorFilter) {
@@ -48,8 +54,14 @@ public class Validator {
 
   public Validator(
       RegExPatternSupplier regExPatternSupplier, Predicate<? super ValidationError> errorFilter) {
+   this(regExPatternSupplier, errorFilter, false);
+  }
+
+  public Validator(
+      RegExPatternSupplier regExPatternSupplier, Predicate<? super ValidationError> errorFilter, boolean validateFormats) {
     this.regExPatternSupplier = regExPatternSupplier;
     this.errorFilter = errorFilter;
+    this.validateFormats = validateFormats;
   }
 
   public static Object getObject(Object document, URI uri) throws MissingPathException {
@@ -340,7 +352,7 @@ public class Validator {
       String format = schema.getFormat();
       if (format != null) {
         String message =
-            FormatChecker.formatCheck(string, format, schema.getMetaSchema(), regExPatternSupplier);
+            FormatChecker.formatCheck(string, format, schema.getMetaSchema(), regExPatternSupplier, this.validateFormats);
         if (message != null) {
           error.accept(new FormatError(uri, document, schema, message));
         }

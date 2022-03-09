@@ -48,13 +48,13 @@ public class FormatChecker {
   }
 
   static String formatCheck(
-      String string, String format, URI metaSchema, RegExPatternSupplier regExPatternSupplier) {
+      String string, String format, URI metaSchema, RegExPatternSupplier regExPatternSupplier, boolean validateFormats) {
     boolean preDraft4 = metaSchema.equals(DRAFT_3);
     boolean preDraft6 = preDraft4 || metaSchema.equals(DRAFT_4);
     boolean preDraft7 = preDraft6 || metaSchema.equals(DRAFT_6);
     boolean preDraft2019 = preDraft7 || metaSchema.equals(DRAFT_7);
 
-    if (!preDraft7 && preDraft2019) {
+    if ((!preDraft7 && preDraft2019) || validateFormats) {
       switch (format) {
         case "idn-hostname":
           for (int idx = 0; idx < string.length(); idx++) {
@@ -89,7 +89,7 @@ public class FormatChecker {
       }
     }
 
-    if (!preDraft6 && preDraft2019) {
+    if ((!preDraft6 && preDraft2019) || validateFormats) {
       switch (format) {
         case "json-pointer":
           return checkJsonPointer(string);
@@ -111,7 +111,7 @@ public class FormatChecker {
       }
     }
 
-    if (preDraft2019) {
+    if (preDraft2019 || validateFormats) {
       switch (format) {
         case "date":
           try {
