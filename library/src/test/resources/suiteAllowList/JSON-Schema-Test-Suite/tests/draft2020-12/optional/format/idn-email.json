@@ -1,6 +1,5 @@
 {
   "validation of an internationalized e-mail addresses" : {
-    "an invalid idn e-mail address" : true,
-    "an invalid e-mail address" : true
+    "a valid idn e-mail (example@example.test in Hangul)" : true
   }
 }

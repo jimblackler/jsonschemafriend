@@ -1,5 +1,0 @@
-{
-  "validation of regular expressions" : {
-    "a regular expression with unclosed parens is invalid" : true
-  }
-}

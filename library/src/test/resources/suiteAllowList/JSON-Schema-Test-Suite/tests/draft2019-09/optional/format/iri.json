@@ -1,8 +1,0 @@
-{
-  "validation of IRIs" : {
-    "an invalid IRI based on IPv6" : true,
-    "an invalid relative IRI Reference" : true,
-    "an invalid IRI" : true,
-    "an invalid IRI though valid IRI reference" : true
-  }
-}
