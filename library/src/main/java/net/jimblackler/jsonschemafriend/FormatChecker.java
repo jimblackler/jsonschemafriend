@@ -31,6 +31,7 @@ public class FormatChecker {
   private static final Collection<String> IDNA_DISALLOWED;
   private static final Pattern RELATIVE_JSON_POINTER_PATTERN = Pattern.compile("^(\\d+)(.*)$");
   private static final Pattern NON_ASCII_CHARACTERS = Pattern.compile("[^\\x00-\\x7F]");
+  private static final Pattern DURATION_CHARACTERS = Pattern.compile("^P(\\d+W|T(\\d+H(\\d+M(\\d+S)?)?|\\d+M(\\d+S)?|\\d+S)|(\\d+D|\\d+M(\\d+D)?|\\d+Y(\\d+M(\\d+D)?)?)(T(\\d+H(\\d+M(\\d+S)?)?|\\d+M(\\d+S)?|\\d+S))?)$");
 
   static {
     Collection<String> set = new HashSet<>();
@@ -128,8 +129,8 @@ public class FormatChecker {
           }
           break;
         case "duration":
-          if (NON_ASCII_CHARACTERS.matcher(string).find()) {
-            return "Non-ASCII characters found";
+          if (!DURATION_CHARACTERS.matcher(string).find()) {
+            return "Failed DurationValidator";
           }
           break;
         case "email":
