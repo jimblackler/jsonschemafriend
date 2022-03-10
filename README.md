@@ -354,6 +354,37 @@ public class Main {
 }
 ```
 
+## Validating formats 
+
+Starting with Json Schema Draft 2019-09 validation of formats is an optional feature. Pass a `true` boolean to the Validator constructor to enable format validation.
+
+```java
+import net.jimblackler.jsonschemafriend.Schema;
+import net.jimblackler.jsonschemafriend.SchemaException;
+import net.jimblackler.jsonschemafriend.SchemaStore;
+import net.jimblackler.jsonschemafriend.Validator;
+
+public class Main {
+  public static void main(String[] args) {
+    // Create a new schema in a JSON string.
+    String schemaString = "{"
+        + "  \"$schema\": \"https://json-schema.org/draft/2020-12/schema\","
+        + "  \"format\": \"uri\""
+        + "}";
+
+    try {
+      SchemaStore schemaStore = new SchemaStore(); // Initialize a SchemaStore.
+      Schema schema = schemaStore.loadSchemaJson(schemaString); // Load the schema.
+      Validator validator = new Validator(true); // Create a validator for validating formats.
+      validator.validateJson(schema, "\"https://foo.bar/?baz=qux#quux\""); // Will not throw an exception.
+      validator.validateJson(schema, "\"bar,baz:foo\""); // Will throw a ValidationException.
+    } catch (SchemaException e) {
+      e.printStackTrace();
+    }
+  }
+}
+```
+
 ## Custom schema loading
 
 By default the SchemaStore will use a class `CacheLoader` to resolve a schema URI. For http/https URIs this will download the schema and cache it locally for future use. A custom `Loader` can be passed to the SchemaStore to allow alternative methods for retrieving schemas.
