@@ -55,7 +55,7 @@ public class FormatChecker {
     boolean preDraft7 = preDraft6 || metaSchema.equals(DRAFT_6);
     boolean preDraft2019 = preDraft7 || metaSchema.equals(DRAFT_7);
 
-    if ((!preDraft7 && preDraft2019) || validateFormats) {
+    if (!preDraft7 && (preDraft2019 || validateFormats)) {
       switch (format) {
         case "idn-hostname":
           for (int idx = 0; idx < string.length(); idx++) {
@@ -90,7 +90,7 @@ public class FormatChecker {
       }
     }
 
-    if ((!preDraft6 && preDraft2019) || validateFormats) {
+    if (!preDraft6 && (preDraft2019 || validateFormats)) {
       switch (format) {
         case "json-pointer":
           return checkJsonPointer(string);
