@@ -31,6 +31,8 @@ public class FormatChecker {
   private static final Collection<String> IDNA_DISALLOWED;
   private static final Pattern RELATIVE_JSON_POINTER_PATTERN = Pattern.compile("^(\\d+)(.*)$");
   private static final Pattern NON_ASCII_CHARACTERS = Pattern.compile("[^\\x00-\\x7F]");
+  private static final Pattern DURATION_CHARACTERS = Pattern.compile("^P(\\d+W|T(\\d+H(\\d+M(\\d+S)?)?|\\d+M(\\d+S)?|\\d+S)|(\\d+D|\\d+M(\\d+D)?|\\d+Y(\\d+M(\\d+D)?)?)(T(\\d+H(\\d+M(\\d+S)?)?|\\d+M(\\d+S)?|\\d+S))?)$");
+  private static final Pattern TIME_CHARACTERS = Pattern.compile("^(2[0-3]|[01][0-9]):?([0-5][0-9]):?([0-5][0-9])(\\.\\d+)?([Z]|[+-](?:2[0-3]|[01][0-9])(?::?(?:[0-5][0-9]))?)$", Pattern.CASE_INSENSITIVE);
 
   static {
     Collection<String> set = new HashSet<>();
@@ -48,13 +50,13 @@ public class FormatChecker {
   }
 
   static String formatCheck(
-      String string, String format, URI metaSchema, RegExPatternSupplier regExPatternSupplier) {
+      String string, String format, URI metaSchema, RegExPatternSupplier regExPatternSupplier, boolean validateFormats) {
     boolean preDraft4 = metaSchema.equals(DRAFT_3);
     boolean preDraft6 = preDraft4 || metaSchema.equals(DRAFT_4);
     boolean preDraft7 = preDraft6 || metaSchema.equals(DRAFT_6);
     boolean preDraft2019 = preDraft7 || metaSchema.equals(DRAFT_7);
 
-    if (!preDraft7 && preDraft2019) {
+    if (!preDraft7 && (preDraft2019 || validateFormats)) {
       switch (format) {
         case "idn-hostname":
           for (int idx = 0; idx < string.length(); idx++) {
@@ -89,7 +91,7 @@ public class FormatChecker {
       }
     }
 
-    if (!preDraft6 && preDraft2019) {
+    if (!preDraft6 && (preDraft2019 || validateFormats)) {
       switch (format) {
         case "json-pointer":
           return checkJsonPointer(string);
@@ -111,7 +113,7 @@ public class FormatChecker {
       }
     }
 
-    if (preDraft2019) {
+    if (preDraft2019 || validateFormats) {
       switch (format) {
         case "date":
           try {
@@ -128,8 +130,8 @@ public class FormatChecker {
           }
           break;
         case "duration":
-          if (NON_ASCII_CHARACTERS.matcher(string).find()) {
-            return "Non-ASCII characters found";
+          if (!DURATION_CHARACTERS.matcher(string).find()) {
+            return "Failed DurationValidator";
           }
           break;
         case "email":
@@ -186,10 +188,8 @@ public class FormatChecker {
           }
           break;
         case "time":
-          try {
-            DateTimeFormatter.ISO_OFFSET_TIME.parse(string);
-          } catch (DateTimeParseException e) {
-            return e.getMessage();
+          if (!TIME_CHARACTERS.matcher(string).find()) {
+            return "Failed TimeValidation";
           }
           break;
         case "uri":

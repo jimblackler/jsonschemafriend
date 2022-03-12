@@ -41,7 +41,7 @@ public class SuiteTest {
   public static final FileSystem FILE_SYSTEM = FileSystems.getDefault();
   private static final boolean WRITE_ALLOWLIST = false;
 
-  private static Collection<DynamicNode> scan(Set<Path> testDirs, Path remotes, URI metaSchema) {
+  private static Collection<DynamicNode> scan(Set<Path> testDirs, Path remotes, URI metaSchema, boolean runFormatTests) {
     ObjectMapper objectMapper = new ObjectMapper().enable(SerializationFeature.INDENT_OUTPUT);
     Collection<DynamicNode> allFileTests = new ArrayList<>();
     DefaultPrettyPrinter prettyPrinter = new DefaultPrettyPrinter();
@@ -51,7 +51,7 @@ public class SuiteTest {
     URL resource1 = ResourceUtils.getResource(SuiteTest.class, remotes.toString());
     UrlRewriter urlRewriter =
         in -> URI.create(in.toString().replace("http://localhost:1234", resource1.toString()));
-    Validator validator = new Validator();
+    Validator validator = new Validator(runFormatTests);
     for (Path path : testDirs) {
       Collection<DynamicNode> dirTests = new ArrayList<>();
       try (InputStream inputStream = getResourceAsStream(SuiteTest.class, path.toString());
@@ -170,7 +170,7 @@ public class SuiteTest {
     return allFileTests;
   }
 
-  private static Collection<DynamicNode> test(String set, String metaSchema) {
+  private static Collection<DynamicNode> test(String set, String metaSchema, boolean runFormatTests) {
     Path suite = FILE_SYSTEM.getPath("/suites").resolve("JSON-Schema-Test-Suite");
     Path tests = suite.resolve("tests").resolve(set);
     Path optional = tests.resolve("optional");
@@ -179,7 +179,7 @@ public class SuiteTest {
     paths.add(optional);
     paths.add(optional.resolve("format"));
     Path remotes = suite.resolve("remotes");
-    return scan(paths, remotes, URI.create(metaSchema));
+    return scan(paths, remotes, URI.create(metaSchema), runFormatTests);
   }
 
   @TestFactory
@@ -190,36 +190,36 @@ public class SuiteTest {
     testDirs.add(own);
     Path remotes = path.resolve("own_remotes");
     URI metaSchema = URI.create("http://json-schema.org/draft-07/schema#");
-    return scan(testDirs, remotes, metaSchema);
+    return scan(testDirs, remotes, metaSchema, false);
   }
 
   @TestFactory
   Collection<DynamicNode> draft3() {
-    return test("draft3", "http://json-schema.org/draft-03/schema#");
+    return test("draft3", "http://json-schema.org/draft-03/schema#", false);
   }
 
   @TestFactory
   Collection<DynamicNode> draft4() {
-    return test("draft4", "http://json-schema.org/draft-04/schema#");
+    return test("draft4", "http://json-schema.org/draft-04/schema#", false);
   }
 
   @TestFactory
   Collection<DynamicNode> draft6() {
-    return test("draft6", "http://json-schema.org/draft-06/schema#");
+    return test("draft6", "http://json-schema.org/draft-06/schema#", false);
   }
 
   @TestFactory
   Collection<DynamicNode> draft7() {
-    return test("draft7", "http://json-schema.org/draft-07/schema#");
+    return test("draft7", "http://json-schema.org/draft-07/schema#", false);
   }
 
   @TestFactory
   Collection<DynamicNode> draft2019_09() {
-    return test("draft2019-09", "https://json-schema.org/draft/2019-09/schema");
+    return test("draft2019-09", "https://json-schema.org/draft/2019-09/schema", true);
   }
 
   @TestFactory
   Collection<DynamicNode> draft2020_12() {
-    return test("draft2020-12", "https://json-schema.org/draft/2020-12/schema");
+    return test("draft2020-12", "https://json-schema.org/draft/2020-12/schema", true);
   }
 }
