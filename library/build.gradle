@@ -22,7 +22,7 @@ afterEvaluate {
             release(MavenPublication) {
                 group = 'net.jimblackler.jsonschemafriend'
                 artifactId = 'core'
-                version = '0.11.2'
+                version = '0.11.3'
                 artifact(sourceJar)
                 artifact(javadocJar)
                 from components.java
