@@ -3,6 +3,7 @@ package net.jimblackler.jsonschemafriend;
 import static net.jimblackler.jsonschemafriend.StreamUtils.streamToString;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.PrintWriter;
 import java.net.URI;
 import java.nio.file.FileSystem;
@@ -33,6 +34,8 @@ public class CacheLoader implements Loader {
       return content;
     }
     LOG.fine("Loading :" + uri);
-    return streamToString(uri.toURL().openStream());
+    try (InputStream stream = uri.toURL().openStream()) {
+      return streamToString(stream);
+    }
   }
 }
