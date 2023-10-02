@@ -423,7 +423,7 @@ public class Main {
             throw new IOException("Unable to retrieve schema", e);
           }
         }
-      });
+      };
     
       SchemaStore schemaStore = new SchemaStore(databaseLoader);
       // Load the schema.
