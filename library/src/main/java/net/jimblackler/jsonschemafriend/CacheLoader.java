@@ -1,9 +1,6 @@
 package net.jimblackler.jsonschemafriend;
 
-import static net.jimblackler.jsonschemafriend.StreamUtils.streamToString;
-
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.PrintWriter;
 import java.net.URI;
 import java.nio.file.FileSystem;
@@ -24,9 +21,9 @@ public class CacheLoader implements Loader {
                                .resolve(uri.getHost() + uri.getPath());
       if (Files.exists(diskCacheName)) {
         LOG.fine("Cache loading: " + uri + System.lineSeparator() + "From: " + diskCacheName);
-        return streamToString(diskCacheName.toUri().toURL().openStream());
+        return UrlUtils.readFromStream(diskCacheName.toUri().toURL());
       }
-      String content = streamToString(uri.toURL().openStream());
+      String content = UrlUtils.readFromStream(uri.toURL());
       diskCacheName.getParent().toFile().mkdirs();
       try (PrintWriter out = new PrintWriter(diskCacheName.toFile())) {
         out.println(content);
@@ -34,8 +31,7 @@ public class CacheLoader implements Loader {
       return content;
     }
     LOG.fine("Loading :" + uri);
-    try (InputStream stream = uri.toURL().openStream()) {
-      return streamToString(stream);
-    }
+
+    return UrlUtils.readFromStream(uri.toURL());
   }
 }

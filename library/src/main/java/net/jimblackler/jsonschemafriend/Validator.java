@@ -731,7 +731,7 @@ public class Validator {
 
   public void validate(Schema schema, URL url, Consumer<ValidationError> errorConsumer)
       throws IOException {
-    validate(schema, new ObjectMapper().readValue(url.openStream(), Object.class), errorConsumer);
+    validate(schema, new ObjectMapper().readValue(UrlUtils.readFromStream(url), Object.class), errorConsumer);
   }
 
   public void validate(Schema schema, URI uri, Consumer<ValidationError> errorConsumer)
