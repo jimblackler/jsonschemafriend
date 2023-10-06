@@ -1,8 +1,5 @@
 package net.jimblackler.jsonschemafriend;
 
-import static net.jimblackler.jsonschemafriend.MetaSchemaUris.DRAFT_4;
-import static net.jimblackler.jsonschemafriend.MetaSchemaUris.DRAFT_7;
-
 import java.net.URI;
 import java.util.List;
 import java.util.Map;
@@ -11,7 +8,7 @@ import java.util.function.Consumer;
 public class MetaSchemaDetector {
   static URI detectMetaSchema(Object document) {
     if (document instanceof Boolean) {
-      return DRAFT_7;
+      return MetaSchemaUris.DRAFT_7;
     }
 
     if (document instanceof Map) {
@@ -23,6 +20,15 @@ public class MetaSchemaDetector {
         return URI.create((String) jsonDocument.get("schema"));
       }
     }
+
+    if (document instanceof List) {
+      List<Object> objects = (List<Object>) document;
+      if (objects.size() > 0) {
+        return detectMetaSchema(objects.get(0));
+      }
+      return MetaSchemaUris.DRAFT_2019_09;
+    }
+
     int[] idCount = {0};
     int[] dollarIdCount = {0};
     allKeys(document, key -> {
@@ -34,9 +40,9 @@ public class MetaSchemaDetector {
     });
 
     if (dollarIdCount[0] > idCount[0]) {
-      return DRAFT_7;
+      return MetaSchemaUris.DRAFT_7;
     }
-    return DRAFT_4;
+    return MetaSchemaUris.DRAFT_4;
   }
 
   private static void allKeys(Object document, Consumer<String> consumer) {
