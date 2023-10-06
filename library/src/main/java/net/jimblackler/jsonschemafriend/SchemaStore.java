@@ -1,10 +1,7 @@
 package net.jimblackler.jsonschemafriend;
 
 import static net.jimblackler.jsonschemafriend.MetaSchemaDetector.detectMetaSchema;
-import static net.jimblackler.jsonschemafriend.MetaSchemaUris.DRAFT_3;
-import static net.jimblackler.jsonschemafriend.MetaSchemaUris.DRAFT_4;
-import static net.jimblackler.jsonschemafriend.MetaSchemaUris.DRAFT_6;
-import static net.jimblackler.jsonschemafriend.MetaSchemaUris.DRAFT_7;
+import static net.jimblackler.jsonschemafriend.MetaSchemaUris.*;
 import static net.jimblackler.jsonschemafriend.PathUtils.append;
 import static net.jimblackler.jsonschemafriend.PathUtils.baseDocumentFromUri;
 import static net.jimblackler.jsonschemafriend.PathUtils.fixUnescaped;
@@ -75,6 +72,14 @@ public class SchemaStore {
     this.urlRewriter = urlRewriter;
     this.cacheSchema = cacheSchema;
     this.loader = loader;
+
+    // pre-bundle supported drafts
+    store(DRAFT_3, MetaSchemaDraft03.SCHEMA);
+    store(DRAFT_4, MetaSchemaDraft04.SCHEMA);
+    store(DRAFT_6, MetaSchemaDraft06.SCHEMA);
+    store(DRAFT_7, MetaSchemaDraft07.SCHEMA);
+    store(DRAFT_2019_09, MetaSchemaDraft201909.SCHEMAS);
+    store(DRAFT_2020_12, MetaSchemaDraft202012.SCHEMAS);
   }
 
   public Schema loadSchema(Object document) throws GenerationException {
