@@ -75,7 +75,6 @@ public class FormatChecker {
           break;
         case "relative-json-pointer":
           Matcher matcher = RELATIVE_JSON_POINTER_PATTERN.matcher(string);
-          System.out.println("groupCount " + matcher.groupCount());
           if (!matcher.find() || matcher.groupCount() != 2) {
             return "Relative JSON Pointer invalid";
           }
