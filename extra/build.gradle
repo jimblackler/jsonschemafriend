@@ -16,6 +16,12 @@ task javadocJar(type: Jar, dependsOn: javadoc) {
     classifier 'javadoc'
 }
 
+tasks.named('jar') {
+    manifest {
+        attributes('Automatic-Module-Name': 'jimblackler.jsonschemafriend.core')
+    }
+}
+
 afterEvaluate {
     publishing {
         publications {
