@@ -150,42 +150,46 @@ public class SchemaStore {
         uri = validUriToCanonicalUri.get(uri);
         continue;
       }
-      if (!canonicalUriToObject.containsKey(uri) && uri.isAbsolute()) {
-        // We don't know this canonical URL, so we treat it as a resource URL and try to fetch
-        // it.
-        URI documentUri = baseDocumentFromUri(uri);
-        LOG.fine("Loading: " + documentUri + " to resolve: " + uri);
 
-        try {
-          if (!mapped.contains(documentUri)) {
-            String content = getContent(documentUri);
-            try {
-              store(documentUri, new ObjectMapper().readValue(content, Object.class));
-            } catch (JsonProcessingException e) {
-              // This is a special method designed to handle the JavaScript-based redirection (not
-              // http) on the web page at http://json-schema.org/schema.
-              // If the loaded content is an HTML page with a canonical reference to another
-              // destination. we make a one-off attempt to fetch the document at that destination.
-              Document doc = Jsoup.parse(content);
-              Elements links = doc.head().select("link[rel='canonical']");
-              boolean resolved = false;
-              for (Element link : links) {
-                String href = link.attr("href");
-                URI canonical = new URL(documentUri.toURL(), href).toURI();
-                if (!canonical.equals(documentUri)) {
-                  store(documentUri, getContent(canonical));
-                  resolved = true;
-                  break;
+	  if (uri.isAbsolute()){
+        // for uri with #fragment try to fetch the base document if not loaded already
+        URI documentUri = baseDocumentFromUri(uri);
+        if (!canonicalUriToObject.containsKey(documentUri)){
+          // We don't know this canonical URL, so we treat it as a resource URL and try to fetch
+          // it.
+          LOG.fine("Loading: " + documentUri + " to resolve: " + uri);
+
+          try{
+            if (!mapped.contains(documentUri)){
+              String content = getContent(documentUri);
+              try{
+                store(documentUri, new ObjectMapper().readValue(content, Object.class));
+              }catch (JsonProcessingException e){
+                // This is a special method designed to handle the JavaScript-based redirection (not
+                // http) on the web page at http://json-schema.org/schema.
+                // If the loaded content is an HTML page with a canonical reference to another
+                // destination. we make a one-off attempt to fetch the document at that destination.
+                Document doc = Jsoup.parse(content);
+                Elements links = doc.head().select("link[rel='canonical']");
+                boolean resolved = false;
+                for (Element link : links){
+                  String href = link.attr("href");
+                  URI canonical = new URL(documentUri.toURL(), href).toURI();
+                  if (!canonical.equals(documentUri)){
+                    store(documentUri, getContent(canonical));
+                    resolved = true;
+                    break;
+                  }
+                }
+                if (!resolved){
+                  LOG.warning("Was not valid JSON: " + documentUri);
                 }
               }
-              if (!resolved) {
-                LOG.warning("Was not valid JSON: " + uri);
-              }
+              continue;
             }
-            continue;
+          }catch (IOException | URISyntaxException e){
+            LOG.warning("Failed attempt to auto fetch " + documentUri + " to resolve: " + uri);
           }
-        } catch (IOException | URISyntaxException e) {
-          LOG.warning("Failed attempt to auto fetch to resolve: " + uri);
         }
       }
 
