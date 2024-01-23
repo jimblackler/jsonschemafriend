@@ -54,7 +54,7 @@ dependencies {
     implementation 'com.damnhandy:handy-uri-templates:2.1.8'
     implementation 'com.ibm.icu:icu4j:69.1'
     implementation 'commons-validator:commons-validator:1.7'
-    implementation 'com.fasterxml.jackson.core:jackson-databind:2.12.5'
+    implementation 'com.fasterxml.jackson.core:jackson-databind:2.16.1'
     implementation 'org.jruby.joni:joni:2.1.41'
     implementation 'org.jsoup:jsoup:1.14.2'
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.0'
