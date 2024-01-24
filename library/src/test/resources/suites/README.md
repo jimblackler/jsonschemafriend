@@ -1,3 +1,6 @@
 Update JSON-Schema-Test-Suite with
 
-git submodule update --remote
+First time:
+`git submodule update --init`
+Subsequent times:
+`git submodule update --remote`

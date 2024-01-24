@@ -11,6 +11,8 @@ import com.fasterxml.jackson.core.util.DefaultIndenter;
 import com.fasterxml.jackson.core.util.DefaultPrettyPrinter;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
+import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
+import com.fasterxml.jackson.dataformat.yaml.YAMLGenerator;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.InputStream;
@@ -22,6 +24,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -46,6 +49,7 @@ public class SchemaStoreTest {
 
   private Collection<DynamicNode> test(String dirName, boolean mustFail) {
     ObjectMapper objectMapper = new ObjectMapper();
+    ObjectMapper yamlMapper = new ObjectMapper(new YAMLFactory().enable(YAMLGenerator.Feature.MINIMIZE_QUOTES));
     DefaultPrettyPrinter prettyPrinter = new DefaultPrettyPrinter();
     prettyPrinter.indentArraysWith(DefaultIndenter.SYSTEM_LINEFEED_INSTANCE);
     ObjectWriter objectWriter = objectMapper.writer(prettyPrinter);
@@ -76,7 +80,19 @@ public class SchemaStoreTest {
 
         URI testSourceUri = URI.create(testDataUrl.toString());
         tests.add(DynamicTest.dynamicTest(testFileName, testSourceUri, () -> {
-          Object o = objectMapper.readValue(
+          ObjectMapper mapper = null;
+          if (testFile.toString().endsWith(".json")) {
+            mapper = objectMapper;
+          }
+          if (testFile.toString().endsWith(".yml") || testFile.toString().endsWith(".yaml")) {
+            mapper = yamlMapper;
+          }
+
+          if (mapper == null) {
+            return; // Unsupported test file format.
+          }
+
+          Object o = mapper.readValue(
               getResourceAsStream(SchemaStoreTest.class, testFile.toString()), Object.class);
           Path errorsPath =
               FILE_SYSTEM.getPath("/schemaStoreErrors").resolve(schemaName).resolve(testFileName);
@@ -91,7 +107,7 @@ public class SchemaStoreTest {
           Collection<String> extraReported = new LinkedHashSet<>();
 
           SchemaStore schemaStore = new SchemaStore(true);
-          Collection<String> allErrors = new ArrayList<>();
+          List<String> allErrors = new ArrayList<>();
           Consumer<ValidationError> errorHandler = error -> {
             System.out.println(error);
             String e = error.getUri().toString();
@@ -122,6 +138,7 @@ public class SchemaStoreTest {
               } else {
                 Path schemaStoreErrors = FILE_SYSTEM.getPath("schemaStoreErrors");
                 Files.createDirectories(schemaStoreErrors.resolve(schemaName));
+                allErrors.sort(Comparator.naturalOrder());
                 try (FileWriter w = new FileWriter(
                          schemaStoreErrors.resolve(schemaName).resolve(testFileName).toString())) {
                   objectWriter.writeValue(w, allErrors);
