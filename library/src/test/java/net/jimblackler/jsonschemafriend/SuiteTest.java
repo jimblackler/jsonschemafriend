@@ -67,7 +67,7 @@ public class SuiteTest {
           URI testSourceUri =
               ResourceUtils.getResource(SuiteTest.class, resourcePath.toString()).toURI();
           Path allowListFolder =
-              FILE_SYSTEM.getPath(path.toString().replaceFirst("/suites/", "suiteAllowList/"));
+              FILE_SYSTEM.getPath(path.toString().replaceFirst("[/\\\\]suites[/\\\\]", "suiteAllowList/"));
           Path allowListFile = allowListFolder.resolve(resource);
 
           InputStream allowListInStream = getResourceAsStream(SuiteTest.class, "/" + allowListFile);
