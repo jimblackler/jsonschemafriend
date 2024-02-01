@@ -1,0 +1,76 @@
+{
+  "uniqueItems validation" : [
+    "unique array of integers is valid",
+    "non-unique array of integers is invalid",
+    "non-unique array of more than two integers is invalid",
+    "numbers are unique if mathematically unequal",
+    "unique array of strings is valid",
+    "non-unique array of strings is invalid",
+    "unique array of objects is valid",
+    "non-unique array of objects is invalid",
+    "unique array of nested objects is valid",
+    "non-unique array of nested objects is invalid",
+    "unique array of arrays is valid",
+    "non-unique array of arrays is invalid",
+    "non-unique array of more than two arrays is invalid",
+    "1 and true are unique",
+    "0 and false are unique",
+    "[1] and [true] are unique",
+    "[0] and [false] are unique",
+    "nested [1] and [true] are unique",
+    "nested [0] and [false] are unique",
+    "unique heterogeneous types are valid",
+    "non-unique heterogeneous types are invalid",
+    "{\"a\": false} and {\"a\": 0} are unique",
+    "{\"a\": true} and {\"a\": 1} are unique"
+  ],
+  "uniqueItems with an array of items" : [
+    "[false, true] from items array is valid",
+    "[true, false] from items array is valid",
+    "[false, false] from items array is not valid",
+    "[true, true] from items array is not valid",
+    "unique array extended from [false, true] is valid",
+    "unique array extended from [true, false] is valid",
+    "non-unique array extended from [false, true] is not valid",
+    "non-unique array extended from [true, false] is not valid"
+  ],
+  "uniqueItems with an array of items and additionalItems=false" : [
+    "[false, true] from items array is valid",
+    "[true, false] from items array is valid",
+    "[false, false] from items array is not valid",
+    "[true, true] from items array is not valid",
+    "extra items are invalid even if unique"
+  ],
+  "uniqueItems=false validation" : [
+    "unique array of integers is valid",
+    "non-unique array of integers is valid",
+    "numbers are unique if mathematically unequal",
+    "unique array of objects is valid",
+    "non-unique array of objects is valid",
+    "unique array of nested objects is valid",
+    "non-unique array of nested objects is valid",
+    "unique array of arrays is valid",
+    "non-unique array of arrays is valid",
+    "1 and true are unique",
+    "0 and false are unique",
+    "unique heterogeneous types are valid",
+    "non-unique heterogeneous types are valid"
+  ],
+  "uniqueItems=false with an array of items" : [
+    "[false, true] from items array is valid",
+    "[true, false] from items array is valid",
+    "[false, false] from items array is valid",
+    "[true, true] from items array is valid",
+    "unique array extended from [false, true] is valid",
+    "unique array extended from [true, false] is valid",
+    "non-unique array extended from [false, true] is valid",
+    "non-unique array extended from [true, false] is valid"
+  ],
+  "uniqueItems=false with an array of items and additionalItems=false" : [
+    "[false, true] from items array is valid",
+    "[true, false] from items array is valid",
+    "[false, false] from items array is valid",
+    "[true, true] from items array is valid",
+    "extra items are invalid even if unique"
+  ]
+}

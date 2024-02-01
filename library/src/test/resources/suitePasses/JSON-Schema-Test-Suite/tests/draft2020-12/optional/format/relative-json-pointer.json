@@ -1,0 +1,22 @@
+{
+  "validation of Relative JSON Pointers (RJP)" : [
+    "all string formats ignore integers",
+    "all string formats ignore floats",
+    "all string formats ignore objects",
+    "all string formats ignore arrays",
+    "all string formats ignore booleans",
+    "all string formats ignore nulls",
+    "a valid upwards RJP",
+    "a valid downwards RJP",
+    "a valid up and then down RJP, with array index",
+    "a valid RJP taking the member or index name",
+    "an invalid RJP that is a valid JSON Pointer",
+    "negative prefix",
+    "explicit positive prefix",
+    "## is not a valid json-pointer",
+    "zero cannot be followed by other digits, plus json-pointer",
+    "zero cannot be followed by other digits, plus octothorpe",
+    "empty string",
+    "multi-digit integer prefix"
+  ]
+}

@@ -1,0 +1,7 @@
+{
+  "validation of CSS colors" : [
+    "a valid CSS color name",
+    "a valid six-digit CSS color code",
+    "a valid three-digit CSS color code"
+  ]
+}

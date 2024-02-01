@@ -1,0 +1,39 @@
+{
+  "oneOf" : [
+    "first oneOf valid",
+    "second oneOf valid",
+    "both oneOf valid",
+    "neither oneOf valid"
+  ],
+  "oneOf with base schema" : [
+    "mismatch base schema",
+    "one oneOf valid",
+    "both oneOf valid"
+  ],
+  "oneOf complex types" : [
+    "first oneOf valid (complex)",
+    "second oneOf valid (complex)",
+    "both oneOf valid (complex)",
+    "neither oneOf valid (complex)"
+  ],
+  "oneOf with empty schema" : [
+    "one valid - valid",
+    "both valid - invalid"
+  ],
+  "oneOf with required" : [
+    "both invalid - invalid",
+    "first valid - valid",
+    "second valid - valid",
+    "both valid - invalid"
+  ],
+  "oneOf with missing optional property" : [
+    "first oneOf valid",
+    "second oneOf valid",
+    "both oneOf valid",
+    "neither oneOf valid"
+  ],
+  "nested oneOf, to check validation semantics" : [
+    "null is valid",
+    "anything non-null is invalid"
+  ]
+}

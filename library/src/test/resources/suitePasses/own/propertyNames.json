@@ -1,0 +1,126 @@
+{
+  "Basic property names work" : [
+    "Data: {a=3}",
+    "Data: {a=b}"
+  ],
+  "Plus" : [
+    "Data: {+=3}",
+    "Data: {+=b}"
+  ],
+  "Tilde" : [
+    "Data: {~=3}",
+    "Data: {~=b}"
+  ],
+  "Tilde zero" : [
+    "Data: {~0=3}",
+    "Data: {~0=b}"
+  ],
+  "Tilde one" : [
+    "Data: {~1=3}",
+    "Data: {~1=b}"
+  ],
+  "Tilde two" : [
+    "Data: {~2=3}",
+    "Data: {~2=b}"
+  ],
+  "Tilde tilde one" : [
+    "Data: {~~1=3}",
+    "Data: {~~1=b}"
+  ],
+  "Tilde tilde two" : [
+    "Data: {~~2=3}",
+    "Data: {~~2=b}"
+  ],
+  "Forward slash" : [
+    "Data: {/=3}",
+    "Data: {/=b}"
+  ],
+  "Hash" : [
+    "Data: {#=3}",
+    "Data: {#=b}"
+  ],
+  "Square brackets" : [
+    "Data: {[]=3}",
+    "Data: {[]=b}"
+  ],
+  "Curly brackets" : [
+    "Data: {{}=3}",
+    "Data: {{}=b}"
+  ],
+  "Question mark" : [
+    "Data: {?=3}",
+    "Data: {?=b}"
+  ],
+  "Space" : [
+    "Data: { =3}",
+    "Data: { =b}"
+  ],
+  "Percent" : [
+    "Data: {%=3}",
+    "Data: {%=b}"
+  ],
+  "At" : [
+    "Data: {@=3}",
+    "Data: {@=b}"
+  ],
+  "Double forward slash" : [
+    "Data: {//=3}",
+    "Data: {//=b}"
+  ],
+  "Equals" : [
+    "Data: {==3}",
+    "Data: {==b}"
+  ],
+  "Pipe" : [
+    "Data: {|=3}",
+    "Data: {|=b}"
+  ],
+  "Caret" : [
+    "Data: {^=3}",
+    "Data: {^=b}"
+  ],
+  "Grave" : [
+    "Data: {`=3}",
+    "Data: {`=b}"
+  ],
+  "Colon" : [
+    "Data: {:=3}",
+    "Data: {:=b}"
+  ],
+  "Semicolon" : [
+    "Data: {;=3}",
+    "Data: {;=b}"
+  ],
+  "Less than" : [
+    "Data: {<=3}",
+    "Data: {<=b}"
+  ],
+  "Greater than" : [
+    "Data: {>=3}",
+    "Data: {>=b}"
+  ],
+  "Period" : [
+    "Data: {.=3}",
+    "Data: {.=b}"
+  ],
+  "Backslash" : [
+    "Data: {\\=3}",
+    "Data: {\\=b}"
+  ],
+  "Double backslash" : [
+    "Data: {\\\\=3}",
+    "Data: {\\\\=b}"
+  ],
+  "Tilde zero zero" : [
+    "Data: {~~0=3}",
+    "Data: {~~0=b}"
+  ],
+  "Empty properties" : [
+    "Data: {=3}",
+    "Data: {=b}"
+  ],
+  "All characters" : [
+    "Data: { !\"#$%&\\'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\\\]^_`abcdefghijklmnopqrstuvwxyz{|}~=3}",
+    "Data: { !\"#$%&\\'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\\\]^_`abcdefghijklmnopqrstuvwxyz{|}~=b}"
+  ]
+}

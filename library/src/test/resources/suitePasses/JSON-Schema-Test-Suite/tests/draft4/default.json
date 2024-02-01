@@ -1,0 +1,15 @@
+{
+  "invalid type for default" : [
+    "valid when property is specified",
+    "still valid when the invalid default is used"
+  ],
+  "invalid string value for default" : [
+    "valid when property is specified",
+    "still valid when the invalid default is used"
+  ],
+  "the default keyword does not do anything if the property is missing" : [
+    "an explicit property value is checked against maximum (passing)",
+    "an explicit property value is checked against maximum (failing)",
+    "missing properties are not filled in with the default"
+  ]
+}

@@ -1,0 +1,17 @@
+{
+  "disallow" : [
+    "allowed",
+    "disallowed"
+  ],
+  "multiple disallow" : [
+    "valid",
+    "mismatch",
+    "other mismatch"
+  ],
+  "multiple disallow subschema" : [
+    "match",
+    "other match",
+    "mismatch",
+    "other mismatch"
+  ]
+}

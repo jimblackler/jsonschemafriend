@@ -1,0 +1,73 @@
+{
+  "simple enum validation" : [
+    "one of the enum is valid",
+    "something else is invalid"
+  ],
+  "heterogeneous enum validation" : [
+    "one of the enum is valid",
+    "something else is invalid",
+    "objects are deep compared",
+    "valid object matches",
+    "extra properties in object is invalid"
+  ],
+  "heterogeneous enum-with-null validation" : [
+    "null is valid",
+    "number is valid",
+    "something else is invalid"
+  ],
+  "enums in properties" : [
+    "both properties are valid",
+    "wrong foo value",
+    "wrong bar value",
+    "missing optional property is valid",
+    "missing required property is invalid",
+    "missing all properties is invalid"
+  ],
+  "enum with escaped characters" : [
+    "member 1 is valid",
+    "member 2 is valid",
+    "another string is invalid"
+  ],
+  "enum with false does not match 0" : [
+    "false is valid",
+    "integer zero is invalid",
+    "float zero is invalid"
+  ],
+  "enum with [false] does not match [0]" : [
+    "[false] is valid",
+    "[0] is invalid",
+    "[0.0] is invalid"
+  ],
+  "enum with true does not match 1" : [
+    "true is valid",
+    "integer one is invalid",
+    "float one is invalid"
+  ],
+  "enum with [true] does not match [1]" : [
+    "[true] is valid",
+    "[1] is invalid",
+    "[1.0] is invalid"
+  ],
+  "enum with 0 does not match false" : [
+    "false is invalid",
+    "integer zero is valid",
+    "float zero is valid"
+  ],
+  "enum with [0] does not match [false]" : [
+    "[false] is invalid",
+    "[0] is valid"
+  ],
+  "enum with 1 does not match true" : [
+    "true is invalid",
+    "integer one is valid",
+    "float one is valid"
+  ],
+  "enum with [1] does not match [true]" : [
+    "[true] is invalid",
+    "[1] is valid"
+  ],
+  "nul characters in strings" : [
+    "match string with nul",
+    "do not match string lacking nul"
+  ]
+}

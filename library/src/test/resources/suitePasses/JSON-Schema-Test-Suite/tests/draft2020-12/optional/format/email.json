@@ -1,0 +1,25 @@
+{
+  "validation of e-mail addresses" : [
+    "all string formats ignore integers",
+    "all string formats ignore floats",
+    "all string formats ignore objects",
+    "all string formats ignore arrays",
+    "all string formats ignore booleans",
+    "all string formats ignore nulls",
+    "a valid e-mail address",
+    "an invalid e-mail address",
+    "tilde in local part is valid",
+    "tilde before local part is valid",
+    "tilde after local part is valid",
+    "a quoted string with a space in the local part is valid",
+    "a quoted string with a double dot in the local part is valid",
+    "a quoted string with a @ in the local part is valid",
+    "an IPv4-address-literal after the @ is valid",
+    "dot before local part is not valid",
+    "dot after local part is not valid",
+    "two separated dots inside local part are valid",
+    "two subsequent dots inside local part are not valid",
+    "an invalid domain",
+    "an invalid IPv4-address-literal"
+  ]
+}

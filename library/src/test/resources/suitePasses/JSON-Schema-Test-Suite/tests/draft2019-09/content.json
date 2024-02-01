@@ -1,0 +1,28 @@
+{
+  "validation of string-encoded content based on media type" : [
+    "a valid JSON document",
+    "an invalid JSON document; validates true",
+    "ignores non-strings"
+  ],
+  "validation of binary string-encoding" : [
+    "a valid base64 string",
+    "an invalid base64 string (% is not a valid character); validates true",
+    "ignores non-strings"
+  ],
+  "validation of binary-encoded media type documents" : [
+    "a valid base64-encoded JSON document",
+    "a validly-encoded invalid JSON document; validates true",
+    "an invalid base64 string that is valid JSON; validates true",
+    "ignores non-strings"
+  ],
+  "validation of binary-encoded media type documents with schema" : [
+    "a valid base64-encoded JSON document",
+    "another valid base64-encoded JSON document",
+    "an invalid base64-encoded JSON document; validates true",
+    "an empty object as a base64-encoded JSON document; validates true",
+    "an empty array as a base64-encoded JSON document",
+    "a validly-encoded invalid JSON document; validates true",
+    "an invalid base64 string that is valid JSON; validates true",
+    "ignores non-strings"
+  ]
+}

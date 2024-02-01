@@ -1,0 +1,7 @@
+{
+  "validation of URIs" : [
+    "a valid URI",
+    "an invalid protocol-relative URI Reference",
+    "an invalid URI"
+  ]
+}

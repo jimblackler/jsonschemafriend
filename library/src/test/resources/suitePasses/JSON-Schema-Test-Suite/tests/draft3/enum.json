@@ -1,0 +1,28 @@
+{
+  "simple enum validation" : [
+    "one of the enum is valid",
+    "something else is invalid"
+  ],
+  "heterogeneous enum validation" : [
+    "one of the enum is valid",
+    "something else is invalid",
+    "objects are deep compared"
+  ],
+  "heterogeneous enum-with-null validation" : [
+    "null is valid",
+    "number is valid",
+    "something else is invalid"
+  ],
+  "enums in properties" : [
+    "both properties are valid",
+    "wrong foo value",
+    "wrong bar value",
+    "missing optional property is valid",
+    "missing required property is invalid",
+    "missing all properties is invalid"
+  ],
+  "nul characters in strings" : [
+    "match string with nul",
+    "do not match string lacking nul"
+  ]
+}

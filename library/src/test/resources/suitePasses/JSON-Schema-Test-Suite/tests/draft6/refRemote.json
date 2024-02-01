@@ -1,0 +1,47 @@
+{
+  "remote ref" : [
+    "remote ref valid",
+    "remote ref invalid"
+  ],
+  "fragment within remote ref" : [
+    "remote fragment valid",
+    "remote fragment invalid"
+  ],
+  "ref within remote ref" : [
+    "ref within ref valid",
+    "ref within ref invalid"
+  ],
+  "base URI change" : [
+    "base URI change ref valid",
+    "base URI change ref invalid"
+  ],
+  "base URI change - change folder" : [
+    "number is valid",
+    "string is invalid"
+  ],
+  "base URI change - change folder in subschema" : [
+    "number is valid",
+    "string is invalid"
+  ],
+  "root ref in remote ref" : [
+    "string is valid",
+    "null is valid",
+    "object is invalid"
+  ],
+  "remote ref with ref to definitions" : [
+    "invalid",
+    "valid"
+  ],
+  "Location-independent identifier in remote ref" : [
+    "integer is valid",
+    "string is invalid"
+  ],
+  "retrieved nested refs resolve relative to their URI not $id" : [
+    "number is invalid",
+    "string is valid"
+  ],
+  "$ref to $ref finds location-independent $id" : [
+    "number is valid",
+    "non-number is invalid"
+  ]
+}

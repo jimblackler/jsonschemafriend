@@ -1,0 +1,129 @@
+{
+  "root pointer ref" : [
+    "match",
+    "recursive match",
+    "mismatch",
+    "recursive mismatch"
+  ],
+  "relative pointer ref to object" : [
+    "match",
+    "mismatch"
+  ],
+  "relative pointer ref to array" : [
+    "match array",
+    "mismatch array"
+  ],
+  "escaped pointer ref" : [
+    "slash invalid",
+    "tilde invalid",
+    "percent invalid",
+    "slash valid",
+    "tilde valid",
+    "percent valid"
+  ],
+  "nested refs" : [
+    "nested ref valid",
+    "nested ref invalid"
+  ],
+  "ref overrides any sibling keywords" : [
+    "ref valid",
+    "ref valid, maxItems ignored",
+    "ref invalid"
+  ],
+  "$ref prevents a sibling $id from changing the base uri" : [
+    "$ref resolves to /definitions/base_foo, data does not validate",
+    "$ref resolves to /definitions/base_foo, data validates"
+  ],
+  "remote ref, containing refs itself" : [
+    "remote ref valid",
+    "remote ref invalid"
+  ],
+  "property named $ref that is not a reference" : [
+    "property named $ref valid",
+    "property named $ref invalid"
+  ],
+  "property named $ref, containing an actual $ref" : [
+    "property named $ref valid",
+    "property named $ref invalid"
+  ],
+  "$ref to boolean schema true" : [
+    "any value is valid"
+  ],
+  "$ref to boolean schema false" : [
+    "any value is invalid"
+  ],
+  "Recursive references between schemas" : [
+    "valid tree",
+    "invalid tree"
+  ],
+  "refs with quote" : [
+    "object with numbers is valid",
+    "object with strings is invalid"
+  ],
+  "Location-independent identifier" : [
+    "match",
+    "mismatch"
+  ],
+  "Reference an anchor with a non-relative URI" : [
+    "match",
+    "mismatch"
+  ],
+  "Location-independent identifier with base URI change in subschema" : [
+    "match",
+    "mismatch"
+  ],
+  "naive replacement of $ref with its destination is not correct" : [
+    "do not evaluate the $ref inside the enum, matching any string",
+    "do not evaluate the $ref inside the enum, definition exact match",
+    "match the enum exactly"
+  ],
+  "refs with relative uris and defs" : [
+    "invalid on inner field",
+    "invalid on outer field",
+    "valid on both fields"
+  ],
+  "relative refs with absolute uris and defs" : [
+    "invalid on inner field",
+    "invalid on outer field",
+    "valid on both fields"
+  ],
+  "simple URN base URI with $ref via the URN" : [
+    "valid under the URN IDed schema",
+    "invalid under the URN IDed schema"
+  ],
+  "simple URN base URI with JSON pointer" : [
+    "a string is valid",
+    "a non-string is invalid"
+  ],
+  "URN base URI with NSS" : [
+    "a string is valid",
+    "a non-string is invalid"
+  ],
+  "URN base URI with r-component" : [
+    "a string is valid",
+    "a non-string is invalid"
+  ],
+  "URN base URI with q-component" : [
+    "a string is valid",
+    "a non-string is invalid"
+  ],
+  "URN base URI with URN and JSON pointer ref" : [
+    "a string is valid",
+    "a non-string is invalid"
+  ],
+  "URN base URI with URN and anchor ref" : [
+    "a string is valid",
+    "a non-string is invalid"
+  ],
+  "$id with file URI still resolves pointers - *nix" : [
+    "number is valid",
+    "non-number is invalid"
+  ],
+  "$id with file URI still resolves pointers - windows" : [
+    "number is valid",
+    "non-number is invalid"
+  ],
+  "empty tokens in $ref json-pointer" : [
+    "number is valid"
+  ]
+}

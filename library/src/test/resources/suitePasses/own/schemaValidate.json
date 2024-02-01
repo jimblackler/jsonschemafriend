@@ -1,0 +1,6 @@
+{
+  "Schema validation" : [
+    "Data: {patternProperties={#={patternProperties={={}}}}}",
+    "Data: {patternProperties={/+={patternProperties={/+={}}}}}"
+  ]
+}

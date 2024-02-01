@@ -1,0 +1,17 @@
+{
+  "validation of IRI References" : [
+    "all string formats ignore integers",
+    "all string formats ignore floats",
+    "all string formats ignore objects",
+    "all string formats ignore arrays",
+    "all string formats ignore booleans",
+    "all string formats ignore nulls",
+    "a valid IRI",
+    "a valid protocol-relative IRI Reference",
+    "a valid relative IRI Reference",
+    "an invalid IRI Reference",
+    "a valid IRI Reference",
+    "a valid IRI fragment",
+    "an invalid IRI fragment"
+  ]
+}

@@ -1,0 +1,52 @@
+{
+  "dependencies" : [
+    "neither",
+    "nondependant",
+    "with dependency",
+    "missing dependency",
+    "ignores arrays",
+    "ignores strings",
+    "ignores other non-objects"
+  ],
+  "dependencies with empty array" : [
+    "empty object",
+    "object with one property",
+    "non-object is valid"
+  ],
+  "multiple dependencies" : [
+    "neither",
+    "nondependants",
+    "with dependencies",
+    "missing dependency",
+    "missing other dependency",
+    "missing both dependencies"
+  ],
+  "multiple dependencies subschema" : [
+    "valid",
+    "no dependency",
+    "wrong type",
+    "wrong type other",
+    "wrong type both"
+  ],
+  "dependencies with boolean subschemas" : [
+    "object with property having schema true is valid",
+    "object with property having schema false is invalid",
+    "object with both properties is invalid",
+    "empty object is valid"
+  ],
+  "dependencies with escaped characters" : [
+    "valid object 1",
+    "valid object 2",
+    "valid object 3",
+    "invalid object 1",
+    "invalid object 2",
+    "invalid object 3",
+    "invalid object 4"
+  ],
+  "dependent subschema incompatible with root" : [
+    "matches root",
+    "matches dependency",
+    "matches both",
+    "no dependency"
+  ]
+}

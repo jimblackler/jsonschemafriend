@@ -1,0 +1,28 @@
+{
+  "required validation" : [
+    "present required property is valid",
+    "non-present required property is invalid",
+    "ignores arrays",
+    "ignores strings",
+    "ignores other non-objects"
+  ],
+  "required default validation" : [
+    "not required by default"
+  ],
+  "required with empty array" : [
+    "property not required"
+  ],
+  "required with escaped characters" : [
+    "object with all properties present is valid",
+    "object with some properties missing is invalid"
+  ],
+  "required properties whose names are Javascript object property names" : [
+    "ignores arrays",
+    "ignores other non-objects",
+    "none of the properties mentioned",
+    "__proto__ present",
+    "toString present",
+    "constructor present",
+    "all present"
+  ]
+}

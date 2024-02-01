@@ -1,0 +1,20 @@
+{
+  "validation of IP addresses" : [
+    "all string formats ignore integers",
+    "all string formats ignore floats",
+    "all string formats ignore objects",
+    "all string formats ignore arrays",
+    "all string formats ignore booleans",
+    "all string formats ignore nulls",
+    "a valid IP address",
+    "an IP address with too many components",
+    "an IP address with out-of-range values",
+    "an IP address without 4 components",
+    "an IP address as an integer",
+    "an IP address as an integer (decimal)",
+    "invalid leading zeroes, as they are treated as octals",
+    "value without leading zero is valid",
+    "invalid non-ASCII '২' (a Bengali 2)",
+    "netmask is not a part of ipv4 address"
+  ]
+}

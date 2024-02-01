@@ -48,6 +48,8 @@ afterEvaluate {
 
 test {
     useJUnitPlatform()
+
+    systemProperty "run.smoke.test", project.findProperty('run.smoke.test') ?: false
 }
 
 dependencies {

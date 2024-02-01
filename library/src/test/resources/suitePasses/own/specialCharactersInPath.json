@@ -1,0 +1,66 @@
+{
+  "? handled correctly in paths" : [
+    "Data: {someProperty=hello}",
+    "Data: {someProperty=5}"
+  ],
+  "! handled correctly in paths" : [
+    "Data: {someProperty=hello}",
+    "Data: {someProperty=5}"
+  ],
+  "Quotes handled correctly in paths" : [
+    "Data: {someProperty=hello}",
+    "Data: {someProperty=5}"
+  ],
+  "Tilde handled correctly in paths" : [
+    "Data: {someProperty=hello}",
+    "Data: {someProperty=5}"
+  ],
+  "Percent handled correctly in paths" : [
+    "Data: {someProperty=hello}",
+    "Data: {someProperty=5}"
+  ],
+  "Plus handled correctly in paths" : [
+    "Data: {someProperty=hello}",
+    "Data: {someProperty=5}"
+  ],
+  "Backslash handled correctly in paths" : [
+    "Data: {someProperty=hello}",
+    "Data: {someProperty=5}"
+  ],
+  "Forward slash handled correctly in paths" : [
+    "Data: {someProperty=hello}",
+    "Data: {someProperty=5}"
+  ],
+  "Tilde" : [
+    "Data: {someProperty=hello}",
+    "Data: {someProperty=5}"
+  ],
+  "Double tilde" : [
+    "Data: {someProperty=hello}",
+    "Data: {someProperty=5}"
+  ],
+  "Tilde zero" : [
+    "Data: {someProperty=hello}",
+    "Data: {someProperty=5}"
+  ],
+  "Hash" : [
+    "Data: {someProperty=hello}",
+    "Data: {someProperty=5}"
+  ],
+  "Caret" : [
+    "Data: {someProperty=hello}",
+    "Data: {someProperty=5}"
+  ],
+  "Grave" : [
+    "Data: {someProperty=hello}",
+    "Data: {someProperty=5}"
+  ],
+  "Curly brackets" : [
+    "Data: {someProperty=hello}",
+    "Data: {someProperty=5}"
+  ],
+  "Pipe" : [
+    "Data: {someProperty=hello}",
+    "Data: {someProperty=5}"
+  ]
+}

@@ -1,0 +1,199 @@
+{
+  "unevaluatedProperties true" : [
+    "with no unevaluated properties",
+    "with unevaluated properties"
+  ],
+  "unevaluatedProperties schema" : [
+    "with no unevaluated properties",
+    "with valid unevaluated properties",
+    "with invalid unevaluated properties"
+  ],
+  "unevaluatedProperties false" : [
+    "with no unevaluated properties",
+    "with unevaluated properties"
+  ],
+  "unevaluatedProperties with adjacent properties" : [
+    "with no unevaluated properties",
+    "with unevaluated properties"
+  ],
+  "unevaluatedProperties with adjacent patternProperties" : [
+    "with no unevaluated properties",
+    "with unevaluated properties"
+  ],
+  "unevaluatedProperties with adjacent additionalProperties" : [
+    "with no additional properties",
+    "with additional properties"
+  ],
+  "unevaluatedProperties with nested properties" : [
+    "with no additional properties",
+    "with additional properties"
+  ],
+  "unevaluatedProperties with nested patternProperties" : [
+    "with no additional properties",
+    "with additional properties"
+  ],
+  "unevaluatedProperties with nested additionalProperties" : [
+    "with no additional properties",
+    "with additional properties"
+  ],
+  "unevaluatedProperties with nested unevaluatedProperties" : [
+    "with no nested unevaluated properties",
+    "with nested unevaluated properties"
+  ],
+  "unevaluatedProperties with anyOf" : [
+    "when one matches and has no unevaluated properties",
+    "when one matches and has unevaluated properties",
+    "when two match and has no unevaluated properties",
+    "when two match and has unevaluated properties"
+  ],
+  "unevaluatedProperties with oneOf" : [
+    "with no unevaluated properties",
+    "with unevaluated properties"
+  ],
+  "unevaluatedProperties with not" : [
+    "with unevaluated properties"
+  ],
+  "unevaluatedProperties with if/then/else" : [
+    "when if is true and has no unevaluated properties",
+    "when if is true and has unevaluated properties",
+    "when if is false and has no unevaluated properties",
+    "when if is false and has unevaluated properties"
+  ],
+  "unevaluatedProperties with if/then/else, then not defined" : [
+    "when if is true and has no unevaluated properties",
+    "when if is true and has unevaluated properties",
+    "when if is false and has no unevaluated properties",
+    "when if is false and has unevaluated properties"
+  ],
+  "unevaluatedProperties with if/then/else, else not defined" : [
+    "when if is true and has no unevaluated properties",
+    "when if is true and has unevaluated properties",
+    "when if is false and has no unevaluated properties",
+    "when if is false and has unevaluated properties"
+  ],
+  "unevaluatedProperties with dependentSchemas" : [
+    "with no unevaluated properties",
+    "with unevaluated properties"
+  ],
+  "unevaluatedProperties with boolean schemas" : [
+    "with no unevaluated properties",
+    "with unevaluated properties"
+  ],
+  "unevaluatedProperties with $ref" : [
+    "with no unevaluated properties",
+    "with unevaluated properties"
+  ],
+  "unevaluatedProperties before $ref" : [
+    "with no unevaluated properties",
+    "with unevaluated properties"
+  ],
+  "unevaluatedProperties with $recursiveRef" : [
+    "with no unevaluated properties",
+    "with unevaluated properties"
+  ],
+  "unevaluatedProperties can't see inside cousins" : [
+    "always fails"
+  ],
+  "unevaluatedProperties can't see inside cousins (reverse order)" : [
+    "always fails"
+  ],
+  "nested unevaluatedProperties, outer false, inner true, properties outside" : [
+    "with no nested unevaluated properties",
+    "with nested unevaluated properties"
+  ],
+  "nested unevaluatedProperties, outer false, inner true, properties inside" : [
+    "with no nested unevaluated properties",
+    "with nested unevaluated properties"
+  ],
+  "nested unevaluatedProperties, outer true, inner false, properties outside" : [
+    "with no nested unevaluated properties",
+    "with nested unevaluated properties"
+  ],
+  "nested unevaluatedProperties, outer true, inner false, properties inside" : [
+    "with no nested unevaluated properties",
+    "with nested unevaluated properties"
+  ],
+  "cousin unevaluatedProperties, true and false, true with properties" : [
+    "with no nested unevaluated properties",
+    "with nested unevaluated properties"
+  ],
+  "cousin unevaluatedProperties, true and false, false with properties" : [
+    "with no nested unevaluated properties",
+    "with nested unevaluated properties"
+  ],
+  "property is evaluated in an uncle schema to unevaluatedProperties" : [
+    "no extra properties",
+    "uncle keyword evaluation is not significant"
+  ],
+  "in-place applicator siblings, allOf has unevaluated" : [
+    "base case: both properties present",
+    "in place applicator siblings, bar is missing",
+    "in place applicator siblings, foo is missing"
+  ],
+  "in-place applicator siblings, anyOf has unevaluated" : [
+    "base case: both properties present",
+    "in place applicator siblings, bar is missing",
+    "in place applicator siblings, foo is missing"
+  ],
+  "unevaluatedProperties + single cyclic ref" : [
+    "Empty is valid",
+    "Single is valid",
+    "Unevaluated on 1st level is invalid",
+    "Nested is valid",
+    "Unevaluated on 2nd level is invalid",
+    "Deep nested is valid",
+    "Unevaluated on 3rd level is invalid"
+  ],
+  "unevaluatedProperties + ref inside allOf / oneOf" : [
+    "Empty is invalid (no x or y)",
+    "a and b are invalid (no x or y)",
+    "x and y are invalid",
+    "a and x are valid",
+    "a and y are valid",
+    "a and b and x are valid",
+    "a and b and y are valid",
+    "a and b and x and y are invalid"
+  ],
+  "dynamic evalation inside nested refs" : [
+    "Empty is invalid",
+    "a is valid",
+    "b is valid",
+    "c is valid",
+    "d is valid",
+    "a + b is invalid",
+    "a + c is invalid",
+    "a + d is invalid",
+    "b + c is invalid",
+    "b + d is invalid",
+    "c + d is invalid",
+    "xx is valid",
+    "xx + foox is valid",
+    "xx + foo is invalid",
+    "xx + a is invalid",
+    "xx + b is invalid",
+    "xx + c is invalid",
+    "xx + d is invalid",
+    "all is valid",
+    "all + foo is valid",
+    "all + a is invalid"
+  ],
+  "non-object instances are valid" : [
+    "ignores booleans",
+    "ignores integers",
+    "ignores floats",
+    "ignores arrays",
+    "ignores strings",
+    "ignores null"
+  ],
+  "unevaluatedProperties with null valued instance properties" : [
+    "allows null valued properties"
+  ],
+  "unevaluatedProperties not affected by propertyNames" : [
+    "allows only number properties",
+    "string property is invalid"
+  ],
+  "unevaluatedProperties can see annotations from if without then and else" : [
+    "valid in case if is evaluated",
+    "invalid in case if is evaluated"
+  ]
+}

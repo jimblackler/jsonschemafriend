@@ -1,0 +1,16 @@
+{
+  "validation of IPv6 addresses" : [
+    "a valid IPv6 address",
+    "an IPv6 address with out-of-range values",
+    "an IPv6 address with too many components",
+    "an IPv6 address containing illegal characters",
+    "no digits is valid",
+    "leading colons is valid",
+    "trailing colons is valid",
+    "two sets of double colons is invalid",
+    "mixed format with the ipv4 section as decimal octets",
+    "mixed format with double colons between the sections",
+    "mixed format with ipv4 section with octet out of range",
+    "mixed format with ipv4 section with a hex octet"
+  ]
+}
