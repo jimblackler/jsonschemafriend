@@ -1,0 +1,8 @@
+{
+  "exclusiveMaximum validation" : [
+    "below the exclusiveMaximum is valid",
+    "boundary point is invalid",
+    "above the exclusiveMaximum is invalid",
+    "ignores non-numbers"
+  ]
+}

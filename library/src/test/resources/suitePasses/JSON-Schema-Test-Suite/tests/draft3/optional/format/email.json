@@ -1,0 +1,13 @@
+{
+  "validation of e-mail addresses" : [
+    "a valid e-mail address",
+    "an invalid e-mail address",
+    "tilde in local part is valid",
+    "tilde before local part is valid",
+    "tilde after local part is valid",
+    "dot before local part is not valid",
+    "dot after local part is not valid",
+    "two separated dots inside local part are valid",
+    "two subsequent dots inside local part are not valid"
+  ]
+}

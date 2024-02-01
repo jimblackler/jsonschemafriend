@@ -4,3 +4,6 @@
 /build
 /cache
 /schemaStoreErrors
+/schemaStorePasses
+/suiteAllowList
+/suitePasses

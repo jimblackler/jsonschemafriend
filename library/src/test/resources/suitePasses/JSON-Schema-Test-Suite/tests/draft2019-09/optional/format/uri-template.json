@@ -1,0 +1,14 @@
+{
+  "format: uri-template" : [
+    "all string formats ignore integers",
+    "all string formats ignore floats",
+    "all string formats ignore objects",
+    "all string formats ignore arrays",
+    "all string formats ignore booleans",
+    "all string formats ignore nulls",
+    "a valid uri-template",
+    "an invalid uri-template",
+    "a valid uri-template without variables",
+    "a valid relative uri-template"
+  ]
+}

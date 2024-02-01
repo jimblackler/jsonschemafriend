@@ -1,0 +1,29 @@
+{
+  "validation of duration strings" : [
+    "all string formats ignore integers",
+    "all string formats ignore floats",
+    "all string formats ignore objects",
+    "all string formats ignore arrays",
+    "all string formats ignore booleans",
+    "all string formats ignore nulls",
+    "a valid duration string",
+    "an invalid duration string",
+    "no elements present",
+    "no time elements present",
+    "no date or time elements present",
+    "elements out of order",
+    "missing time separator",
+    "time element in the date position",
+    "four years duration",
+    "zero time, in seconds",
+    "zero time, in days",
+    "one month duration",
+    "one minute duration",
+    "one and a half days, in hours",
+    "one and a half days, in days and hours",
+    "two weeks",
+    "weeks cannot be combined with other units",
+    "invalid non-ASCII '২' (a Bengali 2)",
+    "element without unit"
+  ]
+}

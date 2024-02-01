@@ -1,0 +1,13 @@
+{
+  "minLength validation" : [
+    "longer is valid",
+    "exact length is valid",
+    "too short is invalid",
+    "ignores non-strings",
+    "one grapheme is not long enough"
+  ],
+  "minLength validation with a decimal" : [
+    "longer is valid",
+    "too short is invalid"
+  ]
+}

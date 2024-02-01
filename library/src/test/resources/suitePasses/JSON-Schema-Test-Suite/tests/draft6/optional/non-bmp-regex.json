@@ -1,0 +1,18 @@
+{
+  "Proper UTF-16 surrogate pair handling: pattern" : [
+    "matches empty",
+    "matches single",
+    "matches two",
+    "doesn't match one",
+    "doesn't match two",
+    "doesn't match one ASCII",
+    "doesn't match two ASCII"
+  ],
+  "Proper UTF-16 surrogate pair handling: patternProperties" : [
+    "matches empty",
+    "matches single",
+    "matches two",
+    "doesn't match one",
+    "doesn't match two"
+  ]
+}

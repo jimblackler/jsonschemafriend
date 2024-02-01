@@ -1,0 +1,35 @@
+{
+  "patternProperties validates properties matching a regex" : [
+    "a single valid match is valid",
+    "multiple valid matches is valid",
+    "a single invalid match is invalid",
+    "multiple invalid matches is invalid",
+    "ignores arrays",
+    "ignores strings",
+    "ignores other non-objects"
+  ],
+  "multiple simultaneous patternProperties are validated" : [
+    "a single valid match is valid",
+    "a simultaneous match is valid",
+    "multiple matches is valid",
+    "an invalid due to one is invalid",
+    "an invalid due to the other is invalid",
+    "an invalid due to both is invalid"
+  ],
+  "regexes are not anchored by default and are case sensitive" : [
+    "non recognized members are ignored",
+    "recognized members are accounted for",
+    "regexes are case sensitive",
+    "regexes are case sensitive, 2"
+  ],
+  "patternProperties with boolean schemas" : [
+    "object with property matching schema true is valid",
+    "object with property matching schema false is invalid",
+    "object with both properties is invalid",
+    "object with a property matching both true and false is invalid",
+    "empty object is valid"
+  ],
+  "patternProperties with null valued instance properties" : [
+    "allows null values"
+  ]
+}

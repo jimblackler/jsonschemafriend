@@ -1,0 +1,47 @@
+{
+  "allOf" : [
+    "allOf",
+    "mismatch second",
+    "mismatch first",
+    "wrong type"
+  ],
+  "allOf with base schema" : [
+    "valid",
+    "mismatch base schema",
+    "mismatch first allOf",
+    "mismatch second allOf",
+    "mismatch both"
+  ],
+  "allOf simple types" : [
+    "valid",
+    "mismatch one"
+  ],
+  "allOf with one empty schema" : [
+    "any data is valid"
+  ],
+  "allOf with two empty schemas" : [
+    "any data is valid"
+  ],
+  "allOf with the first empty schema" : [
+    "number is valid",
+    "string is invalid"
+  ],
+  "allOf with the last empty schema" : [
+    "number is valid",
+    "string is invalid"
+  ],
+  "nested allOf, to check validation semantics" : [
+    "null is valid",
+    "anything non-null is invalid"
+  ],
+  "allOf combined with anyOf, oneOf" : [
+    "allOf: false, anyOf: false, oneOf: false",
+    "allOf: false, anyOf: false, oneOf: true",
+    "allOf: false, anyOf: true, oneOf: false",
+    "allOf: false, anyOf: true, oneOf: true",
+    "allOf: true, anyOf: false, oneOf: false",
+    "allOf: true, anyOf: false, oneOf: true",
+    "allOf: true, anyOf: true, oneOf: false",
+    "allOf: true, anyOf: true, oneOf: true"
+  ]
+}

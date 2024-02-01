@@ -1,0 +1,54 @@
+{
+  "$recursiveRef without $recursiveAnchor works like $ref" : [
+    "match",
+    "recursive match",
+    "mismatch",
+    "recursive mismatch"
+  ],
+  "$recursiveRef without using nesting" : [
+    "integer matches at the outer level",
+    "single level match",
+    "integer does not match as a property value",
+    "two levels, properties match with inner definition",
+    "two levels, no match"
+  ],
+  "$recursiveRef with nesting" : [
+    "integer matches at the outer level",
+    "single level match",
+    "integer now matches as a property value",
+    "two levels, properties match with inner definition",
+    "two levels, properties match with $recursiveRef"
+  ],
+  "$recursiveRef with $recursiveAnchor: false works like $ref" : [
+    "integer matches at the outer level",
+    "single level match",
+    "integer does not match as a property value",
+    "two levels, properties match with inner definition",
+    "two levels, integer does not match as a property value"
+  ],
+  "$recursiveRef with no $recursiveAnchor works like $ref" : [
+    "integer matches at the outer level",
+    "single level match",
+    "integer does not match as a property value",
+    "two levels, properties match with inner definition",
+    "two levels, integer does not match as a property value"
+  ],
+  "$recursiveRef with no $recursiveAnchor in the initial target schema resource" : [
+    "leaf node does not match; no recursion",
+    "leaf node matches: recursion uses the inner schema",
+    "leaf node does not match: recursion uses the inner schema"
+  ],
+  "$recursiveRef with no $recursiveAnchor in the outer schema resource" : [
+    "leaf node does not match; no recursion",
+    "leaf node matches: recursion only uses inner schema",
+    "leaf node does not match: recursion only uses inner schema"
+  ],
+  "multiple dynamic paths to the $recursiveRef keyword" : [
+    "recurse to anyLeafNode - floats are allowed",
+    "recurse to integerNode - floats are not allowed"
+  ],
+  "dynamic $recursiveRef destination (not predictable at schema compile time)" : [
+    "numeric node",
+    "integer node"
+  ]
+}

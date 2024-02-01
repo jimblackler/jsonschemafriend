@@ -1,0 +1,108 @@
+{
+  "ECMA 262 regex $ does not match trailing newline" : [
+    "matches in Python, but not in ECMA 262",
+    "matches"
+  ],
+  "ECMA 262 regex converts \\t to horizontal tab" : [
+    "does not match",
+    "matches"
+  ],
+  "ECMA 262 regex escapes control codes with \\c and upper letter" : [
+    "does not match",
+    "matches"
+  ],
+  "ECMA 262 regex escapes control codes with \\c and lower letter" : [
+    "does not match",
+    "matches"
+  ],
+  "ECMA 262 \\d matches ascii digits only" : [
+    "ASCII zero matches",
+    "NKO DIGIT ZERO does not match (unlike e.g. Python)",
+    "NKO DIGIT ZERO (as \\u escape) does not match"
+  ],
+  "ECMA 262 \\D matches everything but ascii digits" : [
+    "ASCII zero does not match",
+    "NKO DIGIT ZERO matches (unlike e.g. Python)",
+    "NKO DIGIT ZERO (as \\u escape) matches"
+  ],
+  "ECMA 262 \\w matches ascii letters only" : [
+    "ASCII 'a' matches",
+    "latin-1 e-acute does not match (unlike e.g. Python)"
+  ],
+  "ECMA 262 \\W matches everything but ascii letters" : [
+    "ASCII 'a' does not match",
+    "latin-1 e-acute matches (unlike e.g. Python)"
+  ],
+  "ECMA 262 \\s matches whitespace" : [
+    "ASCII space matches",
+    "Character tabulation matches",
+    "Line tabulation matches",
+    "Form feed matches",
+    "line feed matches (line terminator)",
+    "Non-whitespace control does not match",
+    "Non-whitespace does not match"
+  ],
+  "ECMA 262 \\S matches everything but whitespace" : [
+    "ASCII space does not match",
+    "Character tabulation does not match",
+    "Line tabulation does not match",
+    "Form feed does not match",
+    "line feed does not match (line terminator)",
+    "Non-whitespace control matches",
+    "Non-whitespace matches"
+  ],
+  "patterns always use unicode semantics with pattern" : [
+    "ascii character in json string",
+    "literal unicode character in json string",
+    "unicode character in hex format in string",
+    "unicode matching is case-sensitive"
+  ],
+  "\\w in patterns matches [A-Za-z0-9_], not unicode letters" : [
+    "ascii character in json string",
+    "literal unicode character in json string",
+    "unicode character in hex format in string",
+    "unicode matching is case-sensitive"
+  ],
+  "pattern with ASCII ranges" : [
+    "literal unicode character in json string",
+    "unicode character in hex format in string",
+    "ascii characters match"
+  ],
+  "\\d in pattern matches [0-9], not unicode digits" : [
+    "ascii digits",
+    "ascii non-digits",
+    "non-ascii digits (BENGALI DIGIT FOUR, BENGALI DIGIT TWO)"
+  ],
+  "pattern with non-ASCII digits" : [
+    "ascii digits",
+    "ascii non-digits",
+    "non-ascii digits (BENGALI DIGIT FOUR, BENGALI DIGIT TWO)"
+  ],
+  "patterns always use unicode semantics with patternProperties" : [
+    "ascii character in json string",
+    "literal unicode character in json string",
+    "unicode character in hex format in string",
+    "unicode matching is case-sensitive"
+  ],
+  "\\w in patternProperties matches [A-Za-z0-9_], not unicode letters" : [
+    "ascii character in json string",
+    "literal unicode character in json string",
+    "unicode character in hex format in string",
+    "unicode matching is case-sensitive"
+  ],
+  "patternProperties with ASCII ranges" : [
+    "literal unicode character in json string",
+    "unicode character in hex format in string",
+    "ascii characters match"
+  ],
+  "\\d in patternProperties matches [0-9], not unicode digits" : [
+    "ascii digits",
+    "ascii non-digits",
+    "non-ascii digits (BENGALI DIGIT FOUR, BENGALI DIGIT TWO)"
+  ],
+  "patternProperties with non-ASCII digits" : [
+    "ascii digits",
+    "ascii non-digits",
+    "non-ascii digits (BENGALI DIGIT FOUR, BENGALI DIGIT TWO)"
+  ]
+}

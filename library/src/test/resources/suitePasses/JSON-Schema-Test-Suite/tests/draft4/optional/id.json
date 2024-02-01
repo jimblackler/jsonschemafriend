@@ -1,0 +1,7 @@
+{
+  "id inside an enum is not a real identifier" : [
+    "exact match to enum, and type matches",
+    "match $ref to id",
+    "no match on enum or $ref to id"
+  ]
+}

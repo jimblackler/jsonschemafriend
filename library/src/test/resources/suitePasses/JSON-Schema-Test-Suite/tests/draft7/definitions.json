@@ -1,0 +1,6 @@
+{
+  "validate definition against metaschema" : [
+    "valid definition schema",
+    "invalid definition schema"
+  ]
+}

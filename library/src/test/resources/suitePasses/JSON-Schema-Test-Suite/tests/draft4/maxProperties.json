@@ -1,0 +1,14 @@
+{
+  "maxProperties validation" : [
+    "shorter is valid",
+    "exact length is valid",
+    "too long is invalid",
+    "ignores arrays",
+    "ignores strings",
+    "ignores other non-objects"
+  ],
+  "maxProperties = 0 means the object is empty" : [
+    "no properties is valid",
+    "one property is invalid"
+  ]
+}

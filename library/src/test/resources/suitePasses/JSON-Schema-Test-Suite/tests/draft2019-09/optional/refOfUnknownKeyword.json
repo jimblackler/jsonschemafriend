@@ -1,0 +1,13 @@
+{
+  "reference of a root arbitrary keyword " : [
+    "match",
+    "mismatch"
+  ],
+  "reference of an arbitrary keyword of a sub-schema" : [
+    "match",
+    "mismatch"
+  ],
+  "reference internals of known non-applicator" : [
+    "match"
+  ]
+}

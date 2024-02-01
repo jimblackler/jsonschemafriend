@@ -1,0 +1,13 @@
+{
+  "maxLength validation" : [
+    "shorter is valid",
+    "exact length is valid",
+    "too long is invalid",
+    "ignores non-strings",
+    "two graphemes is long enough"
+  ],
+  "maxLength validation with a decimal" : [
+    "shorter is valid",
+    "too long is invalid"
+  ]
+}

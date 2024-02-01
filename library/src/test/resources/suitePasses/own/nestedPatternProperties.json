@@ -1,0 +1,6 @@
+{
+  "patternProperties validates properties matching a regex" : [
+    "Data: {a={b=1}}",
+    "Data: {a={b=x}}"
+  ]
+}

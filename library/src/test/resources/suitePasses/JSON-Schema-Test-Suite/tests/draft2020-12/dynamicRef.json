@@ -1,0 +1,80 @@
+{
+  "A $dynamicRef to a $dynamicAnchor in the same schema resource behaves like a normal $ref to an $anchor" : [
+    "An array of strings is valid",
+    "An array containing non-strings is invalid"
+  ],
+  "A $dynamicRef to an $anchor in the same schema resource behaves like a normal $ref to an $anchor" : [
+    "An array of strings is valid",
+    "An array containing non-strings is invalid"
+  ],
+  "A $ref to a $dynamicAnchor in the same schema resource behaves like a normal $ref to an $anchor" : [
+    "An array of strings is valid",
+    "An array containing non-strings is invalid"
+  ],
+  "A $dynamicRef resolves to the first $dynamicAnchor still in scope that is encountered when the schema is evaluated" : [
+    "An array of strings is valid",
+    "An array containing non-strings is invalid"
+  ],
+  "A $dynamicRef without anchor in fragment behaves identical to $ref" : [
+    "An array of strings is invalid",
+    "An array of numbers is valid"
+  ],
+  "A $dynamicRef with intermediate scopes that don't include a matching $dynamicAnchor does not affect dynamic scope resolution" : [
+    "An array of strings is valid",
+    "An array containing non-strings is invalid"
+  ],
+  "An $anchor with the same name as a $dynamicAnchor is not used for dynamic scope resolution" : [
+    "Any array is valid"
+  ],
+  "A $dynamicRef without a matching $dynamicAnchor in the same schema resource behaves like a normal $ref to $anchor" : [
+    "Any array is valid"
+  ],
+  "A $dynamicRef with a non-matching $dynamicAnchor in the same schema resource behaves like a normal $ref to $anchor" : [
+    "Any array is valid"
+  ],
+  "A $dynamicRef that initially resolves to a schema with a matching $dynamicAnchor resolves to the first $dynamicAnchor in the dynamic scope" : [
+    "The recursive part is valid against the root",
+    "The recursive part is not valid against the root"
+  ],
+  "A $dynamicRef that initially resolves to a schema without a matching $dynamicAnchor behaves like a normal $ref to $anchor" : [
+    "The recursive part doesn't need to validate against the root"
+  ],
+  "multiple dynamic paths to the $dynamicRef keyword" : [
+    "number list with number values",
+    "number list with string values",
+    "string list with number values",
+    "string list with string values"
+  ],
+  "after leaving a dynamic scope, it is not used by a $dynamicRef" : [
+    "string matches /$defs/thingy, but the $dynamicRef does not stop here",
+    "first_scope is not in dynamic scope for the $dynamicRef",
+    "/then/$defs/thingy is the final stop for the $dynamicRef"
+  ],
+  "strict-tree schema, guards against misspelled properties" : [
+    "instance with misspelled field",
+    "instance with correct field"
+  ],
+  "tests for implementation dynamic anchor and reference link" : [
+    "incorrect parent schema",
+    "incorrect extended schema",
+    "correct extended schema"
+  ],
+  "$ref and $dynamicAnchor are independent of order - $defs first" : [
+    "incorrect parent schema",
+    "incorrect extended schema",
+    "correct extended schema"
+  ],
+  "$ref and $dynamicAnchor are independent of order - $ref first" : [
+    "incorrect parent schema",
+    "incorrect extended schema",
+    "correct extended schema"
+  ],
+  "$ref to $dynamicRef finds detached $dynamicAnchor" : [
+    "number is valid",
+    "non-number is invalid"
+  ],
+  "$dynamicRef points to a boolean schema" : [
+    "follow $dynamicRef to a true schema",
+    "follow $dynamicRef to a false schema"
+  ]
+}

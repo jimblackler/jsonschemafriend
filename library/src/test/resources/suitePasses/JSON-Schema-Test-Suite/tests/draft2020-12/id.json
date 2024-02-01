@@ -1,0 +1,12 @@
+{
+  "Valid use of empty fragments in location-independent $id" : [
+    "Identifier name with absolute URI",
+    "Identifier name with base URI change in subschema"
+  ],
+  "Unnormalized $ids are allowed but discouraged" : [
+    "Unnormalized identifier",
+    "Unnormalized identifier and no ref",
+    "Unnormalized identifier with empty fragment",
+    "Unnormalized identifier with empty fragment and no ref"
+  ]
+}
