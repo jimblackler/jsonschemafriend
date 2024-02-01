@@ -12,7 +12,7 @@ import java.util.Map;
 import java.util.logging.Logger;
 
 public class PathUtils {
-  public static final String ESCAPED_EMPTY = "~2";
+  private static final String ESCAPED_EMPTY = "~2";
   private static final Logger LOG = Logger.getLogger(PathUtils.class.getName());
 
   public static URI append(URI uri, String value) {
@@ -56,6 +56,7 @@ public class PathUtils {
     return queryFrom(jsonPointer, document);
   }
 
+  @SuppressWarnings("unchecked")
   private static Object queryFrom(JsonPointer jsonPointer, Object object)
       throws MissingPathException {
     if (jsonPointer.matches()) {
@@ -63,14 +64,14 @@ public class PathUtils {
     }
     if (object instanceof List) {
       int matchingIndex = jsonPointer.getMatchingIndex();
-      List<Object> list = (List<Object>) object;
+      List<?> list = (List<?>) object;
       if (matchingIndex < 0 || matchingIndex >= list.size()) {
         throw new MissingPathException(jsonPointer.toString());
       }
       return queryFrom(jsonPointer.tail(), list.get(matchingIndex));
     }
     if (object instanceof Map) {
-      Map<String, Object> map = (Map<String, Object>) object;
+      Map<String, ?> map = (Map<String, ?>) object;
       String property;
       try {
         property =
@@ -86,82 +87,7 @@ public class PathUtils {
     throw new MissingPathException(jsonPointer.toString());
   }
 
-  public static Object modifyAtPath(Object document, String path, Object newObject)
-      throws MissingPathException {
-    if (path == null || path.isEmpty()) {
-      return newObject;
-    }
-    try {
-      String parentPath = getParentPath(path);
-      path = path.replace(ESCAPED_EMPTY, "");
-      JsonPointer jsonPointer = JsonPointer.compile(parentPath);
-
-      Object parentObject = queryFrom(jsonPointer, document);
-      String lastPart = getLastPart(path);
-      lastPart = URLDecoder.decode(lastPart);
-      lastPart = jsonPointerUnescape(lastPart);
-
-      if (parentObject instanceof Map) {
-        ((Map<String, Object>) parentObject).put(lastPart, newObject);
-        return document;
-      }
-      if (parentObject instanceof List) {
-        ((List<Object>) parentObject).add(Integer.parseInt(lastPart), newObject);
-        return document;
-      }
-      throw new MissingPathException("Could not modify document");
-
-    } catch (IllegalArgumentException ex) {
-      throw new MissingPathException("Probable attempt to use an $id as a URL", ex);
-    }
-  }
-
-  public static void deleteAtPath(Object document, String path) throws MissingPathException {
-    if (path == null || path.isEmpty()) {
-      throw new MissingPathException();
-    }
-    try {
-      String parentPath = getParentPath(path);
-      path = path.replace(ESCAPED_EMPTY, "");
-      JsonPointer jsonPointer = JsonPointer.compile("#" + parentPath);
-
-      Object parentObject = queryFrom(jsonPointer, document);
-      String lastPart = getLastPart(path);
-      lastPart = URLDecoder.decode(lastPart);
-      lastPart = jsonPointerUnescape(lastPart);
-
-      if (parentObject instanceof Map) {
-        ((Map<String, Object>) parentObject).remove(lastPart);
-        return;
-      }
-      if (parentObject instanceof List) {
-        ((List<Object>) parentObject).remove(Integer.parseInt(lastPart));
-        return;
-      }
-      throw new MissingPathException("Could not modify document");
-
-    } catch (IllegalArgumentException ex) {
-      throw new MissingPathException("Probable attempt to use an $id as a URL", ex);
-    }
-  }
-
-  private static String getParentPath(String path) throws MissingPathException {
-    int i = path.lastIndexOf('/');
-    if (i == -1) {
-      throw new MissingPathException("No parent");
-    }
-    return path.substring(0, i);
-  }
-
-  private static String getLastPart(String path) {
-    int i = path.lastIndexOf('/');
-    if (i == -1) {
-      return path;
-    }
-    return path.substring(i + 1);
-  }
-
-  static String uriComponentEncode(String value) {
+  private static String uriComponentEncode(String value) {
     String encoded;
     try {
       encoded = URLEncoder.encode(value, StandardCharsets.UTF_8.name());
@@ -179,32 +105,10 @@ public class PathUtils {
     return encoded;
   }
 
-  private static String jsonPointerUnescape(String token) {
-    // This matches the JSONPointer escaping method which may not match RFC 6901 which does not
-    // require quotes to be encoded.
-    return token.replace("~1", "/").replace("~0", "~").replace("\\\"", "\"").replace("\\\\", "\\");
-  }
-
-  public static URI getParent(URI uri) {
-    String pointer = uri.getRawFragment();
-    if (pointer == null) {
-      return null;
-    }
-    int i = pointer.lastIndexOf('/');
-    if (i == -1) {
-      return null;
-    }
-    try {
-      return new URI(uri.getScheme(), uri.getHost(), uri.getPath(), pointer.substring(0, i));
-    } catch (URISyntaxException e) {
-      throw new IllegalStateException(e);
-    }
-  }
-
   /**
    * Generate a resolved URI from a base and child URI.
    *
-   * This is a replacement for java.net.URI.resolve that can handle 'non-authority' schemes like
+   * <p>This is a replacement for java.net.URI.resolve that can handle 'non-authority' schemes like
    * urn: or jar:
    *
    * @param base The base URI.
@@ -287,8 +191,8 @@ public class PathUtils {
    * dictionaries. Where there are multiple valid ways to express the same URI we have to chose one
    * as the canonical form if URIs are to be used as keys in storage structures.
    * <p>
-   * For example; http://example.com, http://example.com# and http://example.com#/ are all valid but
-   * equivalent pointers.
+   * For example; {@code http://example.com}, {@code http://example.com#} and {@code http://example.com#/}
+   * are all valid but equivalent pointers.
    *
    * @param uri The URL to normalize.
    * @return The normalized form of the URI.
