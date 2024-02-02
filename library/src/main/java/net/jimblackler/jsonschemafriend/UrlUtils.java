@@ -9,12 +9,11 @@ import static net.jimblackler.jsonschemafriend.StreamUtils.streamToString;
 public class UrlUtils {
   static String readFromStream(URL url) throws IOException {
     IOException originalError = null;
-    String result;
+    String result = "";
     try (InputStream stream = url.openStream()) {
       result = streamToString(stream);
     } catch (final IOException e) {
       originalError = e;
-      result = "";
     }
     if (result.isEmpty() && "http".equals(url.getProtocol())) {
       // in case tried http and received empty content, try to connect to same url with https
