@@ -13,7 +13,11 @@ public class UrlUtils {
     try (InputStream stream = url.openStream()) {
       result = streamToString(stream);
     } catch (final IOException e) {
-      originalError = e;
+      if ("http".equals(url.getProtocol())) {
+        originalError = e;
+      } else {
+        throw e;
+      }
     }
     if (result.isEmpty() && "http".equals(url.getProtocol())) {
       // in case tried http and received empty content, try to connect to same url with https
