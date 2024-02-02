@@ -1,5 +1,7 @@
 package net.jimblackler.jsonschemafriend;
 
+import com.sun.org.apache.xalan.internal.res.XSLTErrorResources;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
@@ -11,6 +13,10 @@ public class UrlUtils {
     String result;
     try (InputStream stream = url.openStream()) {
       result = streamToString(stream);
+    } catch (final IOException e) {
+      System.err.println(e.getMessage());
+      e.printStackTrace(System.err);
+      throw e;
     }
     if (result.isEmpty() && "http".equals(url.getProtocol())) {
       // in case tried http and received empty content, try to connect to same url with https
