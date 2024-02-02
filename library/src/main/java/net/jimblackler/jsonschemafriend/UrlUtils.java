@@ -8,24 +8,15 @@ import static net.jimblackler.jsonschemafriend.StreamUtils.streamToString;
 
 public class UrlUtils {
   static String readFromStream(URL url) throws IOException {
-    IOException originalError = null;
-    String result = "";
+    String result;
     try (InputStream stream = url.openStream()) {
       result = streamToString(stream);
-    } catch (final IOException e) {
-      if ("http".equals(url.getProtocol())) {
-        originalError = e;
-      } else {
-        throw e;
-      }
     }
     if (result.isEmpty() && "http".equals(url.getProtocol())) {
       // in case tried http and received empty content, try to connect to same url with https
       URL secureUrl = new URL(url.toString().replaceFirst("http", "https"));
       try (InputStream stream = secureUrl.openStream()) {
         result = streamToString(stream);
-      } catch (final IOException e) {
-        throw originalError == null ? e : originalError;
       }
     }
     return result;
