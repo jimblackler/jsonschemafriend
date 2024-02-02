@@ -50,6 +50,14 @@ test {
     useJUnitPlatform()
 
     systemProperty "run.smoke.test", project.findProperty('run.smoke.test') ?: false
+
+    testLogging {
+        showStandardStreams = true
+        exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
+        showCauses = true
+        showExceptions = true
+        showStackTraces = true
+    }
 }
 
 dependencies {
