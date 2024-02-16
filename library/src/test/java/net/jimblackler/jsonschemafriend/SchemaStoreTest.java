@@ -4,8 +4,10 @@ import static net.jimblackler.jsonschemafriend.ReaderUtils.getLines;
 import static net.jimblackler.jsonschemafriend.ResourceUtils.getResource;
 import static net.jimblackler.jsonschemafriend.ResourceUtils.getResourceAsStream;
 import static net.jimblackler.jsonschemafriend.TestUtil.clearDirectory;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.empty;
+import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
@@ -180,8 +182,8 @@ public class SchemaStoreTest {
 
             System.out.println(objectWriter.writeValueAsString(output));
 
-            assertTrue(extraReported.isEmpty(), "Errors reported not seen in reference file");
-            assertTrue(notReported.isEmpty(), "Errors in reference file not reported");
+            assertThat("Errors reported not seen in reference file",  extraReported, is(empty()));
+            assertThat("Errors in reference file not reported", notReported, is(empty()));
           }
 
           maybeWriteOutPassFile(mustFail, schemaName, testFileName);
