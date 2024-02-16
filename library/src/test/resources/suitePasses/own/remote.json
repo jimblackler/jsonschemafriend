@@ -1,0 +1,10 @@
+{
+  "Remote file" : [
+    "Data: 5",
+    "Data: hello"
+  ],
+  "Remote with ID" : [
+    "Data: 5",
+    "Data: hello"
+  ]
+}

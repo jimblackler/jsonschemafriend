@@ -1,0 +1,50 @@
+{
+  "email format" : [
+    "all string formats ignore integers",
+    "all string formats ignore floats",
+    "all string formats ignore objects",
+    "all string formats ignore arrays",
+    "all string formats ignore booleans",
+    "all string formats ignore nulls"
+  ],
+  "ipv4 format" : [
+    "all string formats ignore integers",
+    "all string formats ignore floats",
+    "all string formats ignore objects",
+    "all string formats ignore arrays",
+    "all string formats ignore booleans",
+    "all string formats ignore nulls"
+  ],
+  "ipv6 format" : [
+    "all string formats ignore integers",
+    "all string formats ignore floats",
+    "all string formats ignore objects",
+    "all string formats ignore arrays",
+    "all string formats ignore booleans",
+    "all string formats ignore nulls"
+  ],
+  "hostname format" : [
+    "all string formats ignore integers",
+    "all string formats ignore floats",
+    "all string formats ignore objects",
+    "all string formats ignore arrays",
+    "all string formats ignore booleans",
+    "all string formats ignore nulls"
+  ],
+  "date-time format" : [
+    "all string formats ignore integers",
+    "all string formats ignore floats",
+    "all string formats ignore objects",
+    "all string formats ignore arrays",
+    "all string formats ignore booleans",
+    "all string formats ignore nulls"
+  ],
+  "uri format" : [
+    "all string formats ignore integers",
+    "all string formats ignore floats",
+    "all string formats ignore objects",
+    "all string formats ignore arrays",
+    "all string formats ignore booleans",
+    "all string formats ignore nulls"
+  ]
+}

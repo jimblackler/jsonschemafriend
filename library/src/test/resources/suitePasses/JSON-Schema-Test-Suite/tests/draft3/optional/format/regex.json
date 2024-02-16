@@ -1,0 +1,6 @@
+{
+  "validation of regular expressions" : [
+    "a valid regular expression",
+    "a regular expression with unclosed parens is invalid"
+  ]
+}

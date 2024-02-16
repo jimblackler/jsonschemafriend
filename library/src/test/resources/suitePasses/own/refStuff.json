@@ -1,0 +1,10 @@
+{
+  "Use $id on target" : [
+    "Data: {someNumber=xyz}",
+    "Data: {someNumber=3}"
+  ],
+  "$refs resolved with domain from closest ancestor" : [
+    "Data: {someNumber=xyz}",
+    "Data: {someNumber=3}"
+  ]
+}

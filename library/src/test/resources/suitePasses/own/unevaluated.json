@@ -1,0 +1,5 @@
+{
+  "oneOf combined with unevaluatedProperties" : [
+    "oneOf schemas that fail validation don't evaluate properties"
+  ]
+}

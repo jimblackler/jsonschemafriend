@@ -1,0 +1,22 @@
+{
+  "validation of host names" : [
+    "all string formats ignore integers",
+    "all string formats ignore floats",
+    "all string formats ignore objects",
+    "all string formats ignore arrays",
+    "all string formats ignore booleans",
+    "all string formats ignore nulls",
+    "a valid host name",
+    "a valid punycoded IDN hostname",
+    "a host name starting with an illegal character",
+    "a host name containing illegal characters",
+    "a host name with a component too long",
+    "starts with hyphen",
+    "ends with hyphen",
+    "starts with underscore",
+    "ends with underscore",
+    "contains underscore",
+    "maximum label length",
+    "exceeds maximum label length"
+  ]
+}

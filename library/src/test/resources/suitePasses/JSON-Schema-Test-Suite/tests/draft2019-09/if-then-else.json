@@ -1,0 +1,48 @@
+{
+  "ignore if without then or else" : [
+    "valid when valid against lone if",
+    "valid when invalid against lone if"
+  ],
+  "ignore then without if" : [
+    "valid when valid against lone then",
+    "valid when invalid against lone then"
+  ],
+  "ignore else without if" : [
+    "valid when valid against lone else",
+    "valid when invalid against lone else"
+  ],
+  "if and then without else" : [
+    "valid through then",
+    "invalid through then",
+    "valid when if test fails"
+  ],
+  "if and else without then" : [
+    "valid when if test passes",
+    "valid through else",
+    "invalid through else"
+  ],
+  "validate against correct branch, then vs else" : [
+    "valid through then",
+    "invalid through then",
+    "valid through else",
+    "invalid through else"
+  ],
+  "non-interference across combined schemas" : [
+    "valid, but would have been invalid through then",
+    "valid, but would have been invalid through else"
+  ],
+  "if with boolean schema true" : [
+    "boolean schema true in if always chooses the then path (valid)",
+    "boolean schema true in if always chooses the then path (invalid)"
+  ],
+  "if with boolean schema false" : [
+    "boolean schema false in if always chooses the else path (invalid)",
+    "boolean schema false in if always chooses the else path (valid)"
+  ],
+  "if appears at the end when serialized (keyword processing sequence)" : [
+    "yes redirects to then and passes",
+    "other redirects to else and passes",
+    "no redirects to then and fails",
+    "invalid redirects to else and fails"
+  ]
+}

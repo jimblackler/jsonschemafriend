@@ -1,0 +1,49 @@
+{
+  "root pointer ref" : [
+    "match",
+    "recursive match",
+    "mismatch",
+    "recursive mismatch"
+  ],
+  "relative pointer ref to object" : [
+    "match",
+    "mismatch"
+  ],
+  "relative pointer ref to array" : [
+    "match array",
+    "mismatch array"
+  ],
+  "escaped pointer ref" : [
+    "slash invalid",
+    "tilde invalid",
+    "percent invalid",
+    "slash valid",
+    "tilde valid",
+    "percent valid"
+  ],
+  "nested refs" : [
+    "nested ref valid",
+    "nested ref invalid"
+  ],
+  "ref overrides any sibling keywords" : [
+    "remote ref valid",
+    "remote ref valid, maxItems ignored",
+    "ref invalid"
+  ],
+  "property named $ref, containing an actual $ref" : [
+    "property named $ref valid",
+    "property named $ref invalid"
+  ],
+  "$ref prevents a sibling id from changing the base uri" : [
+    "$ref resolves to /definitions/base_foo, data does not validate",
+    "$ref resolves to /definitions/base_foo, data validates"
+  ],
+  "remote ref, containing refs itself" : [
+    "remote ref valid",
+    "remote ref invalid"
+  ],
+  "naive replacement of $ref with its destination is not correct" : [
+    "do not evaluate the $ref inside the enum, matching any string",
+    "match the enum exactly"
+  ]
+}

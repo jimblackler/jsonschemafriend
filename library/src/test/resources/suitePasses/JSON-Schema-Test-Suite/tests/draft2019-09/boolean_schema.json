@@ -1,0 +1,24 @@
+{
+  "boolean schema 'true'" : [
+    "number is valid",
+    "string is valid",
+    "boolean true is valid",
+    "boolean false is valid",
+    "null is valid",
+    "object is valid",
+    "empty object is valid",
+    "array is valid",
+    "empty array is valid"
+  ],
+  "boolean schema 'false'" : [
+    "number is invalid",
+    "string is invalid",
+    "boolean true is invalid",
+    "boolean false is invalid",
+    "null is invalid",
+    "object is invalid",
+    "empty object is invalid",
+    "array is invalid",
+    "empty array is invalid"
+  ]
+}

@@ -1,0 +1,82 @@
+{
+  "const validation" : [
+    "same value is valid",
+    "another value is invalid",
+    "another type is invalid"
+  ],
+  "const with object" : [
+    "same object is valid",
+    "same object with different property order is valid",
+    "another object is invalid",
+    "another type is invalid"
+  ],
+  "const with array" : [
+    "same array is valid",
+    "another array item is invalid",
+    "array with additional items is invalid"
+  ],
+  "const with null" : [
+    "null is valid",
+    "not null is invalid"
+  ],
+  "const with false does not match 0" : [
+    "false is valid",
+    "integer zero is invalid",
+    "float zero is invalid"
+  ],
+  "const with true does not match 1" : [
+    "true is valid",
+    "integer one is invalid",
+    "float one is invalid"
+  ],
+  "const with [false] does not match [0]" : [
+    "[false] is valid",
+    "[0] is invalid",
+    "[0.0] is invalid"
+  ],
+  "const with [true] does not match [1]" : [
+    "[true] is valid",
+    "[1] is invalid",
+    "[1.0] is invalid"
+  ],
+  "const with {\"a\": false} does not match {\"a\": 0}" : [
+    "{\"a\": false} is valid",
+    "{\"a\": 0} is invalid",
+    "{\"a\": 0.0} is invalid"
+  ],
+  "const with {\"a\": true} does not match {\"a\": 1}" : [
+    "{\"a\": true} is valid",
+    "{\"a\": 1} is invalid",
+    "{\"a\": 1.0} is invalid"
+  ],
+  "const with 0 does not match other zero-like types" : [
+    "false is invalid",
+    "integer zero is valid",
+    "float zero is valid",
+    "empty object is invalid",
+    "empty array is invalid",
+    "empty string is invalid"
+  ],
+  "const with 1 does not match true" : [
+    "true is invalid",
+    "integer one is valid",
+    "float one is valid"
+  ],
+  "const with -2.0 matches integer and float types" : [
+    "integer -2 is valid",
+    "integer 2 is invalid",
+    "float -2.0 is valid",
+    "float 2.0 is invalid",
+    "float -2.00001 is invalid"
+  ],
+  "float and integers are equal up to 64-bit representation limits" : [
+    "integer is valid",
+    "integer minus one is invalid",
+    "float is valid",
+    "float minus one is invalid"
+  ],
+  "nul characters in strings" : [
+    "match string with nul",
+    "do not match string lacking nul"
+  ]
+}

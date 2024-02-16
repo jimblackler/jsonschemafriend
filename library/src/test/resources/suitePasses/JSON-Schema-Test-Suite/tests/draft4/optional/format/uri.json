@@ -1,0 +1,30 @@
+{
+  "validation of URIs" : [
+    "all string formats ignore integers",
+    "all string formats ignore floats",
+    "all string formats ignore objects",
+    "all string formats ignore arrays",
+    "all string formats ignore booleans",
+    "all string formats ignore nulls",
+    "a valid URL with anchor tag",
+    "a valid URL with anchor tag and parentheses",
+    "a valid URL with URL-encoded stuff",
+    "a valid puny-coded URL ",
+    "a valid URL with many special characters",
+    "a valid URL based on IPv4",
+    "a valid URL with ftp scheme",
+    "a valid URL for a simple text file",
+    "a valid URL ",
+    "a valid mailto URI",
+    "a valid newsgroup URI",
+    "a valid tel URI",
+    "a valid URN",
+    "an invalid protocol-relative URI Reference",
+    "an invalid relative URI Reference",
+    "an invalid URI",
+    "an invalid URI though valid URI reference",
+    "an invalid URI with spaces",
+    "an invalid URI with spaces and missing scheme",
+    "an invalid URI with comma in scheme"
+  ]
+}

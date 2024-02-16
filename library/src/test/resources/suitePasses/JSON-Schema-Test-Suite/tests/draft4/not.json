@@ -1,0 +1,20 @@
+{
+  "not" : [
+    "allowed",
+    "disallowed"
+  ],
+  "not multiple types" : [
+    "valid",
+    "mismatch",
+    "other mismatch"
+  ],
+  "not more complex schema" : [
+    "match",
+    "other match",
+    "mismatch"
+  ],
+  "forbidden property" : [
+    "property present",
+    "property absent"
+  ]
+}

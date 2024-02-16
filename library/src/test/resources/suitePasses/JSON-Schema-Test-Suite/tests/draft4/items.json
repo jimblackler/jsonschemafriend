@@ -1,0 +1,35 @@
+{
+  "a schema given for items" : [
+    "valid items",
+    "wrong type of items",
+    "ignores non-arrays",
+    "JavaScript pseudo-array is valid"
+  ],
+  "an array of schemas for items" : [
+    "correct types",
+    "wrong types",
+    "incomplete array of items",
+    "array with additional items",
+    "empty array",
+    "JavaScript pseudo-array is valid"
+  ],
+  "items and subitems" : [
+    "valid items",
+    "too many items",
+    "too many sub-items",
+    "wrong item",
+    "wrong sub-item",
+    "fewer items is valid"
+  ],
+  "nested items" : [
+    "valid nested array",
+    "nested array with invalid type",
+    "not deep enough"
+  ],
+  "items with null instance elements" : [
+    "allows null elements"
+  ],
+  "array-form items with null instance elements" : [
+    "allows null elements"
+  ]
+}

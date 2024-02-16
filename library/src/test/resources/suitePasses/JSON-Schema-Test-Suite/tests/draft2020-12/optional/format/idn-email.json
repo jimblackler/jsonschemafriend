@@ -1,0 +1,13 @@
+{
+  "validation of an internationalized e-mail addresses" : [
+    "all string formats ignore integers",
+    "all string formats ignore floats",
+    "all string formats ignore objects",
+    "all string formats ignore arrays",
+    "all string formats ignore booleans",
+    "all string formats ignore nulls",
+    "an invalid idn e-mail address",
+    "a valid e-mail address",
+    "an invalid e-mail address"
+  ]
+}

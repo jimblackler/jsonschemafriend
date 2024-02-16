@@ -1,0 +1,17 @@
+{
+  "a schema given for items" : [
+    "valid items",
+    "wrong type of items",
+    "ignores non-arrays"
+  ],
+  "an array of schemas for items" : [
+    "correct types",
+    "wrong types"
+  ],
+  "items with null instance elements" : [
+    "allows null elements"
+  ],
+  "array-form items with null instance elements" : [
+    "allows null elements"
+  ]
+}

@@ -1,12 +1,15 @@
 package net.jimblackler.jsonschemafriend;
 
 import static net.jimblackler.jsonschemafriend.ResourceUtils.getResourceAsStream;
+import static net.jimblackler.jsonschemafriend.TestUtil.clearDirectory;
 import static net.jimblackler.jsonschemafriend.Utils.getOrDefault;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.fail;
 import static org.junit.jupiter.api.Assumptions.assumeTrue;
 import static org.junit.jupiter.api.DynamicContainer.dynamicContainer;
 import static org.junit.jupiter.api.DynamicTest.dynamicTest;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.core.util.DefaultIndenter;
 import com.fasterxml.jackson.core.util.DefaultPrettyPrinter;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -26,20 +29,59 @@ import java.nio.file.FileSystem;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DynamicNode;
 import org.junit.jupiter.api.DynamicTest;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestFactory;
 
+
+/**
+ * Run through the test cases setup in the
+ * <a href="https://github.com/json-schema-org/JSON-Schema-Test-Suite">JSON-Schema-Test-Suite</a> repo.
+ *
+ * <p>These tests are out of our control. New tests are constantly being added and can cause failures locally.
+ * To support a stable build, only known good test cases are run as part of the CI build.
+ * The list of known good test cases can be updated by setting {@code WRITE_OUTPUT} to {@code true} below,
+ * running the tests and then reviewing & then replacing {@code library/src/test/resources/suitePasses}
+ * with {@code library/suitePasses}.
+ */
 public class SuiteTest {
-  public static final FileSystem FILE_SYSTEM = FileSystems.getDefault();
-  private static final boolean WRITE_ALLOWLIST = false;
+  private static final FileSystem FILE_SYSTEM = FileSystems.getDefault();
+  private static final Path PASSES_OUTPUT_DIR = Paths.get("suitePasses");
+  /**
+   * GitHub workflow that runs with this set to {@code true}, so that only known good tests are run.
+   *
+   * <p>This stops bad test data in the SchemaStore project from causing build failures in this project.
+   */
+  private static final boolean SMOKE_TEST = Boolean.getBoolean("run.smoke.test");
+  /**
+   * Locally change this to {@code true} to have the test write out details of passing a failing tests
+   */
+  private static final boolean WRITE_OUTPUT = false;
+
+  @BeforeAll
+  static void classSetUp() throws Exception {
+    if (WRITE_OUTPUT) {
+      clearDirectory(Paths.get("suiteAllowList"));
+      clearDirectory(PASSES_OUTPUT_DIR);
+    }
+  }
+
+  @Test
+  void shouldNotCheckInWithWriteOutputEnabled() {
+    assertFalse(WRITE_OUTPUT);
+  }
 
   private static Collection<DynamicNode> scan(Set<Path> testDirs, Path remotes, URI metaSchema, boolean runFormatTests) {
     ObjectMapper objectMapper = new ObjectMapper().enable(SerializationFeature.INDENT_OUTPUT);
@@ -62,10 +104,22 @@ public class SuiteTest {
           if (!resource.endsWith(".json")) {
             continue;
           }
-          Collection<DynamicNode> nodes = new ArrayList<>();
-          Path resourcePath = path.resolve(resource);
-          URI testSourceUri =
-              ResourceUtils.getResource(SuiteTest.class, resourcePath.toString()).toURI();
+
+          Path passesFile = FILE_SYSTEM.getPath(path.resolve(resource)
+                  .toString().replaceFirst("[/\\\\]suites[/\\\\]", "suitePasses/"));
+          final Map<String, Set<String>> passesIn;
+          if (SMOKE_TEST) {
+            final InputStream passes = getResourceAsStream(SchemaStoreTest.class, "/" + passesFile);
+            if (passes == null) {
+              passesIn = new HashMap<>();
+            } else {
+              passesIn = objectMapper.readValue(passes, new TypeReference<Map<String, Set<String>>>() {
+              });
+            }
+          } else {
+            passesIn = new HashMap<>();
+          }
+
           Path allowListFolder =
               FILE_SYSTEM.getPath(path.toString().replaceFirst("[/\\\\]suites[/\\\\]", "suiteAllowList/"));
           Path allowListFile = allowListFolder.resolve(resource);
@@ -75,10 +129,16 @@ public class SuiteTest {
               ? new LinkedHashMap<>()
               : objectReader.readValue(allowListInStream, Map.class);
 
-          Map<String, Object> allowListOut = new LinkedHashMap<>();
+          Path resourcePath = path.resolve(resource);
+          URI testSourceUri =
+                  ResourceUtils.getResource(SuiteTest.class, resourcePath.toString()).toURI();
+
+          Collection<DynamicNode> nodes = new ArrayList<>();
+          Map<String, Map<String, Object>> allowListOut = new LinkedHashMap<>();
+          Map<String, List<String>> passListOut = new LinkedHashMap<>();
           try (InputStream inputStream1 =
                    getResourceAsStream(SuiteTest.class, resourcePath.toString())) {
-            List<Object> data = (List<Object>) objectMapper.readValue(inputStream1, Object.class);
+            List<?> data = (List<?>) objectMapper.readValue(inputStream1, List.class);
             for (int idx = 0; idx != data.size(); idx++) {
               Map<String, Object> testSet = (Map<String, Object>) data.get(idx);
               if (!testSet.containsKey("schema")) {
@@ -101,6 +161,11 @@ public class SuiteTest {
                 boolean valid = getOrDefault(test, "valid", false);
                 String description = getOrDefault(test, "description", "Data: " + data1);
                 tests.add(dynamicTest(valid ? description : description + "(F)", testSourceUri, () -> {
+                  if (SMOKE_TEST) {
+                    final Set<String> passingTests = passesIn.getOrDefault(testsDescription, new HashSet<>());
+                    assumeTrue(passingTests.contains(description));
+                  }
+
                   System.out.println("Schema:");
                   System.out.println(objectMapper.writeValueAsString(schemaObject));
                   System.out.println();
@@ -128,9 +193,8 @@ public class SuiteTest {
                   }
 
                   if (errors.isEmpty() != valid) {
-                    if (WRITE_ALLOWLIST) {
-                      Map<String, Object> testsAllowList =
-                          (Map<String, Object>) allowListOut.get(testsDescription);
+                    if (WRITE_OUTPUT) {
+                      Map<String, Object> testsAllowList = allowListOut.get(testsDescription);
                       if (testsAllowList == null) {
                         testsAllowList = new LinkedHashMap<>();
                         allowListOut.put(testsDescription, testsAllowList);
@@ -152,6 +216,8 @@ public class SuiteTest {
                         fail();
                       }
                     }
+                  } else {
+                    maybeWriteOutPassFile(passesFile, testsDescription, description, passListOut, objectWriter);
                   }
                 }));
               }
@@ -168,6 +234,22 @@ public class SuiteTest {
     }
 
     return allFileTests;
+  }
+
+  private static void maybeWriteOutPassFile(
+          Path passesFile,
+          String testsDescription,
+          String description,
+          Map<String, List<String>> passListOut, final ObjectWriter objectWriter) throws IOException{
+    if (!WRITE_OUTPUT) {
+      return;
+    }
+
+    passListOut.computeIfAbsent(testsDescription, desc -> new ArrayList<>())
+            .add(description);
+
+    Files.createDirectories(passesFile.getParent());
+    objectWriter.writeValue(passesFile.toFile(), passListOut);
   }
 
   private static Collection<DynamicNode> test(String set, String metaSchema, boolean runFormatTests) {

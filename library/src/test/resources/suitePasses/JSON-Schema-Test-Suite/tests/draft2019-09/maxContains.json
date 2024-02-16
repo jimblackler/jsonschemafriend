@@ -1,0 +1,22 @@
+{
+  "maxContains without contains is ignored" : [
+    "one item valid against lone maxContains",
+    "two items still valid against lone maxContains"
+  ],
+  "maxContains with contains" : [
+    "empty data",
+    "all elements match, valid maxContains",
+    "all elements match, invalid maxContains",
+    "some elements match, valid maxContains",
+    "some elements match, invalid maxContains"
+  ],
+  "maxContains with contains, value with a decimal" : [
+    "one element matches, valid maxContains",
+    "too many elements match, invalid maxContains"
+  ],
+  "minContains < maxContains" : [
+    "actual < minContains < maxContains",
+    "minContains < actual < maxContains",
+    "minContains < maxContains < actual"
+  ]
+}

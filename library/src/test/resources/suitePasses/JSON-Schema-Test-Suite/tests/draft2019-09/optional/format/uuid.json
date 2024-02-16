@@ -1,0 +1,25 @@
+{
+  "uuid format" : [
+    "all string formats ignore integers",
+    "all string formats ignore floats",
+    "all string formats ignore objects",
+    "all string formats ignore arrays",
+    "all string formats ignore booleans",
+    "all string formats ignore nulls",
+    "all upper-case",
+    "all lower-case",
+    "mixed case",
+    "all zeroes is valid",
+    "wrong length",
+    "missing section",
+    "bad characters (not hex)",
+    "no dashes",
+    "too few dashes",
+    "too many dashes",
+    "dashes in the wrong spot",
+    "valid version 4",
+    "valid version 5",
+    "hypothetical version 6",
+    "hypothetical version 15"
+  ]
+}
