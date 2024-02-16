@@ -1,0 +1,15 @@
+{
+  "pattern validation" : [
+    "a matching pattern is valid",
+    "a non-matching pattern is invalid",
+    "ignores booleans",
+    "ignores integers",
+    "ignores floats",
+    "ignores objects",
+    "ignores arrays",
+    "ignores null"
+  ],
+  "pattern is not anchored" : [
+    "matches a substring"
+  ]
+}

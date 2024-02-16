@@ -1,0 +1,7 @@
+{
+  "validation of IP addresses" : [
+    "a valid IP address",
+    "an IP address with too many components",
+    "an IP address with out-of-range values"
+  ]
+}

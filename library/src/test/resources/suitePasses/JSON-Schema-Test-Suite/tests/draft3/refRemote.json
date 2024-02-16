@@ -1,0 +1,18 @@
+{
+  "remote ref" : [
+    "remote ref valid",
+    "remote ref invalid"
+  ],
+  "fragment within remote ref" : [
+    "remote fragment valid",
+    "remote fragment invalid"
+  ],
+  "ref within remote ref" : [
+    "ref within ref valid",
+    "ref within ref invalid"
+  ],
+  "change resolution scope" : [
+    "changed scope ref valid",
+    "changed scope ref invalid"
+  ]
+}

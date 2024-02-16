@@ -1,0 +1,51 @@
+{
+  "a schema given for items" : [
+    "valid items",
+    "wrong type of items",
+    "ignores non-arrays",
+    "JavaScript pseudo-array is valid"
+  ],
+  "items with boolean schema (true)" : [
+    "any array is valid",
+    "empty array is valid"
+  ],
+  "items with boolean schema (false)" : [
+    "any non-empty array is invalid",
+    "empty array is valid"
+  ],
+  "items and subitems" : [
+    "valid items",
+    "too many items",
+    "too many sub-items",
+    "wrong item",
+    "wrong sub-item",
+    "fewer items is valid"
+  ],
+  "nested items" : [
+    "valid nested array",
+    "nested array with invalid type",
+    "not deep enough"
+  ],
+  "prefixItems with no additional items allowed" : [
+    "empty array",
+    "fewer number of items present (1)",
+    "fewer number of items present (2)",
+    "equal number of items present",
+    "additional items are not permitted"
+  ],
+  "items does not look in applicators, valid case" : [
+    "prefixItems in allOf does not constrain items, invalid case",
+    "prefixItems in allOf does not constrain items, valid case"
+  ],
+  "prefixItems validation adjusts the starting index for items" : [
+    "valid items",
+    "wrong type of second item"
+  ],
+  "items with heterogeneous array" : [
+    "heterogeneous invalid instance",
+    "valid instance"
+  ],
+  "items with null instance elements" : [
+    "allows null elements"
+  ]
+}

@@ -1,0 +1,10 @@
+{
+  "Single property" : [
+    "Data: {someValue=4}",
+    "Data: {someValue=x}"
+  ],
+  "required" : [
+    "Data: {someValue=4}",
+    "Data: {}"
+  ]
+}

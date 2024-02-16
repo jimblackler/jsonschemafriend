@@ -1,0 +1,14 @@
+{
+  "minProperties validation" : [
+    "longer is valid",
+    "exact length is valid",
+    "too short is invalid",
+    "ignores arrays",
+    "ignores strings",
+    "ignores other non-objects"
+  ],
+  "minProperties validation with a decimal" : [
+    "longer is valid",
+    "too short is invalid"
+  ]
+}

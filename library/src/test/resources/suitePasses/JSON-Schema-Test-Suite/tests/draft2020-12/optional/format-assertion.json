@@ -1,0 +1,10 @@
+{
+  "schema that uses custom metaschema with format-assertion: false" : [
+    "format-assertion: false: valid string",
+    "format-assertion: false: invalid string"
+  ],
+  "schema that uses custom metaschema with format-assertion: true" : [
+    "format-assertion: true: valid string",
+    "format-assertion: true: invalid string"
+  ]
+}

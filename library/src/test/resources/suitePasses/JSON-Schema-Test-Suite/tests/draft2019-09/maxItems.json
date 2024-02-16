@@ -1,0 +1,12 @@
+{
+  "maxItems validation" : [
+    "shorter is valid",
+    "exact length is valid",
+    "too long is invalid",
+    "ignores non-arrays"
+  ],
+  "maxItems validation with a decimal" : [
+    "shorter is valid",
+    "too long is invalid"
+  ]
+}

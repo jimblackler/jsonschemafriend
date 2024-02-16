@@ -1,0 +1,24 @@
+{
+  "Location-independent identifier" : [
+    "match",
+    "mismatch"
+  ],
+  "Location-independent identifier with absolute URI" : [
+    "match",
+    "mismatch"
+  ],
+  "Location-independent identifier with base URI change in subschema" : [
+    "match",
+    "mismatch"
+  ],
+  "$anchor inside an enum is not a real identifier" : [
+    "exact match to enum, and type matches",
+    "in implementations that strip $anchor, this may match either $def",
+    "match $ref to $anchor",
+    "no match on enum or $ref to $anchor"
+  ],
+  "same $anchor with different base uri" : [
+    "$ref should resolve to /$defs/A/allOf/1",
+    "$ref should not resolve to /$defs/A/allOf/0"
+  ]
+}

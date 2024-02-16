@@ -1,0 +1,40 @@
+{
+  "additionalItems as schema" : [
+    "additional items match schema",
+    "additional items do not match schema"
+  ],
+  "when items is schema, additionalItems does nothing" : [
+    "all items match schema"
+  ],
+  "array of items with no additionalItems permitted" : [
+    "empty array",
+    "fewer number of items present (1)",
+    "fewer number of items present (2)",
+    "equal number of items present",
+    "additional items are not permitted"
+  ],
+  "additionalItems as false without items" : [
+    "items defaults to empty schema so everything is valid",
+    "ignores non-arrays"
+  ],
+  "additionalItems are allowed by default" : [
+    "only the first item is validated"
+  ],
+  "additionalItems does not look in applicators, valid case" : [
+    "items defined in allOf are not examined"
+  ],
+  "additionalItems does not look in applicators, invalid case" : [
+    "items defined in allOf are not examined"
+  ],
+  "items validation adjusts the starting index for additionalItems" : [
+    "valid items",
+    "wrong type of second item"
+  ],
+  "additionalItems with heterogeneous array" : [
+    "heterogeneous invalid instance",
+    "valid instance"
+  ],
+  "additionalItems with null instance elements" : [
+    "allows null elements"
+  ]
+}

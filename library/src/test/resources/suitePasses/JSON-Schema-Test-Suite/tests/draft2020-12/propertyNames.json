@@ -1,0 +1,18 @@
+{
+  "propertyNames validation" : [
+    "all property names valid",
+    "some property names invalid",
+    "object without properties is valid",
+    "ignores arrays",
+    "ignores strings",
+    "ignores other non-objects"
+  ],
+  "propertyNames with boolean schema true" : [
+    "object with any properties is valid",
+    "empty object is valid"
+  ],
+  "propertyNames with boolean schema false" : [
+    "object with any properties is invalid",
+    "empty object is valid"
+  ]
+}

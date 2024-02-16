@@ -1,0 +1,11 @@
+{
+  "unknown format" : [
+    "unknown formats ignore integers",
+    "unknown formats ignore floats",
+    "unknown formats ignore objects",
+    "unknown formats ignore arrays",
+    "unknown formats ignore booleans",
+    "unknown formats ignore nulls",
+    "unknown formats ignore strings"
+  ]
+}

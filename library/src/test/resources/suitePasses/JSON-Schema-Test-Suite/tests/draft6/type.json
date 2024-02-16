@@ -1,0 +1,104 @@
+{
+  "integer type matches integers" : [
+    "an integer is an integer",
+    "a float with zero fractional part is an integer",
+    "a float is not an integer",
+    "a string is not an integer",
+    "a string is still not an integer, even if it looks like one",
+    "an object is not an integer",
+    "an array is not an integer",
+    "a boolean is not an integer",
+    "null is not an integer"
+  ],
+  "number type matches numbers" : [
+    "an integer is a number",
+    "a float with zero fractional part is a number (and an integer)",
+    "a float is a number",
+    "a string is not a number",
+    "a string is still not a number, even if it looks like one",
+    "an object is not a number",
+    "an array is not a number",
+    "a boolean is not a number",
+    "null is not a number"
+  ],
+  "string type matches strings" : [
+    "1 is not a string",
+    "a float is not a string",
+    "a string is a string",
+    "a string is still a string, even if it looks like a number",
+    "an empty string is still a string",
+    "an object is not a string",
+    "an array is not a string",
+    "a boolean is not a string",
+    "null is not a string"
+  ],
+  "object type matches objects" : [
+    "an integer is not an object",
+    "a float is not an object",
+    "a string is not an object",
+    "an object is an object",
+    "an array is not an object",
+    "a boolean is not an object",
+    "null is not an object"
+  ],
+  "array type matches arrays" : [
+    "an integer is not an array",
+    "a float is not an array",
+    "a string is not an array",
+    "an object is not an array",
+    "an array is an array",
+    "a boolean is not an array",
+    "null is not an array"
+  ],
+  "boolean type matches booleans" : [
+    "an integer is not a boolean",
+    "zero is not a boolean",
+    "a float is not a boolean",
+    "a string is not a boolean",
+    "an empty string is not a boolean",
+    "an object is not a boolean",
+    "an array is not a boolean",
+    "true is a boolean",
+    "false is a boolean",
+    "null is not a boolean"
+  ],
+  "null type matches only the null object" : [
+    "an integer is not null",
+    "a float is not null",
+    "zero is not null",
+    "a string is not null",
+    "an empty string is not null",
+    "an object is not null",
+    "an array is not null",
+    "true is not null",
+    "false is not null",
+    "null is null"
+  ],
+  "multiple types can be specified in an array" : [
+    "an integer is valid",
+    "a string is valid",
+    "a float is invalid",
+    "an object is invalid",
+    "an array is invalid",
+    "a boolean is invalid",
+    "null is invalid"
+  ],
+  "type as array with one item" : [
+    "string is valid",
+    "number is invalid"
+  ],
+  "type: array or object" : [
+    "array is valid",
+    "object is valid",
+    "number is invalid",
+    "string is invalid",
+    "null is invalid"
+  ],
+  "type: array, object or null" : [
+    "array is valid",
+    "object is valid",
+    "null is valid",
+    "number is invalid",
+    "string is invalid"
+  ]
+}

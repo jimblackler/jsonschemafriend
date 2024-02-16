@@ -1,0 +1,15 @@
+{
+  "id inside an enum is not a real identifier" : [
+    "exact match to enum, and type matches",
+    "match $ref to id",
+    "no match on enum or $ref to id"
+  ],
+  "non-schema object containing a plain-name $id property" : [
+    "skip traversing definition for a valid result",
+    "const at const_not_anchor does not match"
+  ],
+  "non-schema object containing an $id property" : [
+    "skip traversing definition for a valid result",
+    "const at const_not_id does not match"
+  ]
+}

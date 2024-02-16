@@ -1,0 +1,12 @@
+{
+  "required validation" : [
+    "present required property is valid",
+    "non-present required property is invalid"
+  ],
+  "required default validation" : [
+    "not required by default"
+  ],
+  "required explicitly false validation" : [
+    "not required if required is false"
+  ]
+}
