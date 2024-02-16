@@ -7,6 +7,7 @@ import static org.junit.jupiter.api.DynamicTest.dynamicTest;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
@@ -35,6 +36,7 @@ public class PathUtilsTest {
     test0("^[a-zA-Z0-9_-]+$");
   }
 
+  @SuppressWarnings("SameParameterValue")
   private Collection<DynamicTest> doTest(int numberTests, int length, int minRange, int maxRange) {
     Collection<DynamicTest> allFileTests = new ArrayList<>();
     for (int idx = 0; idx != numberTests; idx++) {
@@ -81,8 +83,13 @@ public class PathUtilsTest {
     for (int idx = 0; idx != length; idx++) {
       stringBuilder.append((char) (random.nextInt(maxRange - minRange) + minRange));
     }
-    // We don't aim to handle strings that won't survive URL encoding with standard methods.
-    String urlEncoded = URLEncoder.encode(stringBuilder.toString());
-    return URLDecoder.decode(urlEncoded);
+
+    try {
+      // We don't aim to handle strings that won't survive URL encoding with standard methods.
+      String urlEncoded = URLEncoder.encode(stringBuilder.toString(), "utf-8");
+      return URLDecoder.decode(urlEncoded, "utf-8");
+    } catch (UnsupportedEncodingException e) {
+      throw new RuntimeException(e);
+    }
   }
 }
