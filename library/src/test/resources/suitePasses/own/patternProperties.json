@@ -1,0 +1,19 @@
+{
+  "patternProperties validates properties matching a regex" : [
+    "Data: {ab=1}",
+    "Data: {ac=1}",
+    "Data: {ab=1}",
+    "Data: {ac=1}"
+  ],
+  "Empty patternProperties" : [
+    "Data: {ab=1}",
+    "Data: {ab=x}"
+  ],
+  "patternProperties vs properties" : [
+    "Data: {a=true}",
+    "Data: {a=x}",
+    "Data: {a=x}",
+    "Data: {b=x}",
+    "Data: {b=true}"
+  ]
+}

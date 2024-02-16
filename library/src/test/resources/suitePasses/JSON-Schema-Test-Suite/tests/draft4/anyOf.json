@@ -1,0 +1,27 @@
+{
+  "anyOf" : [
+    "first anyOf valid",
+    "second anyOf valid",
+    "both anyOf valid",
+    "neither anyOf valid"
+  ],
+  "anyOf with base schema" : [
+    "mismatch base schema",
+    "one anyOf valid",
+    "both anyOf invalid"
+  ],
+  "anyOf complex types" : [
+    "first anyOf valid (complex)",
+    "second anyOf valid (complex)",
+    "both anyOf valid (complex)",
+    "neither anyOf valid (complex)"
+  ],
+  "anyOf with one empty schema" : [
+    "string is valid",
+    "number is valid"
+  ],
+  "nested anyOf, to check validation semantics" : [
+    "null is valid",
+    "anything non-null is invalid"
+  ]
+}

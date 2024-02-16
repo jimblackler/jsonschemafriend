@@ -1,0 +1,23 @@
+{
+  "Integer type check" : [
+    "Data: -1",
+    "Data: 0",
+    "Data: 1",
+    "Data: 1.5",
+    "Data: 1.0",
+    "Data: 5",
+    "Data: null",
+    "Data: {}",
+    "Data: []",
+    "Data: [4]"
+  ],
+  "String type check" : [
+    "Data: ",
+    "Data: 0",
+    "Data: 0",
+    "Data: []",
+    "Data: [a]",
+    "Data: {}",
+    "Data: null"
+  ]
+}

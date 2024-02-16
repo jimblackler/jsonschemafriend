@@ -1,0 +1,26 @@
+{
+  "dependencies" : [
+    "neither",
+    "nondependant",
+    "with dependency",
+    "missing dependency",
+    "ignores arrays",
+    "ignores strings",
+    "ignores other non-objects"
+  ],
+  "multiple dependencies" : [
+    "neither",
+    "nondependants",
+    "with dependencies",
+    "missing dependency",
+    "missing other dependency",
+    "missing both dependencies"
+  ],
+  "multiple dependencies subschema" : [
+    "valid",
+    "no dependency",
+    "wrong type",
+    "wrong type other",
+    "wrong type both"
+  ]
+}

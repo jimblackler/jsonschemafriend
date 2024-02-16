@@ -1,0 +1,28 @@
+{
+  "Minimum" : [
+    "Data: 4",
+    "Data: 4.9",
+    "Data: 5",
+    "Data: 5.5",
+    "Data: 6",
+    "Only cause numbers to fail",
+    "Only cause numbers to fail",
+    "Only cause numbers to fail",
+    "Only cause numbers to fail"
+  ],
+  "Multiple of" : [
+    "Data: -5",
+    "Data: 5",
+    "Data: 6",
+    "Data: 10",
+    "Data: 5.0"
+  ],
+  "Multiple of, non-integer" : [
+    "Data: 1.1",
+    "Data: 2",
+    "Data: 2.2",
+    "Data: 2.3",
+    "Data: -1.1",
+    "Data: -2.2"
+  ]
+}

@@ -1,0 +1,30 @@
+{
+  "not" : [
+    "allowed",
+    "disallowed"
+  ],
+  "not multiple types" : [
+    "valid",
+    "mismatch",
+    "other mismatch"
+  ],
+  "not more complex schema" : [
+    "match",
+    "other match",
+    "mismatch"
+  ],
+  "forbidden property" : [
+    "property present",
+    "property absent"
+  ],
+  "not with boolean schema true" : [
+    "any value is invalid"
+  ],
+  "not with boolean schema false" : [
+    "any value is valid"
+  ],
+  "collect annotations inside a 'not', even if collection is disabled" : [
+    "unevaluated property",
+    "annotations are still collected inside a 'not'"
+  ]
+}

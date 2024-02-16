@@ -1,0 +1,122 @@
+{
+  "unevaluatedItems true" : [
+    "with no unevaluated items",
+    "with unevaluated items"
+  ],
+  "unevaluatedItems false" : [
+    "with no unevaluated items",
+    "with unevaluated items"
+  ],
+  "unevaluatedItems as schema" : [
+    "with no unevaluated items",
+    "with valid unevaluated items",
+    "with invalid unevaluated items"
+  ],
+  "unevaluatedItems with uniform items" : [
+    "unevaluatedItems doesn't apply"
+  ],
+  "unevaluatedItems with tuple" : [
+    "with no unevaluated items",
+    "with unevaluated items"
+  ],
+  "unevaluatedItems with items and prefixItems" : [
+    "unevaluatedItems doesn't apply"
+  ],
+  "unevaluatedItems with items" : [
+    "valid under items",
+    "invalid under items"
+  ],
+  "unevaluatedItems with nested tuple" : [
+    "with no unevaluated items",
+    "with unevaluated items"
+  ],
+  "unevaluatedItems with nested items" : [
+    "with only (valid) additional items",
+    "with no additional items",
+    "with invalid additional item"
+  ],
+  "unevaluatedItems with nested prefixItems and items" : [
+    "with no additional items",
+    "with additional items"
+  ],
+  "unevaluatedItems with nested unevaluatedItems" : [
+    "with no additional items",
+    "with additional items"
+  ],
+  "unevaluatedItems with anyOf" : [
+    "when one schema matches and has no unevaluated items",
+    "when one schema matches and has unevaluated items",
+    "when two schemas match and has no unevaluated items",
+    "when two schemas match and has unevaluated items"
+  ],
+  "unevaluatedItems with oneOf" : [
+    "with no unevaluated items",
+    "with unevaluated items"
+  ],
+  "unevaluatedItems with not" : [
+    "with unevaluated items"
+  ],
+  "unevaluatedItems with if/then/else" : [
+    "when if matches and it has no unevaluated items",
+    "when if matches and it has unevaluated items",
+    "when if doesn't match and it has no unevaluated items",
+    "when if doesn't match and it has unevaluated items"
+  ],
+  "unevaluatedItems with boolean schemas" : [
+    "with no unevaluated items",
+    "with unevaluated items"
+  ],
+  "unevaluatedItems with $ref" : [
+    "with no unevaluated items",
+    "with unevaluated items"
+  ],
+  "unevaluatedItems before $ref" : [
+    "with no unevaluated items",
+    "with unevaluated items"
+  ],
+  "unevaluatedItems with $dynamicRef" : [
+    "with no unevaluated items",
+    "with unevaluated items"
+  ],
+  "unevaluatedItems can't see inside cousins" : [
+    "always fails"
+  ],
+  "item is evaluated in an uncle schema to unevaluatedItems" : [
+    "no extra items",
+    "uncle keyword evaluation is not significant"
+  ],
+  "unevaluatedItems depends on adjacent contains" : [
+    "second item is evaluated by contains",
+    "contains fails, second item is not evaluated",
+    "contains passes, second item is not evaluated"
+  ],
+  "unevaluatedItems depends on multiple nested contains" : [
+    "5 not evaluated, passes unevaluatedItems",
+    "7 not evaluated, fails unevaluatedItems"
+  ],
+  "unevaluatedItems and contains interact to control item dependency relationship" : [
+    "empty array is valid",
+    "only a's are valid",
+    "a's and b's are valid",
+    "a's, b's and c's are valid",
+    "only b's are invalid",
+    "only c's are invalid",
+    "only b's and c's are invalid",
+    "only a's and c's are invalid"
+  ],
+  "non-array instances are valid" : [
+    "ignores booleans",
+    "ignores integers",
+    "ignores floats",
+    "ignores objects",
+    "ignores strings",
+    "ignores null"
+  ],
+  "unevaluatedItems with null instance elements" : [
+    "allows null elements"
+  ],
+  "unevaluatedItems can see annotations from if without then and else" : [
+    "valid in case if is evaluated",
+    "invalid in case if is evaluated"
+  ]
+}

@@ -1,0 +1,32 @@
+{
+  "additionalProperties being false does not allow other properties" : [
+    "no additional properties is valid",
+    "an additional property is invalid",
+    "ignores arrays",
+    "ignores strings",
+    "ignores other non-objects",
+    "patternProperties are not additional properties"
+  ],
+  "non-ASCII pattern with additionalProperties" : [
+    "matching the pattern is valid",
+    "not matching the pattern is invalid"
+  ],
+  "additionalProperties with schema" : [
+    "no additional properties is valid",
+    "an additional valid property is valid",
+    "an additional invalid property is invalid"
+  ],
+  "additionalProperties can exist by itself" : [
+    "an additional valid property is valid",
+    "an additional invalid property is invalid"
+  ],
+  "additionalProperties are allowed by default" : [
+    "additional properties are allowed"
+  ],
+  "additionalProperties does not look in applicators" : [
+    "properties defined in allOf are not examined"
+  ],
+  "additionalProperties with null valued instance properties" : [
+    "allows null values"
+  ]
+}

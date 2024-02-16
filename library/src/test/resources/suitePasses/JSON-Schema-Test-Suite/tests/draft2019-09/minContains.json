@@ -1,0 +1,46 @@
+{
+  "minContains without contains is ignored" : [
+    "one item valid against lone minContains",
+    "zero items still valid against lone minContains"
+  ],
+  "minContains=1 with contains" : [
+    "empty data",
+    "no elements match",
+    "single element matches, valid minContains",
+    "some elements match, valid minContains",
+    "all elements match, valid minContains"
+  ],
+  "minContains=2 with contains" : [
+    "empty data",
+    "all elements match, invalid minContains",
+    "some elements match, invalid minContains",
+    "all elements match, valid minContains (exactly as needed)",
+    "all elements match, valid minContains (more than needed)",
+    "some elements match, valid minContains"
+  ],
+  "minContains=2 with contains with a decimal value" : [
+    "one element matches, invalid minContains",
+    "both elements match, valid minContains"
+  ],
+  "maxContains = minContains" : [
+    "empty data",
+    "all elements match, invalid minContains",
+    "all elements match, invalid maxContains",
+    "all elements match, valid maxContains and minContains"
+  ],
+  "maxContains < minContains" : [
+    "empty data",
+    "invalid minContains",
+    "invalid maxContains",
+    "invalid maxContains and minContains"
+  ],
+  "minContains = 0 with no maxContains" : [
+    "empty data",
+    "minContains = 0 makes contains always pass"
+  ],
+  "minContains = 0 with maxContains" : [
+    "empty data",
+    "not more than maxContains",
+    "too many"
+  ]
+}

@@ -1,0 +1,18 @@
+{
+  "extends" : [
+    "extends",
+    "mismatch extends",
+    "mismatch extended",
+    "wrong type"
+  ],
+  "multiple extends" : [
+    "valid",
+    "mismatch first extends",
+    "mismatch second extends",
+    "mismatch both"
+  ],
+  "extends simple types" : [
+    "valid",
+    "mismatch extends"
+  ]
+}

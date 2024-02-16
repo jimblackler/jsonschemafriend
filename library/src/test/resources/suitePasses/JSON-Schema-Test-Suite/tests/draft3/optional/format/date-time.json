@@ -1,0 +1,10 @@
+{
+  "validation of date-time strings" : [
+    "a valid date-time string",
+    "an invalid date-time string",
+    "case-insensitive T and Z",
+    "only RFC3339 not all of ISO 8601 are valid",
+    "invalid non-padded month dates",
+    "invalid non-padded day dates"
+  ]
+}

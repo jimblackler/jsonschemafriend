@@ -1,0 +1,10 @@
+{
+  "schema that uses custom metaschema with with no validation vocabulary" : [
+    "applicator vocabulary still works",
+    "no validation: valid number"
+  ],
+  "ignore unrecognized optional vocabulary" : [
+    "string value",
+    "number value"
+  ]
+}

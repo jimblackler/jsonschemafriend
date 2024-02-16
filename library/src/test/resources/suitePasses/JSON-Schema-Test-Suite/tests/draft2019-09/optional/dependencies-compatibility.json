@@ -1,0 +1,52 @@
+{
+  "single dependency" : [
+    "neither",
+    "nondependant",
+    "with dependency",
+    "missing dependency",
+    "ignores arrays",
+    "ignores strings",
+    "ignores other non-objects"
+  ],
+  "empty dependents" : [
+    "empty object",
+    "object with one property",
+    "non-object is valid"
+  ],
+  "multiple dependents required" : [
+    "neither",
+    "nondependants",
+    "with dependencies",
+    "missing dependency",
+    "missing other dependency",
+    "missing both dependencies"
+  ],
+  "dependencies with escaped characters" : [
+    "CRLF",
+    "quoted quotes",
+    "CRLF missing dependent",
+    "quoted quotes missing dependent"
+  ],
+  "single schema dependency" : [
+    "valid",
+    "no dependency",
+    "wrong type",
+    "wrong type other",
+    "wrong type both",
+    "ignores arrays",
+    "ignores strings",
+    "ignores other non-objects"
+  ],
+  "boolean subschemas" : [
+    "object with property having schema true is valid",
+    "object with property having schema false is invalid",
+    "object with both properties is invalid",
+    "empty object is valid"
+  ],
+  "schema dependencies with escaped characters" : [
+    "quoted tab",
+    "quoted quote",
+    "quoted tab invalid under dependent schema",
+    "quoted quote invalid under dependent schema"
+  ]
+}

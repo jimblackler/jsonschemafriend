@@ -1,0 +1,25 @@
+{
+  "integer" : [
+    "a bignum is an integer",
+    "a negative bignum is an integer"
+  ],
+  "number" : [
+    "a bignum is a number",
+    "a negative bignum is a number"
+  ],
+  "string" : [
+    "a bignum is not a string"
+  ],
+  "maximum integer comparison" : [
+    "comparison works for high numbers"
+  ],
+  "float comparison with high precision" : [
+    "comparison works for high numbers"
+  ],
+  "minimum integer comparison" : [
+    "comparison works for very negative numbers"
+  ],
+  "float comparison with high precision on negative numbers" : [
+    "comparison works for very negative numbers"
+  ]
+}

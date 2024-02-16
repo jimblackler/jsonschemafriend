@@ -1,0 +1,17 @@
+{
+  "minimum validation" : [
+    "above the minimum is valid",
+    "boundary point is valid",
+    "below the minimum is invalid",
+    "ignores non-numbers"
+  ],
+  "minimum validation with signed integer" : [
+    "negative above the minimum is valid",
+    "positive above the minimum is valid",
+    "boundary point is valid",
+    "boundary point with float is valid",
+    "float below the minimum is invalid",
+    "int below the minimum is invalid",
+    "ignores non-numbers"
+  ]
+}

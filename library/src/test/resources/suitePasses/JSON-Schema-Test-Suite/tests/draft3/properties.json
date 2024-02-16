@@ -1,0 +1,23 @@
+{
+  "object properties validation" : [
+    "both properties present and valid is valid",
+    "one property invalid is invalid",
+    "both properties invalid is invalid",
+    "doesn't invalidate other properties",
+    "ignores arrays",
+    "ignores other non-objects"
+  ],
+  "properties, patternProperties, additionalProperties interaction" : [
+    "property validates property",
+    "property invalidates property",
+    "patternProperty invalidates property",
+    "patternProperty validates nonproperty",
+    "patternProperty invalidates nonproperty",
+    "additionalProperty ignores property",
+    "additionalProperty validates others",
+    "additionalProperty invalidates others"
+  ],
+  "properties with null valued instance properties" : [
+    "allows null values"
+  ]
+}

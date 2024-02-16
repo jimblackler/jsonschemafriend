@@ -1,0 +1,42 @@
+{
+  "object properties validation" : [
+    "both properties present and valid is valid",
+    "one property invalid is invalid",
+    "both properties invalid is invalid",
+    "doesn't invalidate other properties",
+    "ignores arrays",
+    "ignores other non-objects"
+  ],
+  "properties, patternProperties, additionalProperties interaction" : [
+    "property validates property",
+    "property invalidates property",
+    "patternProperty invalidates property",
+    "patternProperty validates nonproperty",
+    "patternProperty invalidates nonproperty",
+    "additionalProperty ignores property",
+    "additionalProperty validates others",
+    "additionalProperty invalidates others"
+  ],
+  "properties with boolean schema" : [
+    "no property present is valid",
+    "only 'true' property present is valid",
+    "only 'false' property present is invalid",
+    "both properties present is invalid"
+  ],
+  "properties with escaped characters" : [
+    "object with all numbers is valid",
+    "object with strings is invalid"
+  ],
+  "properties with null valued instance properties" : [
+    "allows null values"
+  ],
+  "properties whose names are Javascript object property names" : [
+    "ignores arrays",
+    "ignores other non-objects",
+    "none of the properties mentioned",
+    "__proto__ not valid",
+    "toString not valid",
+    "constructor not valid",
+    "all present and valid"
+  ]
+}

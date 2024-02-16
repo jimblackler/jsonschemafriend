@@ -1,0 +1,14 @@
+{
+  "maximum validation" : [
+    "below the maximum is valid",
+    "boundary point is valid",
+    "above the maximum is invalid",
+    "ignores non-numbers"
+  ],
+  "maximum validation with unsigned integer" : [
+    "below the maximum is invalid",
+    "boundary point integer is valid",
+    "boundary point float is valid",
+    "above the maximum is invalid"
+  ]
+}

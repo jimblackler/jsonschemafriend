@@ -1,0 +1,12 @@
+{
+  "minItems validation" : [
+    "longer is valid",
+    "exact length is valid",
+    "too short is invalid",
+    "ignores non-arrays"
+  ],
+  "minItems validation with a decimal" : [
+    "longer is valid",
+    "too short is invalid"
+  ]
+}
