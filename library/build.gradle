@@ -70,7 +70,7 @@ dependencies {
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.10.2'
     testImplementation 'org.junit.jupiter:junit-jupiter-engine:5.10.2'
     testImplementation 'org.junit.jupiter:junit-jupiter-params:5.10.2'
-    testImplementation 'org.json:json:20231013'
+    testImplementation 'org.json:json:20240205'
     testImplementation 'org.hamcrest:hamcrest-core:2.2'
     testImplementation 'com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.16.1'
 }
