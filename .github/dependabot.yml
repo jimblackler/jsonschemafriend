@@ -25,3 +25,7 @@ updates:
     open-pull-requests-limit: 50
     schedule:
       interval: monthly
+    ignore:
+      - dependency-name: "org.graalvm.*:*"
+        # Stop dependabot wanting to update GraalVM, as it dropped support for Java8 in 22.0.0.
+        update-types: [ "version-update:semver-major" ]
