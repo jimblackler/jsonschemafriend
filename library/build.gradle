@@ -63,7 +63,7 @@ test {
 dependencies {
     implementation 'com.damnhandy:handy-uri-templates:2.1.8'
     implementation 'com.ibm.icu:icu4j:75.1'
-    implementation 'commons-validator:commons-validator:1.8.0'
+    implementation 'commons-validator:commons-validator:1.9.0'
     implementation 'com.fasterxml.jackson.core:jackson-databind:2.17.0'
     implementation 'org.jruby.joni:joni:2.2.1'
     implementation 'org.jsoup:jsoup:1.17.2'
