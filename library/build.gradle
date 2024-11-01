@@ -62,7 +62,7 @@ test {
 
 dependencies {
     implementation 'com.damnhandy:handy-uri-templates:2.1.8'
-    implementation 'com.ibm.icu:icu4j:75.1'
+    implementation 'com.ibm.icu:icu4j:76.1'
     implementation 'commons-validator:commons-validator:1.9.0'
     implementation 'com.fasterxml.jackson.core:jackson-databind:2.18.0'
     implementation 'org.jruby.joni:joni:2.2.1'
