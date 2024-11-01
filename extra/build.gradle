@@ -49,5 +49,5 @@ afterEvaluate {
 dependencies {
     implementation project(path: ':library')
     implementation 'org.graalvm.js:js:21.3.11'
-    implementation 'org.graalvm.sdk:graal-sdk:21.3.11'
+    implementation 'org.graalvm.sdk:graal-sdk:21.3.12'
 }
