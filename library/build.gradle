@@ -66,7 +66,7 @@ dependencies {
     implementation 'commons-validator:commons-validator:1.9.0'
     implementation 'com.fasterxml.jackson.core:jackson-databind:2.18.0'
     implementation 'org.jruby.joni:joni:2.2.1'
-    implementation 'org.jsoup:jsoup:1.18.1'
+    implementation 'org.jsoup:jsoup:1.18.2'
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.11.1'
     testImplementation 'org.junit.jupiter:junit-jupiter-engine:5.11.1'
     testImplementation 'org.junit.jupiter:junit-jupiter-params:5.11.0'
